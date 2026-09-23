@@ -2,7 +2,8 @@ body {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background-color: #ffffff;
+    background-color: #000;
+    color: #fff;
 }
 #myvideo {
     position: absolute;
@@ -21,6 +22,14 @@ canvas {
     width:100vw;
     height: 100vh;
     object-fit: contain;
+}
+#athenaStatue{
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translate(-50%, 0);
+    top: 0;
+    z-index: 40000;
 }
 
 /* Video prediction canvas – behind drawings */
@@ -54,13 +63,34 @@ canvas {
 }
 
 .letter {
-    width: 256px;
-    height: 256px;
+    width: 512px;
+    height: 512px;
     background-size: cover;
-    left: 0px;
-    top: 0px;
     z-index: 3;
-    display: inline-block;
+    position: absolute;
+    inset: 0;
+    display: block;
+    transform: translateY(0);
+    transition: transform 800ms cubic-bezier(.2,.75,.25,1);
+}
+
+.letter-slot {
+    position: relative;
+    width: 512px;
+    height: 512px;
+    overflow: hidden;
+}
+
+.letter-incoming {
+    transform: translateY(-100%);
+}
+
+.letter-exiting {
+    transform: translateY(100%);
+}
+
+.letter-entering {
+    transform: translateY(0);
 }
 
 .letterA {
@@ -85,4 +115,15 @@ canvas {
 
 .letterA {
     background-image: url('../assets/A.svg');
+}
+
+.container{
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 150px;
+    row-gap: 25px;
 }

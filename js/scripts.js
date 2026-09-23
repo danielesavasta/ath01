@@ -14,6 +14,16 @@ const closeImg = new Image();
 closeImg.src = 'assets/closeHand.svg'; // adjust path if needed
 
 let isVideoRunning = false;
+let handAnimationTriggered = false;
+
+const letterAssets = {
+    '🦉': 'owl.svg',
+    '🥚': 'egg.svg',
+    '🦅': 'eagle.svg',
+    '🦊': 'fox.svg',
+    '🦥': 'sloth.svg',
+    '🦫': 'beaver.svg',
+};
 
 // MediaPipe Hands configuration
 const hands = new Hands({
@@ -52,6 +62,11 @@ function onResults(results) {
     // Clear canvases each frame
     canvasCtx.clearRect(0, 0, width, height);
     drawingCtx.clearRect(0, 0, width, height);
+
+    if (results.multiHandLandmarks?.length && !handAnimationTriggered) {
+        handAnimationTriggered = true;
+        animateLetters("🦉🥚🦅🦊🦥🦫");
+    }
 
     // Prepare string for hand info display
     const handInfos = [];
@@ -146,3 +161,89 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
 } else {
     updatenote.innerText = 'Webcam not supported.';
 }
+
+const letters = ['A', 'T', 'H', 'E', 'N', 'A']; // Add more letters as needed
+
+// Animate letter the backgrond should slide downwards and a new letter should appear from top of the screen.
+// The letter should be randomly selected from a set of letters.
+// The letters are in svg format and are stored in the assets folder.
+// Each letter is identified by .letter class.
+// Among the 6 visible letters the current letter and the target letter should be saved. The in-between transition letters should be randomly selected from the set of letters.
+// The letter should be displayed for a few seconds before sliding down and being replaced by a new letter.
+
+function getRandomLetter() {
+    const randomIndex = Math.floor(Math.random() * letters.length);
+    return letters[randomIndex];
+}
+
+function createLetterElement(letter) {
+    const slot = document.createElement('div');
+    slot.classList.add('letter-slot');
+
+    const letterElement = document.createElement('div');
+    letterElement.classList.add('letter', `letter${letter}`);
+    letterElement.dataset.letter = letter;
+
+    if (letterAssets[letter]) {
+        letterElement.style.backgroundImage = `url('assets/${letterAssets[letter]}')`;
+    }
+
+    slot.appendChild(letterElement);
+    return slot;
+}
+
+function createLetters(){
+    const container = document.querySelector('.container');
+    if (!container) return;
+
+    for(let i = 0; i < letters.length; i++){
+        const letter = letters[i];
+        const letterElement = createLetterElement(letter);
+        container.appendChild(letterElement);
+    }
+}
+
+function animateLetters(targetWord) {
+    const container = document.querySelector('.container');
+    if (!container || typeof targetWord !== 'string') return;
+
+    const targetLetters = Array.from(targetWord.toUpperCase());
+    const slots = Array.from(container.querySelectorAll('.letter-slot'));
+    const currentSlots = slots.length === letters.length
+        ? slots
+        : Array.from(container.children).map((element) => {
+            const slot = document.createElement('div');
+            slot.className = 'letter-slot';
+            element.parentNode.insertBefore(slot, element);
+            slot.appendChild(element);
+            return slot;
+        });
+
+    currentSlots.slice(0, letters.length).forEach((slot, index) => {
+        const currentLetterElement = slot.querySelector('.letter');
+        const targetLetter = targetLetters[index] || getRandomLetter();
+        if (!currentLetterElement) return;
+
+        const incomingLetterElement = createLetterElement(targetLetter).firstElementChild;
+        incomingLetterElement.classList.add('letter-incoming');
+        slot.appendChild(incomingLetterElement);
+
+        const delay = 2000 * index;
+        setTimeout(() => {
+            currentLetterElement.classList.add('letter-exiting');
+            incomingLetterElement.classList.add('letter-entering');
+        }, delay);
+
+        setTimeout(() => {
+            currentLetterElement.remove();
+            incomingLetterElement.classList.remove('letter-incoming', 'letter-entering');
+        }, delay + 900);
+    });
+
+    return currentSlots;
+}
+
+function startLetterAnimation() {
+    animateLetters(letters.join(''));
+}
+
