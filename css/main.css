@@ -1,0 +1,88 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #ffffff;
+}
+#myvideo {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width:100vw;
+    height: 100vh;
+    object-fit: cover;
+    display: none;
+}
+/* Base canvas style – keep positioning but allow z-index to be overridden */
+canvas {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width:100vw;
+    height: 100vh;
+    object-fit: contain;
+}
+
+/* Video prediction canvas – behind drawings */
+#canvas {
+    z-index: 0;
+}
+
+/* Drawing canvas – above the predictions */
+#drawing {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+}
+
+#updatenote {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width:100vw;
+    height: 10px;
+    object-fit: cover;
+    font-family: Verdana, sans-serif;
+    font-size: 7px;
+    text-transform: uppercase;
+    z-index: 2;
+    letter-spacing: 1px;
+    text-align: right;
+}
+
+.letter {
+    width: 256px;
+    height: 256px;
+    background-size: cover;
+    left: 0px;
+    top: 0px;
+    z-index: 3;
+    display: inline-block;
+}
+
+.letterA {
+    background-image: url('../assets/A.svg');
+}
+
+.letterT {
+    background-image: url('../assets/T.svg');
+}
+
+.letterH {
+    background-image: url('../assets/H.svg');
+}
+
+.letterE {
+    background-image: url('../assets/E.svg');
+}
+
+.letterN {
+    background-image: url('../assets/N.svg');
+}
+
+.letterA {
+    background-image: url('../assets/A.svg');
+}

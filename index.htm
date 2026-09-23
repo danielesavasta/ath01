@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title></title>
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="icon" href="images/favicon.png" />
+
+  </head>
+
+  <body>
+    <div class="container">
+  <div class="letter letterA"></div>
+  <div class="letter letterT"></div>
+  <div class="letter letterH"></div>
+  <div class="letter letterE"></div>
+  <div class="letter letterN"></div>
+  <div class="letter letterA"></div>
+</div>
+
+    <div id="updatenote" class="updatenote mt10"> loading model ..</div>
+
+  <video class="videobox canvasbox" autoplay="autoplay" id="myvideo"></video>
+  <canvas id="canvas" class="border canvasbox"></canvas>
+    <canvas id="drawing"></canvas>
+
+      <!-- MediaPipe Hands Library -->
+      <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="js/scripts.js"></script>
+  </body>
+</html>
