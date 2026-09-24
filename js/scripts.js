@@ -217,10 +217,7 @@ function onResults(results) {
     canvasCtx.clearRect(0, 0, width, height);
     fitDrawingCanvas();
 
-    if (results.multiHandLandmarks?.length && !handAnimationTriggered) {
-        handAnimationTriggered = true;
-        animateLetters("🦉🥚🦅🦊🦥🦫");
-    }
+    // The letters react to hands in js/sections.js: a hand over a letter rolls it to its section's icon.
 
     const map = frameRect();
     const s = Math.max(map.w / width, map.h / height);            // camera px -> screen px (cover)
