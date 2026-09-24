@@ -16,7 +16,8 @@
     const DEFAULTS = {
         statueImage: true,
         mask: { on: false, points: [[905, 150], [830, 380], [848, 520], [719, 600], [701, 1080], [1226, 1080], [1238, 920],
-                                    [1200, 700], [1138, 580], [1008, 540], [1063, 420], [1048, 260], [990, 150]] },
+                                    [1200, 700], [1138, 580], [1008, 540], [1063, 420], [1048, 260], [990, 150]],
+                light: { on: false, color: '#fff1dc', level: 0.55, soft: 12, slope: 0.3 } },
         camera: { zoom: 1, cx: 0.5, cy: 0.5 },
         detect: { confidence: 0.6, upOnly: 70 }
     };
@@ -41,9 +42,12 @@
         for (const f of listeners) { try { f(S); } catch (e) { console.error(e); } }
     }
 
-    // ───────────── on the page: statue photo and mask ─────────────
+    // ───────────── on the page: statue photo, mask and the light on the statue ─────────────
+    // The mask is a black shape (nothing is projected onto the statue). With the light on, the same shape
+    // is also filled with light, so the projector lights the statue: a colour, a brightness, a softened
+    // edge and optionally brighter at the top or the bottom.
     const SVGNS = 'http://www.w3.org/2000/svg';
-    let maskSvg = null, maskPoly = null;
+    let maskSvg = null, maskPoly = null, lightPoly = null;
     function frameRect() {
         const u = Math.min(innerWidth / FRAME_W, innerHeight / FRAME_H);
         return { x: (innerWidth - FRAME_W * u) / 2, y: (innerHeight - FRAME_H * u) / 2, u };
@@ -56,12 +60,25 @@
             maskSvg.id = 'venueMask';
             maskSvg.setAttribute('viewBox', `0 0 ${FRAME_W} ${FRAME_H}`);
             maskSvg.setAttribute('preserveAspectRatio', 'none');
-            maskPoly = document.createElementNS(SVGNS, 'polygon');
-            maskSvg.appendChild(maskPoly);
+            maskSvg.innerHTML = `<defs>
+                <linearGradient id="vmLight" x1="0" y1="0" x2="0" y2="1"><stop offset="0"/><stop offset="1"/></linearGradient>
+                <filter id="vmSoft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="0"/></filter>
+              </defs><polygon class="vm-base"/><polygon class="vm-light" fill="url(#vmLight)" filter="url(#vmSoft)"/>`;
+            maskPoly = maskSvg.querySelector('.vm-base');
+            lightPoly = maskSvg.querySelector('.vm-light');
             document.body.appendChild(maskSvg);
         }
-        maskPoly.setAttribute('points', S.mask.points.map((p) => p.join(',')).join(' '));
-        maskSvg.style.display = S.mask.on ? '' : 'none';
+        const pts = S.mask.points.map((p) => p.join(',')).join(' ');
+        maskPoly.setAttribute('points', pts);
+        lightPoly.setAttribute('points', pts);
+        const L = S.mask.light;
+        const top = L.level * (L.slope >= 0 ? 1 : 1 + L.slope), bottom = L.level * (L.slope >= 0 ? 1 - L.slope : 1);
+        const stops = maskSvg.querySelectorAll('#vmLight stop');
+        stops[0].setAttribute('stop-color', L.color); stops[0].setAttribute('stop-opacity', top.toFixed(3));
+        stops[1].setAttribute('stop-color', L.color); stops[1].setAttribute('stop-opacity', bottom.toFixed(3));
+        maskSvg.querySelector('#vmSoft feGaussianBlur').setAttribute('stdDeviation', (L.soft / 2).toFixed(1));
+        lightPoly.style.display = L.on ? '' : 'none';
+        maskSvg.style.display = S.mask.on || L.on ? '' : 'none';
     }
 
     window.VENUE = {
@@ -93,6 +110,13 @@
             <div class="vs-tabs"><button data-tab="mask">Heykel maskesi</button><button data-tab="camera">Kamera</button></div>
             <div class="vs-body" data-for="mask">
               <label><input type="checkbox" data-k="maskOn"> Maske açık: heykelin üstü siyah, oraya hiçbir şey yansımaz</label>
+              <label><input type="checkbox" data-k="lightOn"> Heykeli projektörle aydınlat (maskenin içi ışık olur)</label>
+              <div class="vs-light">
+                <label class="vs-color">Işığın rengi <input type="color" data-k="lightColor"></label>
+                <label class="vs-slider">Parlaklık <output data-o="level"></output><input type="range" min="0.05" max="1" step="0.01" data-k="level"></label>
+                <label class="vs-slider">Kenar yumuşaklığı <output data-o="soft"></output><input type="range" min="0" max="120" step="2" data-k="soft"></label>
+                <label class="vs-slider">Yön <output data-o="slope"></output><input type="range" min="-1" max="1" step="0.05" data-k="slope"></label>
+              </div>
               <label><input type="checkbox" data-k="statueImage"> Heykel fotoğrafı görünsün (sadece çalışırken)</label>
               <p>Noktaları sürükle. Kenarın üstüne çift tıkla: yeni nokta. Noktaya sağ tıkla: sil.</p>
               <button data-act="statueShape">Fotoğraftaki heykelin şekline dön</button>
@@ -117,8 +141,11 @@
             ui.addEventListener(t, (e) => e.stopPropagation());
         ui.querySelectorAll('.vs-tabs button').forEach((b) => b.addEventListener('click', () => { tab = b.dataset.tab; refresh(); }));
         ui.querySelectorAll('input').forEach((inp) => inp.addEventListener('input', () => {
-            const k = inp.dataset.k, v = inp.type === 'checkbox' ? inp.checked : parseFloat(inp.value);
+            const k = inp.dataset.k, v = inp.type === 'checkbox' ? inp.checked : inp.type === 'color' ? inp.value : parseFloat(inp.value);
             if (k === 'maskOn') S.mask.on = v;
+            else if (k === 'lightOn') S.mask.light.on = v;
+            else if (k === 'lightColor') S.mask.light.color = v;
+            else if (k === 'level' || k === 'soft' || k === 'slope') S.mask.light[k] = v;
             else if (k === 'statueImage') S.statueImage = v;
             else if (k === 'zoom') { S.camera.zoom = v; clampCamera(); }
             else S.detect[k] = v;
@@ -145,6 +172,14 @@
         ui.querySelectorAll('.vs-body').forEach((b) => { b.hidden = b.dataset.for !== tab; });
         const set = (k, v) => { const i = ui.querySelector(`input[data-k="${k}"]`); if (i.type === 'checkbox') i.checked = v; else i.value = v; };
         set('maskOn', S.mask.on); set('statueImage', S.statueImage);
+        const L = S.mask.light;
+        set('lightOn', L.on); set('lightColor', L.color); set('level', L.level); set('soft', L.soft); set('slope', L.slope);
+        ui.querySelector('.vs-light').hidden = !L.on;
+        ui.classList.toggle('lit', L.on);   // show the light itself while adjusting it: outline only
+        ui.querySelector('[data-o="level"]').textContent = Math.round(L.level * 100) + '%';
+        ui.querySelector('[data-o="soft"]').textContent = L.soft + ' px';
+        ui.querySelector('[data-o="slope"]').textContent = Math.abs(L.slope) < 0.03 ? 'her yer eşit'
+            : (L.slope > 0 ? 'üstten, alt %' : 'alttan, üst %') + Math.round((1 - Math.abs(L.slope)) * 100);
         set('zoom', S.camera.zoom); set('confidence', S.detect.confidence); set('upOnly', S.detect.upOnly);
         ui.querySelector('[data-o="zoom"]').textContent = S.camera.zoom.toFixed(2) + '×';
         ui.querySelector('[data-o="confidence"]').textContent = S.detect.confidence.toFixed(2);
@@ -288,7 +323,8 @@ window.VENUE_FILE = {
   statueImage: ${S.statueImage},
   mask: {
     on: ${S.mask.on},
-    points: [${pts}]
+    points: [${pts}],
+    light: { on: ${S.mask.light.on}, color: '${S.mask.light.color}', level: ${S.mask.light.level}, soft: ${S.mask.light.soft}, slope: ${S.mask.light.slope} }
   },
   camera: { zoom: ${+S.camera.zoom.toFixed(3)}, cx: ${+S.camera.cx.toFixed(4)}, cy: ${+S.camera.cy.toFixed(4)} },
   detect: { confidence: ${S.detect.confidence}, upOnly: ${S.detect.upOnly} }
