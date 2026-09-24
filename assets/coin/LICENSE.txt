@@ -1,0 +1,11 @@
+Model Information:
+* title:	An Athenian tetradrachm
+* source:	https://sketchfab.com/3d-models/an-athenian-tetradrachm-1455a9bab790415dab49536734c2ea38
+* author:	Classics and Ancient History at Warwick (https://sketchfab.com/warwickclassics)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "An Athenian tetradrachm" (https://sketchfab.com/3d-models/an-athenian-tetradrachm-1455a9bab790415dab49536734c2ea38) by Classics and Ancient History at Warwick (https://sketchfab.com/warwickclassics) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

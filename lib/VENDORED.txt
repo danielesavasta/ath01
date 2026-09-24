@@ -1,0 +1,3 @@
+Vendored so the installation runs offline.
+three.js r169 (MIT) — build + the four addons used by js/coin/coin.js
+cannon-es 0.20.0 (MIT)

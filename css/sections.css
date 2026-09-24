@@ -1,0 +1,50 @@
+/* Sections layered on top of the letter menu (see js/sections.js) */
+
+/* owl section: full screen, under the hand icons (#drawing) and the statue */
+#coinStage{
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .6s ease, visibility 0s linear .6s;
+}
+body.section-owl #coinStage{
+    opacity: 1;
+    visibility: visible;
+    transition: opacity .6s ease;
+}
+.container{ transition: opacity .6s ease; }
+body.section-owl .container{ opacity: 0; pointer-events: none; }
+
+/* progress ring while a hand rests on the owl */
+#selectRing{
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    margin: -75px 0 0 -75px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity .2s;
+    background: conic-gradient(#F0B429 calc(var(--p, 0) * 1turn), rgba(255,255,255,.12) 0);
+    -webkit-mask: radial-gradient(circle, transparent 66px, #000 67px);
+    mask: radial-gradient(circle, transparent 66px, #000 67px);
+}
+
+/* developer controls, toggled with D */
+#coinPanel{
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    z-index: 50000;
+    background: rgba(11,11,12,.94);
+    border: 1px solid #34363A;
+    padding: 16px;
+    display: none;
+    max-height: 60vh;
+    overflow: auto;
+}
+body.show-panel #coinPanel{ display: grid; }
