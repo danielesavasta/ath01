@@ -10,6 +10,7 @@ const stage = document.getElementById("coinStage");
 const panel = document.getElementById("coinPanel");
 const statue = document.getElementById("athenaStatue");
 const ring = document.getElementById("selectRing");
+const drawing = document.getElementById("drawing");
 
 // opaque part of assets/athenaStatue.png as fractions of its width (from its alpha channel)
 const STATUE_ALPHA = [707 / 1920, 1226 / 1920];
@@ -51,10 +52,13 @@ window.addEventListener("ath:hands", (e) => {
   const { width, height, hands } = e.detail;
   const now = performance.now(), dt = Math.min(now - lastT, 100);
   lastT = now;
-  // the canvases are drawn with object-fit: contain, so map the video frame onto the viewport the same way
-  const sc = Math.min(innerWidth / width, innerHeight / height);
-  const ox = (innerWidth - width * sc) / 2, oy = (innerHeight - height * sc) / 2;
-  const pts = hands.map((h) => ({ px: ox + h.x * width * sc, py: oy + h.y * height * sc, open: h.open }));
+  // map the camera frame onto the viewport the same way the hand icons are drawn (object-fit of #drawing)
+  const fit = getComputedStyle(drawing).objectFit;
+  const sx = innerWidth / width, sy = innerHeight / height;
+  const sc = fit === "cover" ? Math.max(sx, sy) : Math.min(sx, sy);
+  const kx = fit === "fill" ? sx : sc, ky = fit === "fill" ? sy : sc;
+  const ox = (innerWidth - width * kx) / 2, oy = (innerHeight - height * ky) / 2;
+  const pts = hands.map((h) => ({ px: ox + h.x * width * kx, py: oy + h.y * height * ky, open: h.open }));
 
   if (section === "owl"){
     const s = stage.getBoundingClientRect();

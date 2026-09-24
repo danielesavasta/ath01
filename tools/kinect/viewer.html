@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kinect görüntüsü</title>
+<style>
+  body{margin:0;background:#0b0b0c;color:#E3D8C3;font:14px/1.5 "Helvetica Neue",Arial,sans-serif}
+  .wrap{max-width:1360px;margin:0 auto;padding:20px}
+  h1{font:600 18px/1.2 "Arial Black",Arial,sans-serif;margin:0 0 4px}
+  p{color:#8A8D93;margin:0 0 16px;max-width:70ch}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+  figure{margin:0;border:1px solid #34363A;background:#000}
+  canvas{display:block;width:100%;aspect-ratio:4/3}
+  figcaption{display:flex;justify-content:space-between;padding:8px 10px;font-size:11px;letter-spacing:.14em;color:#8A8D93;border-top:1px solid #34363A}
+  figcaption b{color:#E3D8C3;font-weight:600;font-variant-numeric:tabular-nums}
+  .off{color:#E06A58}
+  code{background:#16171a;border:1px solid #34363A;padding:1px 6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Kinect görüntüsü</h1>
+  <p>Köprü çalışıyorsa (<code>.venv/bin/python bridge.py</code>) burada renkli görüntü ve derinlik görünür. Derinlikte yakın parlak, uzak koyu; siyah noktalar Kinect'in ölçemediği yerler.</p>
+  <div class="grid">
+    <figure><canvas id="rgb" width="640" height="480"></canvas><figcaption><span>RENK</span><span id="rgbInfo" class="off">bağlanıyor…</span></figcaption></figure>
+    <figure><canvas id="depth" width="640" height="480"></canvas><figcaption><span>DERİNLİK</span><span id="depthInfo" class="off">bağlanıyor…</span></figcaption></figure>
+  </div>
+</div>
+<script>
+function stream(kind){
+  const cv = document.getElementById(kind), ctx = cv.getContext("2d"), info = document.getElementById(kind + "Info");
+  let n = 0, t0 = performance.now();
+  function connect(){
+    const ws = new WebSocket("ws://127.0.0.1:8770/" + kind);
+    ws.binaryType = "blob";
+    ws.onopen = () => { info.className = ""; info.textContent = "bağlandı"; };
+    ws.onmessage = async (e) => {
+      const bmp = await createImageBitmap(e.data);
+      ctx.drawImage(bmp, 0, 0, cv.width, cv.height); bmp.close();
+      n++;
+      const now = performance.now();
+      if (now - t0 > 1000){ info.innerHTML = "<b>" + Math.round(n * 1000 / (now - t0)) + "</b> kare/sn"; n = 0; t0 = now; }
+    };
+    ws.onclose = () => { info.className = "off"; info.textContent = "köprü kapalı, yeniden deneniyor…"; setTimeout(connect, 1500); };
+  }
+  connect();
+}
+stream("rgb"); stream("depth");
+</script>
+</body>
+</html>
