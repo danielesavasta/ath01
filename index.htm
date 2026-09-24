@@ -7,6 +7,18 @@
 
     <title></title>
     <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="js/coin/coin.css" />
+    <link rel="stylesheet" href="css/sections.css" />
+    <!-- three.js + cannon-es, vendored in lib/ so the installation runs offline -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "./lib/three/build/three.module.min.js",
+        "three/addons/": "./lib/three/examples/jsm/",
+        "cannon-es": "./lib/cannon-es/cannon-es.js"
+      }
+    }
+    </script>
     <link rel="icon" href="images/favicon.png" />
 
   </head>
@@ -25,12 +37,16 @@
 
   <video class="videobox canvasbox" autoplay="autoplay" id="myvideo"></video>
   <canvas id="canvas" class="border canvasbox"></canvas>
+  <div id="coinStage"></div>
   <canvas id="drawing"></canvas>
 
   <img id="athenaStatue" src="assets/athenaStatue.png" />
+  <div id="selectRing"></div>
+  <div id="coinPanel"></div>
       <!-- MediaPipe Hands Library -->
       <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <script src="js/scripts.js"></script>
+    <script type="module" src="js/sections.js"></script>
   </body>
 </html>

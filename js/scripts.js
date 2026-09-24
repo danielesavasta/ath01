@@ -70,8 +70,10 @@ function onResults(results) {
 
     // Prepare string for hand info display
     const handInfos = [];
-    for (let i = 0; i < results.multiHandLandmarks.length; i++) {
-        const hand = results.multiHandLandmarks[i];
+    const handsOut = []; // shared with js/sections.js (normalised, already mirrored)
+    const handList = results.multiHandLandmarks || []; // undefined when no hand is in view
+    for (let i = 0; i < handList.length; i++) {
+        const hand = handList[i];
         // If the video is mirrored, invert x coordinates of landmarks for correct spatial logic
         const mirrorX = true; // same as flipHorizontal camera option
         const xs = hand.map(l => (mirrorX ? width - l.x * width : l.x * width));
@@ -145,6 +147,8 @@ function onResults(results) {
         drawingCtx.drawImage(img, -imgSize / 2, -imgSize / 2, imgSize, imgSize);
                 drawingCtx.restore();
 
+                handsOut.push({ x: centerX / width, y: centerY / height, open, label: handLabel });
+
                 // Store hand info
                 const xRound = Math.round(centerX);
                 const yRound = Math.round(centerY);
@@ -154,6 +158,7 @@ function onResults(results) {
         if (updatenote) {
             updatenote.innerText = handInfos.join(' ');
         }
+        window.dispatchEvent(new CustomEvent('ath:hands', { detail: { width, height, hands: handsOut } }));
 }
 
 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
