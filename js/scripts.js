@@ -44,16 +44,70 @@ const camera = new Camera(videoElement, {
     flipHorizontal: true,
 });
 
+// Camera source: the Kinect bridge (tools/kinect/bridge.py) when it is running, otherwise the webcam.
+// ?source=kinect or ?source=webcam on the URL forces one.
+const KINECT_URL = 'ws://127.0.0.1:8770/rgb';
+const frameSize = { w: 0, h: 0 }; // size of the frames MediaPipe gets from the Kinect
+
 function startCamera() {
-    camera.start();
-    isVideoRunning = true;
-    updatenote.innerText = 'Camera started. Tracking hands.';
+    const forced = new URLSearchParams(location.search).get('source');
+    if (forced === 'webcam') return startWebcam();
+    startKinect().catch(() => {
+        if (forced === 'kinect') { updatenote.innerText = 'Kinect bridge not running (tools/kinect/bridge.py).'; return; }
+        startWebcam();
+    });
+}
+
+function startWebcam() {
+    if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
+        updatenote.innerText = 'Webcam not supported.';
+        return;
+    }
+    frameSize.w = frameSize.h = 0;
+    camera.start()
+        .then(() => { isVideoRunning = true; updatenote.innerText = 'Webcam started. Tracking hands.'; })
+        .catch((e) => { updatenote.innerText = 'No camera: ' + (e && e.message ? e.message : e); });
+}
+
+function startKinect() {
+    return new Promise((resolve, reject) => {
+        const ws = new WebSocket(KINECT_URL);
+        ws.binaryType = 'blob';
+        const frame = document.createElement('canvas');
+        const fctx = frame.getContext('2d');
+        let opened = false, busy = false;
+        const timer = setTimeout(() => { if (!opened) { ws.close(); reject(); } }, 1500);
+        ws.onopen = () => {
+            opened = true; clearTimeout(timer);
+            isVideoRunning = true;
+            updatenote.innerText = 'Kinect connected. Tracking hands.';
+            resolve();
+        };
+        ws.onerror = () => { if (!opened) { clearTimeout(timer); reject(); } };
+        ws.onclose = () => { if (opened) updatenote.innerText = 'Kinect bridge stopped. Restart it and reload the page.'; };
+        ws.onmessage = async (e) => {
+            if (busy) return; // skip frames while MediaPipe is still busy with the last one
+            busy = true;
+            try {
+                const bmp = await createImageBitmap(e.data);
+                if (frame.width !== bmp.width || frame.height !== bmp.height) { frame.width = bmp.width; frame.height = bmp.height; }
+                fctx.drawImage(bmp, 0, 0);
+                bmp.close();
+                frameSize.w = frame.width; frameSize.h = frame.height;
+                await hands.send({ image: frame });
+            } catch (err) {
+                console.error(err);
+            } finally {
+                busy = false;
+            }
+        };
+    });
 }
 
 function onResults(results) {
     if (!isVideoRunning) return;
-    const width = videoElement.videoWidth;
-    const height = videoElement.videoHeight;
+    const width = frameSize.w || videoElement.videoWidth;
+    const height = frameSize.h || videoElement.videoHeight;
     canvasElement.width = width;
     canvasElement.height = height;
     drawingElement.width = width;
@@ -161,11 +215,7 @@ function onResults(results) {
         window.dispatchEvent(new CustomEvent('ath:hands', { detail: { width, height, hands: handsOut } }));
 }
 
-if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    startCamera();
-} else {
-    updatenote.innerText = 'Webcam not supported.';
-}
+startCamera();
 
 const letters = ['A', 'T', 'H', 'E', 'N', 'A']; // Add more letters as needed
 

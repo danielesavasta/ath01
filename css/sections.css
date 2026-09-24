@@ -1,5 +1,9 @@
 /* Sections layered on top of the letter menu (see js/sections.js) */
 
+/* the camera image fills the screen (cropped, not letterboxed), so hands reach the side zones.
+   js/sections.js reads this value to map hands onto the screen. */
+#canvas, #drawing{ object-fit: cover; }
+
 /* owl section: full screen, under the hand icons (#drawing) and the statue */
 #coinStage{
     position: absolute;
