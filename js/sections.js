@@ -5,12 +5,16 @@
 //           When the hand leaves, the icon rolls back to its letter.
 // Section:  a hand resting on the back button (bottom left) returns to the menu, and so does
 //           nobody interacting for T.idleReturn ms. On the way back all letters roll to read ATHENA again.
-// The mouse works like a hand, for development; a click on an icon or on the back button acts at once.
+// Language: two buttons at the bottom left of the menu (a hand rests on one to choose it). All the
+//           words come from content/texts.js. A new visitor starts in the first language again: after a
+//           section closes because nobody was there, or after T.langReset ms with no hands in the menu.
+// The mouse works like a hand, for development; a click on an icon or a button acts at once.
 //
 // Keys while developing:  O open owl section · M back to menu · D controls panel
 //                          (inside the section) Space toss · I close-up · Esc leave close-up · F flip in hand
 
 import { createCoin } from "./coin/coin.js";
+import TEXTS from "../content/texts.js";
 
 const stage = document.getElementById("coinStage");
 const panel = document.getElementById("coinPanel");
@@ -22,7 +26,9 @@ const T = {
   dwell: 1600,        // ms a hand stays on an icon (or on the back button) to choose it
   rollBack: 1200,     // ms after the hand leaves before an icon rolls back to its letter
   idleReturn: 20000,  // ms with no hands, no mouse and no coin held before a section closes itself
-  countdown: 5000     // the back button's ring shows the last part of that wait
+  countdown: 5000,    // the back button's ring shows the last part of that wait
+  langDwell: 1000,    // ms a hand rests on a language to choose it
+  langReset: 30000    // ms with no hands in the menu before the language goes back to the first one
 };
 const ROLL_MS = 850;          // a little longer than the .letter transition in main.css
 
@@ -97,8 +103,24 @@ function statueBand(){
   return [(x0 - s.left) / s.width * 2 - 1, (x1 - s.left) / s.width * 2 - 1];
 }
 
+// ───────────── languages ─────────────
+const LANGS = TEXTS.languages;
+const FIRST = LANGS[0].code;
+// a language's texts, with the first language filling any gap
+function merge(base, over){
+  if (over === undefined) return base;
+  if (typeof base !== "object" || base === null || typeof over !== "object" || over === null) return over;
+  const out = { ...base };
+  for (const k of Object.keys(over)) out[k] = merge(base[k], over[k]);
+  return out;
+}
+const textsFor = (code) => merge(TEXTS[FIRST], TEXTS[code]);
+let lang = FIRST;
+
 const coin = await createCoin({
   stage, panel, statueBand,
+  texts: textsFor(FIRST).owl,
+  stoneTexture: "assets/stone.jpg",
   model: "assets/coin/coin.glb",
   background: 0x000000,     // projection: black is "no light"
   glassOpacity: 0,          // no dust on the glass: on a projection it is stray light
@@ -111,8 +133,34 @@ const back = document.createElement("div");
 back.id = "backBtn";
 back.innerHTML = `<div class="back-ring"></div>
   <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M30 12 L18 24 L30 36" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  <span>ANA SAYFA</span>`;
+  <span class="stone-text"></span>`;
 document.body.insertBefore(back, document.getElementById("drawing"));
+
+// language buttons: bottom left of the menu
+const langBox = document.createElement("div");
+langBox.id = "langSwitch";
+for (const l of LANGS){
+  const b = document.createElement("div");
+  b.className = "lang";
+  b.dataset.lang = l.code;
+  b.innerHTML = `<div class="lang-ring"></div><b class="stone-text"></b><span></span>`;
+  b.querySelector("b").textContent = l.short;
+  b.querySelector("span").textContent = l.name;
+  langBox.appendChild(b);
+  l.el = b; l.dwell = 0;
+}
+document.body.insertBefore(langBox, document.getElementById("drawing"));
+
+function setLang(code){
+  if (!LANGS.some((l) => l.code === code)) code = FIRST;
+  lang = code;
+  const t = textsFor(code);
+  coin.setTexts(t.owl);
+  back.querySelector("span").textContent = t.menu.back;
+  document.documentElement.lang = code;
+  for (const l of LANGS){ l.el.classList.toggle("on", l.code === code); l.dwell = 0; l.el.style.setProperty("--p", 0); }
+}
+setLang(FIRST);
 
 let section = "menu", activeAt = 0;
 function openSection(name){
@@ -123,9 +171,12 @@ function openSection(name){
   document.body.classList.add("in-section", "section-owl");
   coin.start();
 }
-function closeSection(){
+// why: "back" (the button, or M) keeps the language; "idle" means the visitor has gone
+function closeSection(why = "back"){
   if (section === "menu") return;
   section = "menu";
+  activeAt = performance.now();
+  if (why === "idle") setLang(FIRST);
   document.body.classList.remove("in-section", "section-owl");
   back.style.setProperty("--p", 0);
   coin.stop();
@@ -159,6 +210,8 @@ window.addEventListener("pointerdown", (e) => {
     if (inside(back.getBoundingClientRect(), e.clientX, e.clientY, 0)) closeSection();
     return;
   }
+  const l = LANGS.find((l) => inside(l.el.getBoundingClientRect(), e.clientX, e.clientY, 0));
+  if (l){ setLang(l.code); return; }
   const s = SLOTS.find((s) => inside(s.el.getBoundingClientRect(), e.clientX, e.clientY, 0));
   if (s && s.section) openSection(s.section);
 });
@@ -182,6 +235,19 @@ function frame(now){
 }
 
 function menuFrame(now, dt, pts){
+  if (pts.some((p) => !p.mouse)) activeAt = now;
+  if (lang !== FIRST && now - activeAt > T.langReset) setLang(FIRST);
+
+  // languages: a hand resting on the other language switches to it
+  for (const l of LANGS){
+    const r = l.el.getBoundingClientRect();
+    const over = l.code !== lang && pts.some((p) => inside(r, p.px, p.py, r.width * 0.1));
+    l.dwell = over ? l.dwell + dt : Math.max(0, l.dwell - dt * 2);
+    l.el.classList.toggle("hover", over);
+    l.el.style.setProperty("--p", Math.min(l.dwell / T.langDwell, 1));
+    if (l.dwell >= T.langDwell) setLang(l.code);
+  }
+
   const pad = container.getBoundingClientRect().width * 0.02;
   let best = null;
   for (const s of SLOTS){
@@ -224,7 +290,8 @@ function sectionFrame(now, dt, pts){
   back.classList.toggle("counting", countdown > 0 && backDwell === 0);
   back.style.setProperty("--p", Math.min(Math.max(backDwell / T.dwell, countdown), 1));
 
-  if (backDwell >= T.dwell || idle >= T.idleReturn){ backDwell = 0; closeSection(); }
+  if (backDwell >= T.dwell){ backDwell = 0; closeSection("back"); }
+  else if (idle >= T.idleReturn){ backDwell = 0; closeSection("idle"); }
 }
 requestAnimationFrame(frame);
 
@@ -238,7 +305,8 @@ window.addEventListener("keydown", (e) => {
 
 // handy from the console while developing (openOwl / closeOwl kept for older notes)
 window.ath = {
-  coin, openSection, closeSection, athenaWave, slots: SLOTS, timing: T,
+  coin, openSection, closeSection, athenaWave, setLang, slots: SLOTS, timing: T,
+  get lang(){ return lang; },
   openOwl: () => openSection("owl"), closeOwl: closeSection,
   get section(){ return section; }
 };

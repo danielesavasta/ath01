@@ -133,6 +133,30 @@ const HAND_COLOURS = ['#F0B429', '#3FA08C', '#E0605A', '#5B8DEF', '#C77DDB', '#7
 let trackedHands = [];
 let nextHandId = 1;
 
+// ── Left or right ──
+// Each hand keeps the side it was given while it stays in view, wherever it moves on the screen.
+// Two clues per frame, combined in `vote` (+1 right, -1 left):
+//  · MediaPipe's own label. It assumes a mirrored (selfie) image; ours is not mirrored, so it is swapped.
+//  · The order of the knuckles: going round from the wrist, index knuckle then little-finger knuckle turn one
+//    way for a right hand and the other way for a left one (palm towards the camera), however the hand is
+//    tilted. With fingers up, a right hand's index knuckle is on the image's right.
+// The side follows a slow average of the votes: the first few frames decide it, and after that it only
+// changes if the clues disagree with it for about a second.
+function handVote(hand, mp, width, height) {
+    const ax = (hand[5].x - hand[0].x) * width, ay = (hand[5].y - hand[0].y) * height;
+    const bx = (hand[17].x - hand[0].x) * width, by = (hand[17].y - hand[0].y) * height;
+    const knuckles = ax * by - ay * bx < 0 ? 1 : -1;
+    let label = 0;
+    if (mp && mp.label) label = (mp.label === 'Left' ? 1 : -1) * Math.min(1, mp.score ?? 0.6);
+    return 0.4 * knuckles + 0.6 * label;
+}
+function decideSide(h) {
+    h.side += (h.vote - h.side) * (h.frames < 8 ? 0.35 : 0.04);
+    if (!h.label || h.frames < 8) h.label = h.side >= 0 ? 'Right' : 'Left';
+    else if (h.label === 'Right' && h.side < -0.45) h.label = 'Left';
+    else if (h.label === 'Left' && h.side > 0.45) h.label = 'Right';
+}
+
 function identifyHands(found, now, maxJump) {
     const prev = trackedHands.slice();
     const taken = new Set();
@@ -144,8 +168,9 @@ function identifyHands(found, now, maxJump) {
             const d = Math.hypot(p.sx - h.sx, p.sy - h.sy);
             if (d < bd) { bd = d; best = p; }
         }
-        if (best) { taken.add(best.id); h.id = best.id; h.colour = best.colour; }
-        else h.id = nextHandId++;
+        if (best) { taken.add(best.id); h.id = best.id; h.colour = best.colour; h.side = best.side; h.label = best.label; h.frames = best.frames + 1; }
+        else { h.id = nextHandId++; h.side = 0; h.label = null; h.frames = 0; }
+        decideSide(h);
         h.seen = now;
         next.push(h);
     }
@@ -246,27 +271,23 @@ function onResults(results) {
             }
         }
 
-        // Get handedness label (Left/Right)
-        let handLabel = 'Unknown';
-        if (results.multiHandedness && results.multiHandedness.length > i) {
-            handLabel = results.multiHandedness[i].classification?.[0]?.label ?? 'Unknown';
-        }
-        // Fallback if handedness not provided: determine from landmark x position
-        if (handLabel === 'Unknown') {
-            handLabel = hand[0].x * width < width / 2 ? 'Left' : 'Right';
-        }
+        // MediaPipe's handedness: { label, score } (older builds nest it in classification[0])
+        const mh = results.multiHandedness && results.multiHandedness[i];
+        const mp = mh && (mh.label ? mh : mh.classification && mh.classification[0]);
+        const vote = handVote(hand, mp, width, height);
 
         const centerX = xs.reduce((a, b) => a + b, 0) / xs.length;
         const centerY = ys.reduce((a, b) => a + b, 0) / ys.length;
 
-        // Rotation from wrist to middle-finger base, adjusted for handedness
-        let angle = Math.atan2(ys[9] - ys[0], xs[9] - xs[0]);
-        angle = handLabel.toLowerCase() === 'right' ? -Math.PI / 2 - angle : angle + Math.PI / 2;
-
-        found.push({ open, label: handLabel, angle, sx: ox + centerX * s, sy: oy + centerY * s, camX: centerX / width, camY: centerY / height });
+        found.push({ open, vote, dx: xs[9] - xs[0], dy: ys[9] - ys[0], sx: ox + centerX * s, sy: oy + centerY * s, camX: centerX / width, camY: centerY / height });
     }
 
     identifyHands(found, performance.now(), map.w * 0.18);
+    // icon rotation from wrist to middle-finger base; the icon is a right hand, mirrored for a left one
+    for (const h of found) {
+        const a = Math.atan2(h.dy, h.dx);
+        h.angle = h.label === 'Left' ? -Math.PI / 2 - a : a + Math.PI / 2;
+    }
 
     const size = HAND_ICON * map.u;
     const handInfos = [];
@@ -274,7 +295,7 @@ function onResults(results) {
         const img = h.open ? openImg : closeImg;
         drawingCtx.save();
         drawingCtx.translate(h.sx, h.sy);
-        if (h.label.toLowerCase() === 'right') drawingCtx.scale(-1, 1); // flip icon for the right hand
+        if (h.label === 'Left') drawingCtx.scale(-1, 1); // mirror the icon for a left hand
         drawingCtx.rotate(h.angle);
         const tint = tintedSilhouette(img, h.colour);
         if (tint) {
@@ -286,7 +307,7 @@ function onResults(results) {
         drawingCtx.shadowBlur = 8;
         drawingCtx.drawImage(img, -size / 2, -size / 2, size, size);
         drawingCtx.restore();
-        handInfos.push(`H${h.id} ${Math.round(h.sx)}|${Math.round(h.sy)}`);
+        handInfos.push(`H${h.id}${h.label === 'Left' ? 'L' : 'R'} ${Math.round(h.sx)}|${Math.round(h.sy)}`);
     }
     if (updatenote) updatenote.innerText = handInfos.join(' ');
 
