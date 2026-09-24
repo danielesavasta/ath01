@@ -61,9 +61,9 @@ export const DEFAULTS = {
   spin: 1,           // spin given by a throw
   idle: 6,           // seconds without a grab before the close-up
   dwell: 1000,       // ms over a ring before its card opens
-  flick: 2.2,        // release speed (frame heights / s) that counts as a throw in the close-up
-  idleSpin: true,    // slow floating motion in the close-up
-  turnEvery: 16,     // seconds of floating before it turns to show the other face
+  flick: 1.4,        // hand/pointer speed (frame heights / s) that counts as a throw in the close-up
+  idleSpin: true,    // slow rocking about the horizontal axis in the close-up
+  turnEvery: 10,     // seconds of rocking before it flips over to show the other face
   metal: 0.72,
   rough: 0.46,
   offA: 0, offO: 0,  // upright fine-tune per face, degrees
@@ -209,11 +209,11 @@ export async function createCoin(opts){
       const hit = rc.intersectObject(model, true)[0];
       const p = hit ? coinGroup.worldToLocal(hit.point.clone()) : new V3(h.x, h.s * H * 0.55, h.z);
       p.y += h.s * 0.006;
-      const col = h.s > 0 ? 0xf0b429 : 0x3fa08c;
+      const col = 0xffffff;
       const g = new THREE.Group();
       g.position.copy(p);
       g.rotation.x = h.s > 0 ? -Math.PI / 2 : Math.PI / 2;
-      const ring = new THREE.Mesh(quad, ringMat(col, 0.74)); ring.scale.setScalar(0.042); ring.renderOrder = 20;
+      const ring = new THREE.Mesh(quad, ringMat(col, 0.74, 1, 0.8)); ring.scale.setScalar(0.042); ring.renderOrder = 20;
       const dot = new THREE.Mesh(quad, ringMat(col, 0.0)); dot.scale.setScalar(0.012); dot.renderOrder = 20;
       const prog = new THREE.Mesh(quad, ringMat(0xffffff, 0.84, 0)); prog.scale.setScalar(0.062); prog.renderOrder = 21;
       const hitDisc = new THREE.Mesh(new THREE.CircleGeometry(0.095, 20), new THREE.MeshBasicMaterial({ visible: false }));
@@ -442,6 +442,7 @@ export async function createCoin(opts){
   const holdPlane = new THREE.Plane(new V3(0, 1, 0), 0);
   const HOLD = { on: false, face: 1, target: new V3(), hist: [], wheel: 0, flipAt: 0 };
   let grabBy = null;                  // null | "mouse" | hand id
+  let noGrabUntil = 0;                // after a flick the throwing hand is still closed: don't let it re-grab
   const holdY = () => P.view > 0 ? 1.15 : 0.5;
 
   function pointerOnPlane(nx, ny, out){
@@ -496,20 +497,39 @@ export async function createCoin(opts){
     stage.classList.add("holding");
     return true;
   }
+  // speed of the last ~150 ms of a pointer/hand track, ending at its last sample
+  function trackVelocity(hist, window = 150){
+    if (hist.length < 2) return null;
+    const b = hist[hist.length - 1];
+    let a = hist[hist.length - 2];
+    for (let i = hist.length - 2; i >= 0 && b.t - hist[i].t <= window; i--) a = hist[i];
+    const dt = (b.t - a.t) / 1000;
+    return dt > 0.012 ? { a, b, dt } : null;
+  }
   function moveGrab(nx, ny){
     const now = performance.now();
     if (mode === "inspect" && INS.drag){
       rotateInHand(nx - INS.lastX, ny - INS.lastY);
       INS.lastX = nx; INS.lastY = ny;
       INS.hist.push({ t: now, x: nx, y: ny });
-      while (INS.hist.length > 2 && now - INS.hist[0].t > 130) INS.hist.shift();
+      while (INS.hist.length > 2 && now - INS.hist[0].t > 400) INS.hist.shift();
       lastTouch = now;
+      // a fast flick throws straight away, without waiting for the hand to open
+      const v = trackVelocity(INS.hist, 120);
+      if (v){
+        const vx = (v.b.x - v.a.x) / v.dt, vy = (v.b.y - v.a.y) / v.dt, sp = Math.hypot(vx, vy) / 2;
+        if (sp > P.flick){
+          INS.drag = false; INS.idleSince = now; noGrabUntil = now + 900;
+          grabBy = null; stage.classList.remove("holding");
+          throwFromInspect(vx, vy, sp);
+        }
+      }
       return;
     }
     if (!HOLD.on) return;
     if (pointerOnPlane(nx, ny, HOLD.target)) clampTarget(HOLD.target);
     HOLD.hist.push({ t: now, p: HOLD.target.clone() });
-    while (HOLD.hist.length > 2 && now - HOLD.hist[0].t > 130) HOLD.hist.shift();
+    while (HOLD.hist.length > 2 && now - HOLD.hist[0].t > 400) HOLD.hist.shift();
   }
   function endGrab(silent){
     stage.classList.remove("holding");
@@ -519,14 +539,11 @@ export async function createCoin(opts){
     if (mode === "inspect"){
       if (!INS.drag) return;
       INS.drag = false; INS.idleSince = now; INS.face = visibleFace();
-      const recent = INS.hist.filter((s) => now - s.t < 130);
-      if (!silent && recent.length >= 2){
-        const a = recent[0], b = recent[recent.length - 1], dt = (b.t - a.t) / 1000;
-        if (dt > 0.012){
-          const vx = (b.x - a.x) / dt, vy = (b.y - a.y) / dt;
-          const sp = Math.hypot(vx, vy) / 2;
-          if (sp > P.flick) throwFromInspect(vx, vy, sp);
-        }
+      const v = !silent && trackVelocity(INS.hist);
+      if (v){
+        const vx = (v.b.x - v.a.x) / v.dt, vy = (v.b.y - v.a.y) / v.dt;
+        const sp = Math.hypot(vx, vy) / 2;
+        if (sp > P.flick) throwFromInspect(vx, vy, sp);
       }
       return;
     }
@@ -534,12 +551,9 @@ export async function createCoin(opts){
     HOLD.on = false;
     coinBody.type = CANNON.Body.DYNAMIC;
     if (silent) return;
-    const recent = HOLD.hist.filter((s) => now - s.t < 130);
+    const tv = trackVelocity(HOLD.hist);
     const v = new V3();
-    if (recent.length >= 2){
-      const a = recent[0], b = recent[recent.length - 1], dt = (b.t - a.t) / 1000;
-      if (dt > 0.012) v.subVectors(b.p, a.p).divideScalar(dt);
-    }
+    if (tv) v.subVectors(tv.b.p, tv.a.p).divideScalar(tv.dt);
     v.y = 0; v.clampLength(0, 16);
     const speed = v.length();
     if (speed > 0.7){
@@ -613,12 +627,13 @@ export async function createCoin(opts){
     const prev = [...tracked.values()], used = new Set(), next = new Map();
     for (const h of list){
       let best = null, bd = 0.35;
-      for (const p of prev){
+      if (h.id !== undefined) best = prev.find((p) => p.id === h.id) || null;
+      else for (const p of prev){
         if (used.has(p.id)) continue;
         const d = Math.hypot(p.x - h.x, p.y - h.y);
         if (d < bd){ bd = d; best = p; }
       }
-      const id = best ? best.id : nextHandId++;
+      const id = h.id !== undefined ? h.id : (best ? best.id : nextHandId++);
       if (best) used.add(best.id);
       const k = 0.55;   // smoothing
       next.set(id, {
@@ -636,7 +651,7 @@ export async function createCoin(opts){
       if (!h || h.open){ if (h) h.cool = now + 500; endGrab(false); }
       else if (h.seen === now) moveGrab(h.x, h.y);
     }
-    if (grabBy === null){
+    if (grabBy === null && now > noGrabUntil){
       for (const h of tracked.values()){
         if (!h.open && h.seen === now && now > h.cool && beginGrab(h.x, h.y, h.id)) break;
       }
@@ -668,7 +683,7 @@ export async function createCoin(opts){
       const want = inspecting && facing > 0.3 ? 1 : 0;
       h.fade += (want - h.fade) * Math.min(1, dt * 6);
       h.g.visible = h.fade > 0.02;
-      h.ring.material.uniforms.opacity.value = 0.95 * h.fade;
+      h.ring.material.uniforms.opacity.value = 0.8 * h.fade;
       h.dot.material.uniforms.opacity.value = 0.95 * h.fade;
       if (hovered.has(h)){
         h.dwell += dt * 1000;
@@ -793,39 +808,47 @@ export async function createCoin(opts){
     const toCam = new V3(clamp(coinBody.velocity.x * 0.03, -0.45, 0.45) * P.view, P.view, clamp(coinBody.velocity.z * 0.03, -0.45, 0.45) * P.view);
     steerTo(uprightQuat(HOLD.face, toCam), 11, 26);
   }
-  // Close-up. When nobody touches it the coin floats: a slow tilt that shows the relief and the rim,
-  // and every `turnEvery` seconds a half turn to the other face. Hovering a ring stills it.
-  const _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _qt = new THREE.Quaternion();
+  // Close-up. When nobody touches it the coin rocks gently about the horizontal axis, and every
+  // `turnEvery` seconds flips over that same axis to the other face. Hovering a ring stills it.
+  // The owl's image is not upside down after the flip: at the edge-on moment (invisible) the coin
+  // swaps to the other face's upright pose, so both faces arrive the right way up.
+  const _qa = new THREE.Quaternion(), _qt = new THREE.Quaternion();
   function driveInspect(dt, now){
+    const toCam = new V3(0, P.view, 0);
     if (INS.t < 1){
       INS.t = Math.min(1, INS.t + dt / 1.15);
       const e = INS.t < 0.5 ? 4 * INS.t ** 3 : 1 - Math.pow(-2 * INS.t + 2, 3) / 2;
       const p = INS.fromP.clone().lerp(INS.toP, e);
       coinBody.position.set(p.x, p.y, p.z);
-      setBodyQ(INS.fromQ.clone().slerp(uprightQuat(INS.face, new V3(0, P.view, 0)), e));
+      setBodyQ(INS.fromQ.clone().slerp(uprightQuat(INS.face, toCam), e));
       return;
     }
     if (INS.drag) return;
     const reading = hotspots.some((h) => h.dwell > 60 || h.open);
     const idleFor = now - INS.idleSince;
-    const float = P.idleSpin && !reading && idleFor > 1500;
-    INS.amp += ((float ? 1 : 0) - INS.amp) * Math.min(1, dt * 1.1);
+    const rock = P.idleSpin && !reading && idleFor > 1500;
+    INS.amp += ((rock ? 1 : 0) - INS.amp) * Math.min(1, dt * 1.1);
     INS.phase += dt * INS.amp;
-    if (float && INS.turnT < 0) INS.sinceTurn += dt;
-    if (INS.turnT < 0 && INS.sinceTurn > P.turnEvery){ INS.turnT = 0; INS.sinceTurn = 0; }
-    let turn = 0;
+    if (rock && INS.turnT < 0) INS.sinceTurn += dt;
+    if (INS.turnT < 0 && INS.sinceTurn > P.turnEvery){ INS.turnT = 0; INS.sinceTurn = 0; INS.turnFrom = INS.face; }
+
+    const axis = screenRight();
+    const tilt = 0.26 * INS.amp * Math.sin(INS.phase * 0.9);
+    let target;
     if (INS.turnT >= 0){
-      INS.turnT = Math.min(1, INS.turnT + dt / 3.4);
-      const t = INS.turnT;
-      turn = Math.PI * (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
-      if (INS.turnT >= 1){ INS.face *= -1; INS.turnT = -1; turn = 0; }
+      INS.turnT = Math.min(1, INS.turnT + dt / 3.2);
+      const t = INS.turnT, e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      const theta = e * Math.PI;
+      // first half: leave face f; second half: arrive at face -f, upright
+      const f = INS.turnFrom;
+      if (theta < Math.PI / 2) _qt.setFromAxisAngle(axis, theta + tilt).multiply(uprightQuat(f, toCam));
+      else _qt.setFromAxisAngle(axis, theta - Math.PI + tilt).multiply(uprightQuat(-f, toCam));
+      INS.face = theta < Math.PI / 2 ? f : -f;
+      if (INS.turnT >= 1) INS.turnT = -1;
+      setBodyQ(_qt);                                    // exact: no smoothing across the swap
+      return;
     }
-    const a1 = 0.24 * INS.amp * Math.sin(INS.phase * 0.95);          // tip towards / away
-    const a2 = 0.36 * INS.amp * Math.sin(INS.phase * 0.63 + 1.1);    // turn left / right
-    _qt.setFromAxisAngle(screenUp(), turn);
-    _qa.setFromAxisAngle(screenRight(), a1);
-    _qb.setFromAxisAngle(screenUp(), a2);
-    const target = _qt.multiply(_qa).multiply(_qb).multiply(uprightQuat(INS.face, new V3(0, P.view, 0)));
+    target = _qa.setFromAxisAngle(axis, tilt).multiply(uprightQuat(INS.face, toCam));
     setBodyQ(bodyQ().slerp(target, 1 - Math.exp(-dt * 3)));
   }
 

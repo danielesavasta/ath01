@@ -1,13 +1,15 @@
 /* Sections layered on top of the letter menu (see js/sections.js) */
 
-/* the camera image fills the screen (cropped, not letterboxed), so hands reach the side zones.
-   js/sections.js reads this value to map hands onto the screen. */
-#canvas, #drawing{ object-fit: cover; }
+/* the hand icons are drawn at screen resolution (js/scripts.js), so the canvas must not be rescaled */
+#drawing{ object-fit: fill; }
 
 /* owl section: full screen, under the hand icons (#drawing) and the statue */
 #coinStage{
     position: absolute;
-    inset: 0;
+    left: calc(50vw - 960 * var(--u));
+    top: calc(50vh - 540 * var(--u));
+    width: calc(1920 * var(--u));
+    height: calc(1080 * var(--u));
     z-index: 0;
     opacity: 0;
     visibility: hidden;
@@ -24,17 +26,17 @@ body.section-owl .container{ opacity: 0; pointer-events: none; }
 /* progress ring while a hand rests on the owl */
 #selectRing{
     position: absolute;
-    width: 150px;
-    height: 150px;
-    margin: -75px 0 0 -75px;
+    width: calc(340 * var(--u));
+    height: calc(340 * var(--u));
+    margin: calc(-170 * var(--u)) 0 0 calc(-170 * var(--u));
     border-radius: 50%;
     pointer-events: none;
     z-index: 5;
     opacity: 0;
     transition: opacity .2s;
     background: conic-gradient(#F0B429 calc(var(--p, 0) * 1turn), rgba(255,255,255,.12) 0);
-    -webkit-mask: radial-gradient(circle, transparent 66px, #000 67px);
-    mask: radial-gradient(circle, transparent 66px, #000 67px);
+    -webkit-mask: radial-gradient(circle, transparent calc(158 * var(--u)), #000 calc(159 * var(--u)));
+    mask: radial-gradient(circle, transparent calc(158 * var(--u)), #000 calc(159 * var(--u)));
 }
 
 /* developer controls, toggled with D */
