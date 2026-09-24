@@ -11,7 +11,7 @@
     pointer-events: none;
     overflow: visible;
 }
-#venueMask polygon{ fill: #000; }
+#venueMask .vm-base{ fill: #000; }
 
 #venueSetup{ position: fixed; inset: 0; z-index: 60000; font-family: Verdana, sans-serif; color: #E3D8C3; }
 #venueSetup[hidden]{ display: none; }
@@ -19,6 +19,7 @@
 #venueSetup .vs-edit{ position: absolute; overflow: visible; }
 #venueSetup[data-tab="camera"] .vs-edit{ display: none; }
 #venueSetup .vs-poly{ fill: rgba(240,60,50,.28); stroke: #F04438; stroke-width: 3; vector-effect: non-scaling-stroke; }
+#venueSetup.lit .vs-poly{ fill: none; stroke-dasharray: 8 6; }
 #venueSetup .vs-handles circle{ fill: #fff; stroke: #F04438; stroke-width: 3; cursor: grab; vector-effect: non-scaling-stroke; }
 #venueSetup .vs-panel{
     position: absolute; right: 16px; bottom: 16px; width: 360px; max-width: calc(100vw - 32px);
@@ -39,6 +40,10 @@
 #venueSetup label{ display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
 #venueSetup label.vs-slider{ display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; }
 #venueSetup label.vs-slider input{ grid-column: 1 / -1; width: 100%; accent-color: #F0B429; }
+#venueSetup .vs-light{ display: grid; gap: 9px; padding-left: 22px; }
+#venueSetup .vs-light[hidden]{ display: none; }
+#venueSetup label.vs-color{ align-items: center; justify-content: space-between; }
+#venueSetup input[type=color]{ width: 44px; height: 24px; border: 1px solid #34363A; background: none; padding: 0; cursor: pointer; }
 #venueSetup input[type=checkbox]{ accent-color: #F0B429; margin-top: 2px; }
 #venueSetup .vs-foot{ display: flex; gap: 8px; flex-wrap: wrap; }
 #venueSetup .vs-note{ color: #F0B429; min-height: 1em; }

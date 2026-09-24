@@ -12,10 +12,20 @@ window.VENUE_FILE = {
   statueImage: true,
 
   // black shape over the real statue, so nothing is projected onto it (coin, hands, letters)
+  // (with light.on, the shape is filled with light instead)
   mask: {
     on: false,
     points: [[905, 150], [830, 380], [848, 520], [719, 600], [701, 1080], [1226, 1080], [1238, 920],
-             [1200, 700], [1138, 580], [1008, 540], [1063, 420], [1048, 260], [990, 150]]
+             [1200, 700], [1138, 580], [1008, 540], [1063, 420], [1048, 260], [990, 150]],
+
+    // the projector lights the statue through the same shape
+    light: {
+      on: false,
+      color: "#fff1dc",   // warm white
+      level: 0.55,        // brightness, 0..1
+      soft: 12,           // softened edge, pixels (the glow spills a little past the shape)
+      slope: 0.3          // 0 even; towards 1 brighter at the top, towards -1 brighter at the bottom
+    }
   },
 
   // the part of the camera image mapped onto the screen: zoom 1 = the whole width,
