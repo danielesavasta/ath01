@@ -1,0 +1,44 @@
+/* Room settings (js/venue.js): the black mask over the real statue, and the setup screen (K). */
+
+/* over everything, the hand icons included: nothing is projected onto the statue */
+#venueMask{
+    position: absolute;
+    left: calc(50vw - 960 * var(--u));
+    top: calc(50vh - 540 * var(--u));
+    width: calc(1920 * var(--u));
+    height: calc(1080 * var(--u));
+    z-index: 45000;
+    pointer-events: none;
+    overflow: visible;
+}
+#venueMask polygon{ fill: #000; }
+
+#venueSetup{ position: fixed; inset: 0; z-index: 60000; font-family: Verdana, sans-serif; color: #E3D8C3; }
+#venueSetup[hidden]{ display: none; }
+#venueSetup .vs-cam{ position: absolute; inset: 0; width: 100%; height: 100%; cursor: move; }
+#venueSetup .vs-edit{ position: absolute; overflow: visible; }
+#venueSetup[data-tab="camera"] .vs-edit{ display: none; }
+#venueSetup .vs-poly{ fill: rgba(240,60,50,.28); stroke: #F04438; stroke-width: 3; vector-effect: non-scaling-stroke; }
+#venueSetup .vs-handles circle{ fill: #fff; stroke: #F04438; stroke-width: 3; cursor: grab; vector-effect: non-scaling-stroke; }
+#venueSetup .vs-panel{
+    position: absolute; right: 16px; bottom: 16px; width: 360px; max-width: calc(100vw - 32px);
+    background: rgba(11,11,12,.95); border: 1px solid #34363A; padding: 14px 16px; font-size: 12.5px; line-height: 1.45;
+    display: grid; gap: 10px;
+}
+#venueSetup .vs-head{ display: flex; justify-content: space-between; align-items: baseline; }
+#venueSetup .vs-head b{ letter-spacing: .18em; font-size: 12px; }
+#venueSetup .vs-head span, #venueSetup p{ color: #8A8D93; margin: 0; }
+#venueSetup .vs-tabs{ display: flex; border: 1px solid #34363A; }
+#venueSetup button{ background: none; border: 1px solid #34363A; color: #E3D8C3; font: inherit; padding: 7px 10px; cursor: pointer; text-align: left; }
+#venueSetup button:hover{ border-color: #E3D8C3; }
+#venueSetup .vs-tabs button{ flex: 1; border: 0; border-right: 1px solid #34363A; text-align: center; color: #8A8D93; }
+#venueSetup .vs-tabs button:last-child{ border-right: 0; }
+#venueSetup .vs-tabs button.on{ background: #E3D8C3; color: #0B0B0C; }
+#venueSetup .vs-body{ display: grid; gap: 9px; }
+#venueSetup .vs-body[hidden]{ display: none; }
+#venueSetup label{ display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+#venueSetup label.vs-slider{ display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; }
+#venueSetup label.vs-slider input{ grid-column: 1 / -1; width: 100%; accent-color: #F0B429; }
+#venueSetup input[type=checkbox]{ accent-color: #F0B429; margin-top: 2px; }
+#venueSetup .vs-foot{ display: flex; gap: 8px; flex-wrap: wrap; }
+#venueSetup .vs-note{ color: #F0B429; min-height: 1em; }
