@@ -29,16 +29,41 @@ const letterAssets = {
 const hands = new Hands({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
 });
+// detection threshold and the other room settings come from content/venue.js (setup screen: K)
+const venue = () => (window.VENUE ? window.VENUE.get() : { detect: { confidence: 0.6, upOnly: 70 } });
+let detectConfidence = venue().detect.confidence;
 hands.setOptions({
     maxNumHands: 8, // allow more than two hands
     modelComplexity: 1,
-    minDetectionConfidence: 0.7,
+    minDetectionConfidence: detectConfidence,
     minTrackingConfidence: 0.5,
 });
 hands.onResults(onResults);
+if (window.VENUE) window.VENUE.onChange((S) => {
+    if (S.detect.confidence !== detectConfidence) {
+        detectConfidence = S.detect.confidence;
+        hands.setOptions({ minDetectionConfidence: detectConfidence });
+    }
+});
+
+// Only the chosen part of the camera image goes to the hand detector (setup screen: K, Kamera).
+// Zooming in makes people standing far away look bigger to it, which is what it needs at 2 m and beyond.
+// Its results are then relative to that part, and that part is what covers the screen.
+const cropCanvas = document.createElement('canvas');
+const cropCtx = cropCanvas.getContext('2d');
+async function sendFrame(source, camW, camH) {
+    window.athCamera = { el: source, w: camW, h: camH };      // for the setup screen
+    const c = window.VENUE ? window.VENUE.cameraCrop(camW, camH) : { x: 0, y: 0, w: camW, h: camH };
+    if (cropCanvas.width !== c.w || cropCanvas.height !== c.h) { cropCanvas.width = c.w; cropCanvas.height = c.h; }
+    cropCtx.drawImage(source, c.x, c.y, c.w, c.h, 0, 0, c.w, c.h);
+    frameSize.w = c.w; frameSize.h = c.h;
+    await hands.send({ image: cropCanvas });
+}
 
 const camera = new Camera(videoElement, {
-    onFrame: async () => { await hands.send({ image: videoElement }); },
+    onFrame: async () => {
+        if (videoElement.videoWidth) await sendFrame(videoElement, videoElement.videoWidth, videoElement.videoHeight);
+    },
     width: 1280,
     height: 720,
     flipHorizontal: true,
@@ -47,7 +72,7 @@ const camera = new Camera(videoElement, {
 // Camera source: the Kinect bridge (tools/kinect/bridge.py) when it is running, otherwise the webcam.
 // ?source=kinect or ?source=webcam on the URL forces one.
 const KINECT_URL = 'ws://127.0.0.1:8770/rgb';
-const frameSize = { w: 0, h: 0 }; // size of the frames MediaPipe gets from the Kinect
+const frameSize = { w: 0, h: 0 }; // size of the images MediaPipe gets (the chosen part of the camera image)
 
 function startCamera() {
     const forced = new URLSearchParams(location.search).get('source');
@@ -93,8 +118,7 @@ function startKinect() {
                 if (frame.width !== bmp.width || frame.height !== bmp.height) { frame.width = bmp.width; frame.height = bmp.height; }
                 fctx.drawImage(bmp, 0, 0);
                 bmp.close();
-                frameSize.w = frame.width; frameSize.h = frame.height;
-                await hands.send({ image: frame });
+                await sendFrame(frame, frame.width, frame.height);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -168,8 +192,8 @@ function identifyHands(found, now, maxJump) {
             const d = Math.hypot(p.sx - h.sx, p.sy - h.sy);
             if (d < bd) { bd = d; best = p; }
         }
-        if (best) { taken.add(best.id); h.id = best.id; h.colour = best.colour; h.side = best.side; h.label = best.label; h.frames = best.frames + 1; }
-        else { h.id = nextHandId++; h.side = 0; h.label = null; h.frames = 0; }
+        if (best) { taken.add(best.id); h.id = best.id; h.colour = best.colour; h.side = best.side; h.label = best.label; h.frames = best.frames + 1; h.wasUp = best.wasUp; }
+        else { h.id = nextHandId++; h.side = 0; h.label = null; h.frames = 0; h.wasUp = false; }
         decideSide(h);
         h.seen = now;
         next.push(h);
@@ -279,10 +303,22 @@ function onResults(results) {
         const centerX = xs.reduce((a, b) => a + b, 0) / xs.length;
         const centerY = ys.reduce((a, b) => a + b, 0) / ys.length;
 
-        found.push({ open, vote, dx: xs[9] - xs[0], dy: ys[9] - ys[0], sx: ox + centerX * s, sy: oy + centerY * s, camX: centerX / width, camY: centerY / height });
+        // how far the hand leans from pointing straight up (wrist -> middle-finger knuckle), degrees
+        const up = Math.atan2(Math.abs(xs[9] - xs[0]), ys[0] - ys[9]) * 180 / Math.PI;
+
+        found.push({ open, vote, up, dx: xs[9] - xs[0], dy: ys[9] - ys[0], sx: ox + centerX * s, sy: oy + centerY * s, camX: centerX / width, camY: centerY / height });
     }
 
     identifyHands(found, performance.now(), map.w * 0.18);
+    // Only hands pointing up take part: arms hanging down, or hands resting on a railing, are ignored.
+    // A hand already in play gets 20° more, so tilting it while throwing doesn't make it vanish.
+    const upOnly = venue().detect.upOnly;
+    for (const h of found) {
+        const limit = upOnly >= 180 ? 999 : upOnly + (h.wasUp ? 20 : 0);
+        h.isUp = h.up <= limit;
+        h.wasUp = h.isUp;
+    }
+    const shown = found.filter((h) => h.isUp);
     // icon rotation from wrist to middle-finger base; the icon is a right hand, mirrored for a left one
     for (const h of found) {
         const a = Math.atan2(h.dy, h.dx);
@@ -291,7 +327,7 @@ function onResults(results) {
 
     const size = HAND_ICON * map.u;
     const handInfos = [];
-    for (const h of found) {
+    for (const h of shown) {
         const img = h.open ? openImg : closeImg;
         drawingCtx.save();
         drawingCtx.translate(h.sx, h.sy);
@@ -314,7 +350,7 @@ function onResults(results) {
     // shared with js/sections.js: positions in viewport pixels
     window.dispatchEvent(new CustomEvent('ath:hands', { detail: {
         width, height,
-        hands: found.map(h => ({ id: h.id, colour: h.colour, px: h.sx, py: h.sy, open: h.open, label: h.label }))
+        hands: shown.map(h => ({ id: h.id, colour: h.colour, px: h.sx, py: h.sy, open: h.open, label: h.label }))
     } }));
 }
 

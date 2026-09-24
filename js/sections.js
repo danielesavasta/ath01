@@ -10,7 +10,7 @@
 //           section closes because nobody was there, or after T.langReset ms with no hands in the menu.
 // The mouse works like a hand, for development; a click on an icon or a button acts at once.
 //
-// Keys while developing:  O open owl section · M back to menu · D controls panel
+// Keys while developing:  O open owl section · M back to menu · D controls panel · K room setup (js/venue.js)
 //                          (inside the section) Space toss · I close-up · Esc leave close-up · F flip in hand
 
 import { createCoin } from "./coin/coin.js";
@@ -18,7 +18,6 @@ import TEXTS from "../content/texts.js";
 
 const stage = document.getElementById("coinStage");
 const panel = document.getElementById("coinPanel");
-const statue = document.getElementById("athenaStatue");
 const ring = document.getElementById("selectRing");
 const container = document.querySelector(".container");
 
@@ -94,13 +93,11 @@ function athenaWave(delay = 350){
 }
 
 // ───────────── the owl section ─────────────
-// opaque part of assets/athenaStatue.png as fractions of its width (from its alpha channel)
-const STATUE_ALPHA = [707 / 1920, 1226 / 1920];
+// Where the statue stands, from the mask set up for the room (content/venue.js, setup screen: K).
+// The coin uses it to keep throws from landing behind her and to frame its close-up beside her.
+// The stage covers the whole 1920×1080 frame, so frame fractions are stage fractions.
 function statueBand(){
-  const r = statue.getBoundingClientRect(), s = stage.getBoundingClientRect();
-  if (!r.width || !s.width) return null;
-  const x0 = r.left + r.width * STATUE_ALPHA[0], x1 = r.left + r.width * STATUE_ALPHA[1];
-  return [(x0 - s.left) / s.width * 2 - 1, (x1 - s.left) / s.width * 2 - 1];
+  return window.VENUE ? window.VENUE.statueBandNdc() : null;
 }
 
 // ───────────── languages ─────────────
@@ -127,6 +124,8 @@ const coin = await createCoin({
   lite: new URLSearchParams(location.search).has("lite"),   // dev: skip the model, use a plain disc
   autostart: false
 });
+
+if (window.VENUE) window.VENUE.onChange(() => coin.relayout());
 
 // back button: bottom left of the frame, where a hand reaches it; the hand icons stay on top of it
 const back = document.createElement("div");
