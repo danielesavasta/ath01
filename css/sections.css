@@ -23,7 +23,53 @@ body.section-owl #coinStage{
 .container{ transition: opacity .6s ease; }
 body.section-owl .container{ opacity: 0; pointer-events: none; }
 
-/* progress ring while a hand rests on the owl */
+/* a letter rolling back from its icon moves up (the icon came in moving down) */
+.letter-slot.roll-up .letter-incoming{ transform: translateY(100%); }
+.letter-slot.roll-up .letter-exiting{ transform: translateY(-100%); }
+
+/* back to the menu: bottom left of the frame, only inside a section */
+#backBtn{
+    position: absolute;
+    left: calc(50vw - 960 * var(--u) + 70 * var(--u));
+    top: calc(50vh + 540 * var(--u) - 70 * var(--u) - 170 * var(--u));
+    width: calc(170 * var(--u));
+    height: calc(170 * var(--u));
+    border-radius: 50%;
+    z-index: 0;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: calc(6 * var(--u));
+    font-family: Verdana, sans-serif;
+    font-size: calc(15 * var(--u));
+    letter-spacing: .14em;
+    background: rgba(255,255,255,.06);
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .6s ease, visibility 0s linear .6s, background .2s, transform .2s;
+}
+#backBtn svg{ width: calc(56 * var(--u)); height: calc(56 * var(--u)); }
+body.in-section #backBtn{ opacity: .85; visibility: visible; transition: opacity .6s ease, background .2s, transform .2s; }
+body.in-section #backBtn.hover{ opacity: 1; background: rgba(255,255,255,.14); transform: scale(1.06); }
+#backBtn .back-ring{
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(#F0B429 calc(var(--p, 0) * 1turn), rgba(255,255,255,.35) 0);
+    -webkit-mask: radial-gradient(circle, transparent calc(80 * var(--u)), #000 calc(81 * var(--u)));
+    mask: radial-gradient(circle, transparent calc(80 * var(--u)), #000 calc(81 * var(--u)));
+}
+/* nobody around: the ring counts down to the automatic return, in white */
+#backBtn.counting .back-ring{
+    background: conic-gradient(#fff calc(var(--p, 0) * 1turn), rgba(255,255,255,.35) 0);
+}
+/* the coin's tally moves right, clear of the button */
+#coinStage .coin-tally{ left: calc(290 * var(--u)); bottom: calc(110 * var(--u)); }
+
+/* progress ring while a hand rests on an icon */
 #selectRing{
     position: absolute;
     width: calc(340 * var(--u));

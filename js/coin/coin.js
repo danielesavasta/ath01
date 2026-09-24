@@ -67,7 +67,8 @@ export const DEFAULTS = {
   metal: 0.72,
   rough: 0.46,
   offA: 0, offO: 0,  // upright fine-tune per face, degrees
-  blockHeight: 1.6,  // statue block height: throws higher than this pass over Athena
+  statueBlock: false, // true: the statue is a solid block the coin bounces off (it splits the table in two)
+  blockHeight: 1.6,  // height of that block: throws higher than this pass over Athena
   showCollider: false,
   showBlock: false
 };
@@ -168,7 +169,9 @@ export async function createCoin(opts){
     top: plane([0, 0, 0]), bottom: plane([0, Math.PI, 0]), ceil: plane([Math.PI / 2, 0, 0])
   };
   let block = null;                     // the statue: an invisible block the coin bounces off
-  const blockX = { on: false, x0: 0, x1: 0 };
+  // the statue's band in world x: `on` when there is a statue (used to frame the close-up and place cards
+  // beside it), `solid` when it is also a physics block
+  const blockX = { on: false, solid: false, x0: 0, x1: 0 };
   const coinBody = new CANNON.Body({
     mass: 1, shape: new CANNON.Cylinder(R, R, H, 40),
     linearDamping: 0.03, angularDamping: 0.05, sleepSpeedLimit: 0.14, sleepTimeLimit: 0.45
@@ -303,13 +306,16 @@ export async function createCoin(opts){
     // statue block
     if (block){ world.removeBody(block); block = null; }
     const band = statueBand();
-    blockX.on = !!band;
+    blockX.on = !!band; blockX.solid = false;
     if (band){
       const a = ndcToWorldX(band[0]), b = ndcToWorldX(band[1]);
       blockX.x0 = Math.min(a, b); blockX.x1 = Math.max(a, b);
-      block = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3((blockX.x1 - blockX.x0) / 2, P.blockHeight / 2, halfH + 1)) });
-      block.position.set((blockX.x0 + blockX.x1) / 2, P.blockHeight / 2, 0);
-      world.addBody(block);
+      if (P.statueBlock){
+        block = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3((blockX.x1 - blockX.x0) / 2, P.blockHeight / 2, halfH + 1)) });
+        block.position.set((blockX.x0 + blockX.x1) / 2, P.blockHeight / 2, 0);
+        world.addBody(block);
+        blockX.solid = true;
+      }
       const l = (band[0] + 1) / 2 * 100, r = (band[1] + 1) / 2 * 100;
       Object.assign(blockViz.style, { left: l + "%", width: (r - l) + "%", display: P.showBlock ? "block" : "none" });
     } else blockViz.style.display = "none";
@@ -454,7 +460,7 @@ export async function createCoin(opts){
     const s = Math.abs(t.y - P.view * bounds.camH) / bounds.camH;
     const mx = bounds.x * s - R * 0.95, mz = bounds.z * s - R * 0.95;
     t.x = clamp(t.x, -mx, mx); t.z = clamp(t.z, -mz, mz);
-    if (blockX.on){   // can't be carried through the statue
+    if (blockX.solid){   // can't be carried through a solid statue
       const m = R * 1.05;
       if (t.x > blockX.x0 - m && t.x < blockX.x1 + m){
         const toLeft = Math.abs(t.x - (blockX.x0 - m)), toRight = Math.abs(t.x - (blockX.x1 + m));
@@ -777,7 +783,7 @@ export async function createCoin(opts){
     if (p.x + bounds.x < m) w.x += 1;
     if (bounds.z - p.z < m) w.z -= 1;
     if (p.z + bounds.z < m) w.z += 1;
-    if (blockX.on && p.y < P.blockHeight + R){
+    if (blockX.solid && p.y < P.blockHeight + R){
       if (p.x < blockX.x0 && blockX.x0 - p.x < m) w.x -= 1;
       if (p.x > blockX.x1 && p.x - blockX.x1 < m) w.x += 1;
     }
@@ -945,7 +951,7 @@ export async function createCoin(opts){
     P[name] = value;
     switch (name){
       case "view": if (mode === "inspect") exitInspect(); layout(true); lastTouch = performance.now(); pending = true; break;
-      case "span": case "blockHeight": layout(false); break;
+      case "span": case "blockHeight": case "statueBlock": layout(false); break;
       case "gravity": world.gravity.set(0, -value, 0); coinBody.wakeUp(); break;
       case "metal": coinMats.forEach((m) => m.metalness = value); placeholder.material.metalness = value; break;
       case "rough": coinMats.forEach((m) => m.roughness = value); placeholder.material.roughness = value; break;
@@ -964,6 +970,7 @@ export async function createCoin(opts){
     counts.athena = counts.owl = counts.edge = 0;
     stage.querySelectorAll(".coin-tally b").forEach((b) => { b.textContent = "0"; });
     place();
+    playCamera(); camera.position.copy(camGoal.pos); camLook.copy(camGoal.look);   // no zoom-out on the next start
   }
 
   const api = {
@@ -996,7 +1003,8 @@ function buildPanel(root, P, set, actions){
     ["GÖRÜNÜM", [
       ["seg", "view", [["Alttan", -1], ["Üstten", 1]]],
       ["span", "masa genişliği (sikke çapı)", 5, 22, 1, (v) => v],
-      ["blockHeight", "Athena'nın üstünden aşma yüksekliği", 0.4, 4, 0.1, (v) => v.toFixed(1)]
+      ["check", "statueBlock", "heykel sikkeyi durdursun (masayı ikiye böler)"],
+      ["blockHeight", "o durumda üstünden aşma yüksekliği", 0.4, 4, 0.1, (v) => v.toFixed(1)]
     ]],
     ["DAVRANIŞ", [
       ["gravity", "yerçekimi", 4, 60, 1, (v) => v],
