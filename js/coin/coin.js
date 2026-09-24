@@ -2,7 +2,8 @@
 // three.js + cannon-es. Works with a mouse and with hands (see setHands).
 //
 //   import { createCoin } from "./coin/coin.js";
-//   const coin = await createCoin({ stage, model: "assets/coin/coin.glb" });
+//   const coin = await createCoin({ stage, model: "assets/coin/coin.glb", texts, stoneTexture: "assets/stone.jpg" });
+//   // texts: the `owl` part of one language in content/texts.js; coin.setTexts(...) switches language
 //   coin.start();                 // render + simulate
 //   coin.setHands([{ x, y, open }])  // x, y in normalised device coords (-1..1), y up
 //
@@ -25,45 +26,31 @@ const R = 0.5, H = 0.2323 * 0.82;
 const UP_BASE = { 1: new V3(1, 0, 0), [-1]: new V3(0.996, 0, -0.087).normalize() };
 const FACE_NAME = { 1: "athena", [-1]: "owl" };
 
+// Rings on the coin: face (s), position on the face (x, z). Their words are in content/texts.js
+// (owl.cards.<id>), one entry per id.
 export const HOTSPOTS = [
-  { s: 1, x: 0.25, z: 0.12, k: "ZEYTİN YAPRAKLARI",
-    t: "Miğferin önünde üç zeytin yaprağı. Pers Savaşları'ndan sonra basılan sikkelerde görülür; zeytin hem Athena'nın hem Atina'nın işareti.",
-    e: "Three olive leaves on the helmet, added on coins struck after the Persian Wars." },
-  { s: 1, x: 0.12, z: -0.2, k: "MİĞFER",
-    t: "Attika tipi miğfer, üzerinde sarmal bir palmet süsü. Savaşın tanrıçası, barışın yaprağıyla birlikte.",
-    e: "An Attic helmet decorated with a spiral palmette." },
-  { s: 1, x: -0.04, z: 0.29, k: "GÖZ",
-    t: "Yüz yandan, göz önden çizilmiş. Arkaik sanattan kalma bir alışkanlık: Athena yana dönük ama sana bakıyor.",
-    e: "The face is in profile, the eye drawn as if seen from the front." },
-  { s: 1, x: -0.1, z: -0.02, k: "KÜPE",
-    t: "Kulakta yuvarlak bir küpe. Savaş tanrıçası, ama süslü.",
-    e: "A round earring." },
-  { s: -1, x: 0.22, z: -0.07, k: "BAYKUŞ",
-    t: "Athena'nın kuşu adını hâlâ taşıyor: kukumavın bilimsel adı Athene noctua. Başı sana dönük, gövdesi yandan.",
-    e: "The little owl is still called Athene noctua." },
-  { s: -1, x: -0.05, z: -0.27, k: "ΑΘΕ",
-    t: "ΑΘΕΝΑΙΟΝ'un kısaltması: “Atinalıların”. Sikkenin üzerindeki tek yazı.",
-    e: "Short for ATHENAION, “of the Athenians”." },
-  { s: -1, x: 0.2, z: 0.25, k: "ZEYTİN DALI VE HİLAL",
-    t: "Arkada bir zeytin dalı ve küçük bir hilal. Hilalin, MÖ 480'de hilal ay altında kazanılan Salamis Savaşı'nı andığı düşünülür.",
-    e: "The crescent probably commemorates the Battle of Salamis, 480 BC." },
-  { s: -1, x: -0.22, z: 0.3, k: "GÜMÜŞ",
-    t: "Dört drahmi: yaklaşık 17 gram gümüş. Gümüşü Atina yakınındaki Laurion madenlerinden çıkıyordu.",
-    e: "Four drachmas, about 17 g of silver from the Laurion mines." }
+  { id: "olive",   s: 1,  x: 0.25,  z: 0.12 },
+  { id: "helmet",  s: 1,  x: 0.12,  z: -0.2 },
+  { id: "eye",     s: 1,  x: -0.04, z: 0.29 },
+  { id: "earring", s: 1,  x: -0.1,  z: -0.02 },
+  { id: "owl",     s: -1, x: 0.22,  z: -0.07 },
+  { id: "ethe",    s: -1, x: -0.05, z: -0.27 },
+  { id: "branch",  s: -1, x: 0.2,   z: 0.25 },
+  { id: "silver",  s: -1, x: -0.22, z: 0.3 }
 ];
 
 export const DEFAULTS = {
   view: -1,          // -1 camera under the glass, +1 above the table
   span: 11,          // visible table width in coin diameters
-  gravity: 22,
+  gravity: 14,       // low on purpose: a thrown coin hangs in the air long enough to see it turn
   timeScale: 1,
   align: 0.7,        // how strongly a landing coin turns upright for the viewer
   spin: 1,           // spin given by a throw
   idle: 6,           // seconds without a grab before the close-up
   dwell: 1000,       // ms over a ring before its card opens
   flick: 1.4,        // hand/pointer speed (frame heights / s) that counts as a throw in the close-up
-  idleSpin: true,    // slow rocking about the horizontal axis in the close-up
-  turnEvery: 10,     // seconds of rocking before it flips over to show the other face
+  idleSpin: true,    // slow swaying about the vertical axis in the close-up
+  turnEvery: 10,     // seconds of swaying before it turns round to show the other face
   metal: 0.72,
   rough: 0.46,
   offA: 0, offO: 0,  // upright fine-tune per face, degrees
@@ -73,11 +60,14 @@ export const DEFAULTS = {
   showBlock: false
 };
 
-const WORDS = {
-  athena: ["ATHENA", "Miğferli baş sana bakıyor."],
-  owl:    ["BAYKUŞ", "Baykuş, zeytin dalı ve ΑΘΕ."],
-  edge:   ["KENAR ÜSTÜ", "Sikke dik durdu. Nadir olur."]
-};
+// Roman numerals for the tally (no zero in Latin: an empty count shows a dot)
+export function roman(n){
+  if (!n) return "·";
+  const T = [[1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]];
+  let out = "";
+  for (const [v, r] of T) while (n >= v){ out += r; n -= v; }
+  return out;
+}
 
 export async function createCoin(opts){
   const P = Object.assign({}, DEFAULTS, opts.params || {});
@@ -88,18 +78,35 @@ export async function createCoin(opts){
 
   // ───────────── DOM ─────────────
   stage.classList.add("coin-stage");
+  if (opts.stoneTexture) stage.style.setProperty("--coin-stone-tex", `url("${new URL(opts.stoneTexture, location.href).href}")`);
   stage.innerHTML = `
     <canvas class="coin-gl"></canvas>
     <div class="coin-labels"></div>
-    <div class="coin-result"><div class="coin-word"></div><div class="coin-sub"></div></div>
-    <div class="coin-tally"><span>ATHENA <b data-t="athena">0</b></span><span>BAYKUŞ <b data-t="owl">0</b></span><span>KENAR <b data-t="edge">0</b></span></div>
+    <div class="coin-tally">
+      <div class="coin-count" data-t="athena"><span class="name"></span><span class="num">·</span></div>
+      <div class="coin-count" data-t="owl"><span class="name"></span><span class="num">·</span></div>
+    </div>
     <div class="coin-hint"></div>
-    <div class="coin-modetag">YAKIN BAKIŞ</div>
-    <div class="coin-loading">MODEL YÜKLENİYOR</div>
+    <div class="coin-loading"></div>
     <div class="coin-blockviz"></div>`;
   const q$ = (s) => stage.querySelector(s);
-  const canvas = q$(".coin-gl"), wordEl = q$(".coin-word"), subEl = q$(".coin-sub"), hintEl = q$(".coin-hint");
-  const loadingEl = q$(".coin-loading"), modeEl = q$(".coin-modetag"), blockViz = q$(".coin-blockviz");
+  const canvas = q$(".coin-gl"), hintEl = q$(".coin-hint");
+  const loadingEl = q$(".coin-loading"), blockViz = q$(".coin-blockviz");
+
+  // ───────────── words (content/texts.js, one language at a time) ─────────────
+  let TX = opts.texts || {};
+  const tx = (path, fallback = "") => path.split(".").reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), TX) ?? fallback;
+  let loadState = opts.lite ? "done" : "loading";
+  function applyTexts(){
+    stage.querySelectorAll(".coin-count").forEach((c) => { c.querySelector(".name").textContent = tx("tally." + c.dataset.t, c.dataset.t.toUpperCase()); });
+    loadingEl.textContent = loadState === "loading" ? tx("loading") : loadState === "failed" ? tx("loadFailed") + loadError : "";
+    for (const h of hotspots){
+      h.el.querySelector(".k").textContent = tx(`cards.${h.id}.title`, h.id);
+      h.el.querySelector(".t").textContent = tx(`cards.${h.id}.text`);
+    }
+    if (uiReady) setModeUI();
+  }
+  let loadError = "", uiReady = false;
 
   // ───────────── renderer / scene ─────────────
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -223,14 +230,12 @@ export async function createCoin(opts){
       g.add(ring, dot, prog, hitDisc);
       const el = document.createElement("div");
       el.className = "coin-hs" + (h.s < 0 ? " owl" : "");
-      el.innerHTML = '<div class="lead"></div><div class="card"><div class="k"></div><div class="t"></div><div class="e"></div></div>';
-      el.querySelector(".k").textContent = h.k;
-      el.querySelector(".t").textContent = h.t;
-      el.querySelector(".e").textContent = h.e;
+      el.innerHTML = '<div class="lead"></div><div class="card"><div class="k"></div><div class="t"></div></div>';
       g.add(new CSS2DObject(el));
       coinGroup.add(g);
       hotspots.push({ ...h, g, ring, dot, prog, hitDisc, el, dwell: 0, open: false, closeAt: 0, fade: 0 });
     }
+    applyTexts();
   }
 
   let coinMats = [];
@@ -245,8 +250,8 @@ export async function createCoin(opts){
     });
     coinGroup.remove(placeholder);
     coinGroup.add(model);
+    loadState = "done";
     buildHotspots(model);
-    loadingEl.textContent = "";
   }
   async function loadModel(){
     const url = opts.model || "coin.glb";
@@ -268,9 +273,11 @@ export async function createCoin(opts){
     gltf.scene.traverse((o) => { if (o.isMesh) o.material.map = tex; });
     adoptModel(gltf.scene);
   }
-  if (opts.lite){ loadingEl.textContent = ""; buildHotspots(placeholder); }
+  if (opts.lite) buildHotspots(placeholder);
   else loadModel().catch((err) => {
-    loadingEl.textContent = "MODEL YÜKLENEMEDİ · " + (location.protocol === "file:" ? "YEREL SUNUCU GEREKİR" : err.message);
+    loadState = "failed";
+    loadError = " · " + (location.protocol === "file:" ? "local server needed" : err.message);
+    applyTexts();
     console.error(err);
   });
 
@@ -360,19 +367,20 @@ export async function createCoin(opts){
 
   // ───────────── results ─────────────
   let pending = false;
-  const counts = { athena: 0, owl: 0, edge: 0 };
+  const counts = { athena: 0, owl: 0 };
+  function showTally(){
+    stage.querySelectorAll(".coin-count").forEach((c) => { c.querySelector(".num").textContent = roman(counts[c.dataset.t]); });
+  }
+  // a landing adds one to its face's count, and that count lights up for a moment
   function showResult(kind){
-    wordEl.classList.remove("on", "athena", "owl");
-    void wordEl.offsetWidth;
-    wordEl.textContent = WORDS[kind][0];
-    wordEl.classList.add("on");
-    if (kind !== "edge") wordEl.classList.add(kind);
-    subEl.textContent = WORDS[kind][1];
+    if (kind === "edge"){ onResult(kind, { ...counts }); return; }   // rare, not counted
     counts[kind]++;
-    stage.querySelectorAll(".coin-tally b").forEach((b) => { b.textContent = counts[b.dataset.t]; });
+    showTally();
+    const c = stage.querySelector(`.coin-count[data-t="${kind}"]`);
+    c.classList.remove("hit"); void c.offsetWidth; c.classList.add("hit");
     onResult(kind, { ...counts });
   }
-  function clearResult(){ wordEl.classList.remove("on"); subEl.textContent = ""; }
+  function clearResult(){ stage.querySelectorAll(".coin-count.hit").forEach((c) => c.classList.remove("hit")); }
   function evaluate(){
     if (!pending || grabBy !== null || mode !== "play") return;
     pending = false;
@@ -391,10 +399,7 @@ export async function createCoin(opts){
 
   function setModeUI(){
     stage.classList.toggle("inspect", mode === "inspect");
-    modeEl.classList.toggle("on", mode === "inspect");
-    hintEl.textContent = mode === "inspect"
-      ? "HALKANIN ÜZERİNDE BEKLE · YAVAŞ ÇEVİR · HIZLI SAVUR: AT"
-      : "TUT · SAVUR · BIRAK";
+    hintEl.textContent = tx(mode === "inspect" ? "hint.inspect" : "hint.play");
   }
   // close-up framing: coin centred in its free zone, sized to fit it
   function inspectFrame(){
@@ -563,11 +568,9 @@ export async function createCoin(opts){
     v.y = 0; v.clampLength(0, 16);
     const speed = v.length();
     if (speed > 0.7){
-      const h = v.clone().multiplyScalar(0.55).clampLength(0, 9);
-      coinBody.velocity.set(h.x, Math.min(2 + speed * 0.45, 9), h.z);
-      const axis = new V3(v.z, 0, -v.x).normalize();
-      const w = clamp(9 + speed * 2.2, 9, 40) * P.spin;
-      coinBody.angularVelocity.set(axis.x * w, (Math.random() - 0.5) * 1.2, axis.z * w);
+      // a coin flip: mostly up, a little along the swing, turning end over end
+      launch(v.clone().multiplyScalar(0.3).clampLength(0, 4.5),
+             clamp(0.9 + speed * 0.3, 1.2, 4), clamp(2 + speed * 0.28, 2.5, 6), new V3(v.z, 0, -v.x));
     } else {
       coinBody.velocity.set(v.x, 0, v.z);
       coinBody.angularVelocity.setZero();
@@ -586,15 +589,38 @@ export async function createCoin(opts){
   function throwFromInspect(vx, vy, sp){
     exitInspect();
     const dir = screenRight().multiplyScalar(vx).addScaledVector(screenUp(), vy); dir.y = 0;
-    const hor = dir.lengthSq() > 0 ? dir.clone().normalize().multiplyScalar(Math.min(sp * 0.9, 3)) : new V3();
-    coinBody.velocity.set(hor.x, Math.min(3.5 + sp * 2.2, 10), hor.z);
+    const hor = dir.lengthSq() > 0 ? dir.clone().normalize().multiplyScalar(Math.min(sp * 0.6, 2.5)) : new V3();
     const drag = screenRight().multiplyScalar(vx * camera.aspect).addScaledVector(screenUp(), vy);
-    const axis = new V3().crossVectors(new V3(0, P.view, 0), drag).normalize();
-    const w = clamp(12 + sp * 6, 12, 40) * P.spin;
-    coinBody.angularVelocity.set(axis.x * w, axis.y * w, axis.z * w);
-    coinBody.wakeUp();
+    const axis = new V3().crossVectors(new V3(0, P.view, 0), drag);
+    launch(hor, clamp(1.4 + sp * 0.5, 1.6, 4), clamp(3 + sp * 0.5, 3, 6), axis);
     clearResult();
-    pending = true;
+  }
+  // Throw the coin up to `height`, turning `turns` times about `axis` (horizontal) before it lands.
+  // The low gravity and the spin tied to the flight time are what make it read as a coin flip.
+  function launch(hor, height, turns, axis){
+    coinBody.type = CANNON.Body.DYNAMIC;
+    const vy = Math.sqrt(2 * P.gravity * height);
+    const drop = Math.max(coinBody.position.y - H / 2, 0);
+    const flight = (vy + Math.sqrt(vy * vy + 2 * P.gravity * drop)) / P.gravity;
+    aimClear(hor, flight);
+    coinBody.velocity.set(hor.x, vy, hor.z);
+    axis.y = 0;
+    if (axis.lengthSq() < 1e-6) axis.set(Math.random() - 0.5, 0, Math.random() - 0.5);
+    axis.normalize();
+    const w = turns * Math.PI * 2 / flight * P.spin;
+    coinBody.angularVelocity.set(axis.x * w, (Math.random() - 0.5) * 1.2, axis.z * w);
+    coinBody.wakeUp();
+    pending = true; lastTouch = performance.now();
+  }
+  // Don't let a throw come down behind the statue, where nobody could see the result:
+  // if it would land there, stretch or shorten the throw to land just beside her.
+  function aimClear(hor, flight){
+    if (!blockX.on || blockX.solid) return;
+    const m = R * 1.4, x0 = blockX.x0 - m, x1 = blockX.x1 + m;
+    const land = coinBody.position.x + hor.x * flight;
+    if (land <= x0 || land >= x1) return;
+    const goal = hor.x > 0.3 ? x1 : hor.x < -0.3 ? x0 : (land - x0 < x1 - land ? x0 : x1);
+    hor.x = clamp((goal - coinBody.position.x) / flight, -7, 7);
   }
   function flipInHand(){
     if (!HOLD.on || performance.now() < HOLD.flipAt) return;
@@ -608,11 +634,9 @@ export async function createCoin(opts){
     coinBody.type = CANNON.Body.DYNAMIC;
     coinBody.wakeUp();
     if (coinBody.position.y < 0.6) coinBody.position.y = 0.6;
-    coinBody.velocity.set((Math.random() - 0.5) * 1.5, Math.sqrt(2 * P.gravity * 2.4), (Math.random() - 0.5) * 1.5);
     const a = Math.random() * Math.PI * 2;
-    const w = (24 + Math.random() * 14) * Math.sqrt(P.gravity / 22) * P.spin;
-    coinBody.angularVelocity.set(Math.cos(a) * w, (Math.random() - 0.5) * 1.5, Math.sin(a) * w);
-    pending = true; lastTouch = performance.now();
+    launch(new V3((Math.random() - 0.5) * 1.5, 0, (Math.random() - 0.5) * 1.5), 2.4 + Math.random(), 3.5 + Math.random() * 2,
+           new V3(Math.cos(a), 0, Math.sin(a)));
   }
   function place(){
     coinBody.type = CANNON.Body.DYNAMIC;
@@ -776,6 +800,16 @@ export async function createCoin(opts){
     const p = coinBody.position;
     const n = new V3(0, 1, 0).applyQuaternion(bodyQ());
     const speed = coinBody.velocity.length();
+    // a coin that still ends up behind the statue slides out to the nearer side
+    if (blockX.on && !blockX.solid && p.y < R + 0.3){
+      const m = R * 1.1, x0 = blockX.x0 - m, x1 = blockX.x1 + m;
+      if (p.x > x0 && p.x < x1){
+        const dir = p.x - x0 < x1 - p.x ? -1 : 1;
+        p.x += dir * 2 * dt;                                  // glide, whatever the friction
+        if (coinBody.velocity.x * dir < 0) coinBody.velocity.x *= 0.8;
+        coinBody.wakeUp();
+      }
+    }
     if (p.y > R + 0.08){ coinBody.linearDamping = 0.03; coinBody.angularDamping = 0.05; return; }
     if (Math.abs(n.y) > 0.97){ coinBody.linearDamping = 0.03; coinBody.angularDamping = speed < 1.2 ? 0.45 : 0.05; return; }
     const w = new V3(), m = R + 0.25;
@@ -814,10 +848,10 @@ export async function createCoin(opts){
     const toCam = new V3(clamp(coinBody.velocity.x * 0.03, -0.45, 0.45) * P.view, P.view, clamp(coinBody.velocity.z * 0.03, -0.45, 0.45) * P.view);
     steerTo(uprightQuat(HOLD.face, toCam), 11, 26);
   }
-  // Close-up. When nobody touches it the coin rocks gently about the horizontal axis, and every
-  // `turnEvery` seconds flips over that same axis to the other face. Hovering a ring stills it.
-  // The owl's image is not upside down after the flip: at the edge-on moment (invisible) the coin
-  // swaps to the other face's upright pose, so both faces arrive the right way up.
+  // Close-up. When nobody touches it the coin sways gently left and right (about the vertical screen
+  // axis), and every `turnEvery` seconds turns round that same axis to show the other face. Hovering a
+  // ring stills it. At the edge-on moment (invisible) the coin swaps to the other face's upright pose,
+  // so both faces arrive exactly upright (the two dies are a few degrees apart).
   const _qa = new THREE.Quaternion(), _qt = new THREE.Quaternion();
   function driveInspect(dt, now){
     const toCam = new V3(0, P.view, 0);
@@ -838,8 +872,8 @@ export async function createCoin(opts){
     if (rock && INS.turnT < 0) INS.sinceTurn += dt;
     if (INS.turnT < 0 && INS.sinceTurn > P.turnEvery){ INS.turnT = 0; INS.sinceTurn = 0; INS.turnFrom = INS.face; }
 
-    const axis = screenRight();
-    const tilt = 0.26 * INS.amp * Math.sin(INS.phase * 0.9);
+    const axis = screenUp();
+    const tilt = 0.3 * INS.amp * Math.sin(INS.phase * 0.9);
     let target;
     if (INS.turnT >= 0){
       INS.turnT = Math.min(1, INS.turnT + dt / 3.2);
@@ -935,6 +969,7 @@ export async function createCoin(opts){
     if (!r.width || !r.height) return;
     renderer.setSize(r.width, r.height, false);
     labelRenderer.setSize(r.width, r.height);
+    stage.style.setProperty("--cu", (r.width / 1920) + "px");   // coin.css sizes: 1 = one pixel of a 1920-wide stage
     camera.aspect = r.width / r.height;
     camera.updateProjectionMatrix();
     layout(true);
@@ -944,7 +979,8 @@ export async function createCoin(opts){
   ro.observe(stage);
   resize();
   place();
-  setModeUI();
+  uiReady = true;
+  applyTexts();
 
   // ───────────── controls panel (optional) ─────────────
   function set(name, value){
@@ -967,8 +1003,8 @@ export async function createCoin(opts){
     if (mode === "inspect") exitInspect();
     if (grabBy !== null) endGrab(true);
     clearResult();
-    counts.athena = counts.owl = counts.edge = 0;
-    stage.querySelectorAll(".coin-tally b").forEach((b) => { b.textContent = "0"; });
+    counts.athena = counts.owl = 0;
+    showTally();
     place();
     playCamera(); camera.position.copy(camGoal.pos); camLook.copy(camGoal.look);   // no zoom-out on the next start
   }
@@ -980,6 +1016,7 @@ export async function createCoin(opts){
     get mode(){ return mode; },
     get holding(){ return grabBy !== null; },
     get lastHandsAt(){ return lastHandsAt; },
+    setTexts(t){ TX = t || {}; applyTexts(); },
     setHands, set, params: P, relayout: () => { layout(false); if (mode === "inspect") inspectFrame(); },
     toss, reset, enterInspect, exitInspect, dropFromInspect,
     destroy(){

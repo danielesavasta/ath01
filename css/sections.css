@@ -1,5 +1,27 @@
 /* Sections layered on top of the letter menu (see js/sections.js) */
 
+/* Cinzel: capitals after Roman inscriptions (SIL Open Font License, assets/fonts/Cinzel-OFL.txt) */
+@font-face{ font-family:"Cinzel"; font-weight:400; font-display:block; src:url("../assets/fonts/cinzel-latin-400-normal.woff2") format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face{ font-family:"Cinzel"; font-weight:400; font-display:block; src:url("../assets/fonts/cinzel-latin-ext-400-normal.woff2") format("woff2");
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face{ font-family:"Cinzel"; font-weight:600; font-display:block; src:url("../assets/fonts/cinzel-latin-600-normal.woff2") format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face{ font-family:"Cinzel"; font-weight:600; font-display:block; src:url("../assets/fonts/cinzel-latin-ext-600-normal.woff2") format("woff2");
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+
+/* words cut from the statue's marble (same look as the coin's tally, js/coin/coin.css) */
+.stone-text{
+    font-family: "Cinzel", "Trajan Pro", Georgia, serif;
+    background-image: linear-gradient(180deg, rgba(255,248,232,.22), rgba(0,0,0,0) 45%, rgba(0,0,0,.28)), url("../assets/stone.jpg");
+    background-size: 100% 100%, calc(360 * var(--u)) auto;
+    background-position: center;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 calc(-1 * var(--u)) 0 rgba(255,246,226,.28)) drop-shadow(0 calc(2 * var(--u)) calc(2 * var(--u)) rgba(0,0,0,.9));
+}
+
 /* the hand icons are drawn at screen resolution (js/scripts.js), so the canvas must not be rescaled */
 #drawing{ object-fit: fill; }
 
@@ -23,6 +45,44 @@ body.section-owl #coinStage{
 .container{ transition: opacity .6s ease; }
 body.section-owl .container{ opacity: 0; pointer-events: none; }
 
+/* language buttons, bottom left of the menu */
+#langSwitch{
+    position: absolute;
+    left: calc(50vw - 960 * var(--u) + 60 * var(--u));
+    top: calc(50vh + 540 * var(--u) - 70 * var(--u) - 110 * var(--u));
+    display: flex;
+    gap: calc(20 * var(--u));
+    z-index: 0;
+    transition: opacity .6s ease, visibility 0s linear 0s;
+}
+body.in-section #langSwitch{ opacity: 0; visibility: hidden; transition: opacity .6s ease, visibility 0s linear .6s; }
+#langSwitch .lang{
+    position: relative;
+    width: calc(110 * var(--u));
+    height: calc(110 * var(--u));
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: .5;
+    transition: opacity .3s, background .3s, transform .2s;
+}
+#langSwitch .lang b{ font-size: calc(40 * var(--u)); font-weight: 600; letter-spacing: .06em; line-height: 1; }
+#langSwitch .lang span{ font-family: Verdana, sans-serif; font-size: calc(12 * var(--u)); letter-spacing: .12em; color: #B9AE99; margin-top: calc(6 * var(--u)); }
+#langSwitch .lang.on{ opacity: 1; background: rgba(255,255,255,.07); }
+#langSwitch .lang.hover{ opacity: .9; transform: scale(1.06); }
+#langSwitch .lang-ring{
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(#F0B429 calc(var(--p, 0) * 1turn), rgba(255,255,255,.3) 0);
+    -webkit-mask: radial-gradient(circle, transparent calc(53 * var(--u)), #000 calc(54 * var(--u)));
+    mask: radial-gradient(circle, transparent calc(53 * var(--u)), #000 calc(54 * var(--u)));
+}
+#langSwitch .lang.on .lang-ring{ background: rgba(227,216,195,.75); }
+
 /* a letter rolling back from its icon moves up (the icon came in moving down) */
 .letter-slot.roll-up .letter-incoming{ transform: translateY(100%); }
 .letter-slot.roll-up .letter-exiting{ transform: translateY(-100%); }
@@ -42,9 +102,9 @@ body.section-owl .container{ opacity: 0; pointer-events: none; }
     align-items: center;
     justify-content: center;
     gap: calc(6 * var(--u));
-    font-family: Verdana, sans-serif;
-    font-size: calc(15 * var(--u));
-    letter-spacing: .14em;
+    font-size: calc(19 * var(--u));
+    font-weight: 600;
+    letter-spacing: .12em;
     background: rgba(255,255,255,.06);
     cursor: pointer;
     opacity: 0;
@@ -66,8 +126,6 @@ body.in-section #backBtn.hover{ opacity: 1; background: rgba(255,255,255,.14); t
 #backBtn.counting .back-ring{
     background: conic-gradient(#fff calc(var(--p, 0) * 1turn), rgba(255,255,255,.35) 0);
 }
-/* the coin's tally moves right, clear of the button */
-#coinStage .coin-tally{ left: calc(290 * var(--u)); bottom: calc(110 * var(--u)); }
 
 /* progress ring while a hand rests on an icon */
 #selectRing{
