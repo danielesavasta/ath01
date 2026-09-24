@@ -10,7 +10,6 @@ const stage = document.getElementById("coinStage");
 const panel = document.getElementById("coinPanel");
 const statue = document.getElementById("athenaStatue");
 const ring = document.getElementById("selectRing");
-const drawing = document.getElementById("drawing");
 
 // opaque part of assets/athenaStatue.png as fractions of its width (from its alpha channel)
 const STATUE_ALPHA = [707 / 1920, 1226 / 1920];
@@ -19,6 +18,15 @@ function statueBand(){
   if (!r.width || !s.width) return null;
   const x0 = r.left + r.width * STATUE_ALPHA[0], x1 = r.left + r.width * STATUE_ALPHA[1];
   return [(x0 - s.left) / s.width * 2 - 1, (x1 - s.left) / s.width * 2 - 1];
+}
+
+// arrange the six letters in their slots from the start; scripts.js would otherwise only do it
+// when the first hand appears, and until then they sit on top of each other
+for (const el of [...document.querySelectorAll(".container > .letter")]){
+  const slot = document.createElement("div");
+  slot.className = "letter-slot";
+  el.parentNode.insertBefore(slot, el);
+  slot.appendChild(el);
 }
 
 const coin = await createCoin({
@@ -49,20 +57,16 @@ const RETURN_AFTER = 25000;   // ms with no hands before going back to the menu
 let dwell = 0, lastT = performance.now();
 
 window.addEventListener("ath:hands", (e) => {
-  const { width, height, hands } = e.detail;
+  const { hands } = e.detail;
   const now = performance.now(), dt = Math.min(now - lastT, 100);
   lastT = now;
-  // map the camera frame onto the viewport the same way the hand icons are drawn (object-fit of #drawing)
-  const fit = getComputedStyle(drawing).objectFit;
-  const sx = innerWidth / width, sy = innerHeight / height;
-  const sc = fit === "cover" ? Math.max(sx, sy) : Math.min(sx, sy);
-  const kx = fit === "fill" ? sx : sc, ky = fit === "fill" ? sy : sc;
-  const ox = (innerWidth - width * kx) / 2, oy = (innerHeight - height * ky) / 2;
-  const pts = hands.map((h) => ({ px: ox + h.x * width * kx, py: oy + h.y * height * ky, open: h.open }));
+  // scripts.js already placed the hands on the screen (viewport pixels)
+  const pts = hands.map((h) => ({ id: h.id, px: h.px, py: h.py, open: h.open }));
 
   if (section === "owl"){
     const s = stage.getBoundingClientRect();
     coin.setHands(pts.map((p) => ({
+      id: p.id,
       x: (p.px - s.left) / s.width * 2 - 1,
       y: -((p.py - s.top) / s.height * 2 - 1),
       open: p.open

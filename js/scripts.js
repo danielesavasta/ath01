@@ -104,27 +104,129 @@ function startKinect() {
     });
 }
 
+// ── Screen mapping ──
+// The installation is laid out for a 1920×1080 frame, centred and scaled to fit the window
+// (see --u in css/main.css). The camera image covers that frame: cropped, not letterboxed,
+// so hands reach its edges whatever the camera's aspect ratio.
+function frameRect() {
+    const u = Math.min(innerWidth / 1920, innerHeight / 1080);
+    const w = 1920 * u, h = 1080 * u;
+    return { x: (innerWidth - w) / 2, y: (innerHeight - h) / 2, w, h, u };
+}
+
+// The drawing canvas is the size of the screen in device pixels, so the vector icons stay sharp.
+function fitDrawingCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    const W = Math.round(innerWidth * dpr), H = Math.round(innerHeight * dpr);
+    if (drawingElement.width !== W || drawingElement.height !== H) {
+        drawingElement.width = W;
+        drawingElement.height = H;
+    }
+    drawingCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawingCtx.clearRect(0, 0, innerWidth, innerHeight);
+}
+
+// ── Hand colours ──
+// Hands are matched frame to frame by position, so each keeps its colour while it stays in view.
+const HAND_ICON = 90;   // icon size in 1920×1080 frame pixels
+const HAND_COLOURS = ['#F0B429', '#3FA08C', '#E0605A', '#5B8DEF', '#C77DDB', '#7CCB5B', '#F08A3C', '#4FC3D9'];
+let trackedHands = [];
+let nextHandId = 1;
+
+function identifyHands(found, now, maxJump) {
+    const prev = trackedHands.slice();
+    const taken = new Set();
+    const next = [];
+    for (const h of found) {
+        let best = null, bd = maxJump;
+        for (const p of prev) {
+            if (taken.has(p.id)) continue;
+            const d = Math.hypot(p.sx - h.sx, p.sy - h.sy);
+            if (d < bd) { bd = d; best = p; }
+        }
+        if (best) { taken.add(best.id); h.id = best.id; h.colour = best.colour; }
+        else h.id = nextHandId++;
+        h.seen = now;
+        next.push(h);
+    }
+    // a hand lost for a moment keeps its colour when it comes back
+    for (const p of prev) if (!taken.has(p.id) && now - p.seen < 600) next.push(p);
+    for (const h of next) {
+        if (h.colour) continue;
+        const used = new Set(next.filter(o => o.colour).map(o => o.colour));
+        h.colour = HAND_COLOURS.find(c => !used.has(c)) || HAND_COLOURS[h.id % HAND_COLOURS.length];
+    }
+    trackedHands = next;
+    return found;
+}
+
+// Solid silhouette of an outline icon (flood-fill the outside), tinted per colour and cached.
+const silhouettes = new Map();
+const tints = new Map();
+function silhouetteOf(img) {
+    if (silhouettes.has(img)) return silhouettes.get(img);
+    if (!img.complete) return null;
+    const N = 512, c = document.createElement('canvas');
+    c.width = c.height = N;
+    const x = c.getContext('2d', { willReadFrequently: true });
+    x.drawImage(img, 0, 0, N, N);
+    const d = x.getImageData(0, 0, N, N), a = d.data;
+    const outside = new Uint8Array(N * N), stack = [];
+    for (let i = 0; i < N; i++) stack.push(i, (N - 1) * N + i, i * N, i * N + N - 1);
+    while (stack.length) {
+        const p = stack.pop();
+        if (outside[p] || a[p * 4 + 3] > 40) continue;
+        outside[p] = 1;
+        const px = p % N, py = (p / N) | 0;
+        if (px > 0) stack.push(p - 1);
+        if (px < N - 1) stack.push(p + 1);
+        if (py > 0) stack.push(p - N);
+        if (py < N - 1) stack.push(p + N);
+    }
+    for (let p = 0; p < N * N; p++) {
+        a[p * 4] = a[p * 4 + 1] = a[p * 4 + 2] = 255;
+        a[p * 4 + 3] = outside[p] ? 0 : 255;
+    }
+    x.putImageData(d, 0, 0);
+    silhouettes.set(img, c);
+    return c;
+}
+function tintedSilhouette(img, colour) {
+    const key = img.src + colour;
+    if (tints.has(key)) return tints.get(key);
+    const sil = silhouetteOf(img);
+    if (!sil) return null;
+    const c = document.createElement('canvas');
+    c.width = sil.width; c.height = sil.height;
+    const x = c.getContext('2d');
+    x.drawImage(sil, 0, 0);
+    x.globalCompositeOperation = 'source-in';
+    x.fillStyle = colour;
+    x.fillRect(0, 0, c.width, c.height);
+    tints.set(key, c);
+    return c;
+}
+
 function onResults(results) {
     if (!isVideoRunning) return;
     const width = frameSize.w || videoElement.videoWidth;
     const height = frameSize.h || videoElement.videoHeight;
+    if (!width || !height) return;
     canvasElement.width = width;
     canvasElement.height = height;
-    drawingElement.width = width;
-    drawingElement.height = height;
-
-    // Clear canvases each frame
     canvasCtx.clearRect(0, 0, width, height);
-    drawingCtx.clearRect(0, 0, width, height);
+    fitDrawingCanvas();
 
     if (results.multiHandLandmarks?.length && !handAnimationTriggered) {
         handAnimationTriggered = true;
         animateLetters("🦉🥚🦅🦊🦥🦫");
     }
 
-    // Prepare string for hand info display
-    const handInfos = [];
-    const handsOut = []; // shared with js/sections.js (normalised, already mirrored)
+    const map = frameRect();
+    const s = Math.max(map.w / width, map.h / height);            // camera px -> screen px (cover)
+    const ox = map.x + (map.w - width * s) / 2, oy = map.y + (map.h - height * s) / 2;
+
+    const found = [];
     const handList = results.multiHandLandmarks || []; // undefined when no hand is in view
     for (let i = 0; i < handList.length; i++) {
         const hand = handList[i];
@@ -132,10 +234,6 @@ function onResults(results) {
         const mirrorX = true; // same as flipHorizontal camera option
         const xs = hand.map(l => (mirrorX ? width - l.x * width : l.x * width));
         const ys = hand.map(l => l.y * height);
-        const minX = Math.min(...xs);
-        const maxX = Math.max(...xs);
-        const minY = Math.min(...ys);
-        const maxY = Math.max(...ys);
 
         // Determine if hand is open: check finger tip above middle joint
         // MediaPipe hand landmark indexes: 4=thumb tip, 8=index tip, 12=middle, 16=ring, 20=pinky
@@ -153,66 +251,53 @@ function onResults(results) {
 
         // Get handedness label (Left/Right)
         let handLabel = 'Unknown';
-        if (
-            results.multiHandedness &&
-            results.multiHandedness.length > i
-        ) {
-            const h = results.multiHandedness[i];
-            handLabel = h.classification?.[0]?.label ?? 'Unknown';
+        if (results.multiHandedness && results.multiHandedness.length > i) {
+            handLabel = results.multiHandedness[i].classification?.[0]?.label ?? 'Unknown';
         }
-
         // Fallback if handedness not provided: determine from landmark x position
         if (handLabel === 'Unknown') {
-            const wristX = hand[0].x * width; // wrist is first landmark
-            handLabel = wristX < width / 2 ? 'Left' : 'Right';
+            handLabel = hand[0].x * width < width / 2 ? 'Left' : 'Right';
         }
 
         const centerX = xs.reduce((a, b) => a + b, 0) / xs.length;
         const centerY = ys.reduce((a, b) => a + b, 0) / ys.length;
 
-        const img = open ? openImg : closeImg;
-        /*console.log(open);
-        console.log(img);*/
-        const imgSize = 100;
-                // Use mirrored coordinates for rotation calculation
-                const wx = xs[0];
-                const wy = ys[0];
-                const mx = xs[9];
-                const my = ys[9];
-                let angle = Math.atan2(my - wy, mx - wx);
-                // Adjust for handedness
-                if (handLabel.toLowerCase() === 'right') {
-                    angle = -Math.PI / 2- angle;
-                } else {
-                    angle += Math.PI / 2;
-                }
+        // Rotation from wrist to middle-finger base, adjusted for handedness
+        let angle = Math.atan2(ys[9] - ys[0], xs[9] - xs[0]);
+        angle = handLabel.toLowerCase() === 'right' ? -Math.PI / 2 - angle : angle + Math.PI / 2;
 
-        // Unified drawing logic with shadow and rotation
+        found.push({ open, label: handLabel, angle, sx: ox + centerX * s, sy: oy + centerY * s, camX: centerX / width, camY: centerY / height });
+    }
+
+    identifyHands(found, performance.now(), map.w * 0.18);
+
+    const size = HAND_ICON * map.u;
+    const handInfos = [];
+    for (const h of found) {
+        const img = h.open ? openImg : closeImg;
         drawingCtx.save();
-        drawingCtx.translate(centerX, centerY);
-                // Flip icon horizontally only for left hand
-                if (handLabel.toLowerCase() === 'right') {
-                    drawingCtx.scale(-1, 1);
-                }
-        drawingCtx.rotate(angle);
-        // Apply drop‑shadow for better visibility
+        drawingCtx.translate(h.sx, h.sy);
+        if (h.label.toLowerCase() === 'right') drawingCtx.scale(-1, 1); // flip icon for the right hand
+        drawingCtx.rotate(h.angle);
+        const tint = tintedSilhouette(img, h.colour);
+        if (tint) {
+            drawingCtx.globalAlpha = 0.5;
+            drawingCtx.drawImage(tint, -size / 2, -size / 2, size, size);
+            drawingCtx.globalAlpha = 1;
+        }
         drawingCtx.shadowColor = 'rgba(0,0,0,0.5)';
         drawingCtx.shadowBlur = 8;
-        drawingCtx.drawImage(img, -imgSize / 2, -imgSize / 2, imgSize, imgSize);
-                drawingCtx.restore();
+        drawingCtx.drawImage(img, -size / 2, -size / 2, size, size);
+        drawingCtx.restore();
+        handInfos.push(`H${h.id} ${Math.round(h.sx)}|${Math.round(h.sy)}`);
+    }
+    if (updatenote) updatenote.innerText = handInfos.join(' ');
 
-                handsOut.push({ x: centerX / width, y: centerY / height, open, label: handLabel });
-
-                // Store hand info
-                const xRound = Math.round(centerX);
-                const yRound = Math.round(centerY);
-                handInfos.push(`H${i} ${xRound}|${yRound}`);
-        }
-        // Update the updatenote element
-        if (updatenote) {
-            updatenote.innerText = handInfos.join(' ');
-        }
-        window.dispatchEvent(new CustomEvent('ath:hands', { detail: { width, height, hands: handsOut } }));
+    // shared with js/sections.js: positions in viewport pixels
+    window.dispatchEvent(new CustomEvent('ath:hands', { detail: {
+        width, height,
+        hands: found.map(h => ({ id: h.id, colour: h.colour, px: h.sx, py: h.sy, open: h.open, label: h.label }))
+    } }));
 }
 
 startCamera();

@@ -1,3 +1,9 @@
+/* Everything is laid out for a 1920×1080 frame, centred and scaled to fit the window.
+   1 frame pixel = var(--u). js/scripts.js uses the same frame to place the hands. */
+:root {
+    --u: min(calc(100vw / 1920), calc(100vh / 1080));
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -25,10 +31,12 @@ canvas {
 }
 #athenaStatue{
     position: absolute;
-    left: 50%;
-    top: 0;
-    transform: translate(-50%, 0);
-    top: 0;
+    left: calc(50vw - 960 * var(--u));
+    top: calc(50vh - 540 * var(--u));
+    width: calc(1920 * var(--u));
+    height: calc(1080 * var(--u));
+    object-fit: cover;          /* the 1920×1920 image, cropped to the frame from the top */
+    object-position: top;
     z-index: 40000;
 }
 
@@ -63,8 +71,8 @@ canvas {
 }
 
 .letter {
-    width: 512px;
-    height: 512px;
+    width: calc(300 * var(--u));
+    height: calc(300 * var(--u));
     background-size: cover;
     z-index: 3;
     position: absolute;
@@ -76,8 +84,8 @@ canvas {
 
 .letter-slot {
     position: relative;
-    width: 512px;
-    height: 512px;
+    width: calc(300 * var(--u));
+    height: calc(300 * var(--u));
     overflow: hidden;
 }
 
@@ -124,6 +132,6 @@ canvas {
     transform: translate(-50%, -50%);
     display:grid;
     grid-template-columns: repeat(2, 1fr);
-    column-gap: 150px;
-    row-gap: 25px;
+    column-gap: calc(640 * var(--u));   /* the statue stands between the two columns */
+    row-gap: calc(40 * var(--u));
 }
