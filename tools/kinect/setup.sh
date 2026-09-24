@@ -23,5 +23,5 @@ echo "Using $PY ($("$PY" --version))"
 
 echo
 echo "Done. Plug in the Kinect (USB and its power adapter), then:"
-echo "  $("$BREW" --prefix)/bin/freenect-glview     # quick check: a window with colour + depth"
+echo "  $("$BREW" --prefix)/bin/freenect-camtest    # quick check: prints a line per received frame (Ctrl-C to stop)"
 echo "  .venv/bin/python bridge.py                  # start the bridge for the browser"

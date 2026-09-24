@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Kinect (Xbox 360, v1) -> browser bridge.
 
-Reads the Kinect through libfreenect's synchronous C API (via ctypes, nothing to compile)
+Reads the Kinect through libfreenect (via ctypes, nothing to compile), camera only,
 and streams frames to the page over a local WebSocket:
 
     ws://127.0.0.1:8770/rgb     colour, 640x480 JPEG
@@ -35,7 +35,24 @@ LED_GREEN, LED_YELLOW = 1, 3
 
 
 # ───────────── libfreenect ─────────────
-def find_libfreenect_sync():
+# The Xbox 360 Kinect model 1473 drives its tilt motor through the audio chip, which needs a firmware
+# upload (audios.bin). Opening the *camera only* avoids that, so the tilt motor is off unless --motor.
+DEVICE_MOTOR, DEVICE_CAMERA = 0x01, 0x02
+RESOLUTION_MEDIUM = 1
+LOG_WARNING = 2
+
+
+class FrameMode(ctypes.Structure):          # freenect_frame_mode, 24 bytes
+    _fields_ = [("reserved", ctypes.c_uint32), ("resolution", ctypes.c_int), ("format", ctypes.c_int32),
+                ("bytes", ctypes.c_int32), ("width", ctypes.c_int16), ("height", ctypes.c_int16),
+                ("data_bits_per_pixel", ctypes.c_int8), ("padding_bits_per_pixel", ctypes.c_int8),
+                ("framerate", ctypes.c_int8), ("is_valid", ctypes.c_int8)]
+
+
+FRAME_CB = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_uint32)
+
+
+def find_libfreenect():
     candidates = []
     brew = shutil.which("brew") or next((p for p in ("/opt/homebrew/bin/brew", "/usr/local/bin/brew",
                                                        os.path.expanduser("~/.homebrew/bin/brew")) if os.path.exists(p)), None)
@@ -43,15 +60,18 @@ def find_libfreenect_sync():
         try:
             prefix = subprocess.run([brew, "--prefix", "libfreenect"], capture_output=True, text=True, timeout=20).stdout.strip()
             if prefix:
-                candidates += glob.glob(os.path.join(prefix, "lib", "libfreenect_sync*.dylib"))
+                candidates += sorted(glob.glob(os.path.join(prefix, "lib", "libfreenect.*dylib")))
         except Exception:
             pass
-    for d in ("/opt/homebrew/lib", "/usr/local/lib", os.path.expanduser("~/.homebrew/lib"), "/usr/lib", "/usr/lib/x86_64-linux-gnu"):
-        candidates += glob.glob(os.path.join(d, "libfreenect_sync*.dylib")) + glob.glob(os.path.join(d, "libfreenect_sync.so*"))
-    found = ctypes.util.find_library("freenect_sync")
+    for d in ("/opt/homebrew/lib", "/usr/local/lib", os.path.expanduser("~/.homebrew/lib"), "/usr/lib", "/usr/lib/x86_64-linux-gnu", "/usr/lib/aarch64-linux-gnu"):
+        candidates += sorted(glob.glob(os.path.join(d, "libfreenect.dylib")) + glob.glob(os.path.join(d, "libfreenect.*.dylib"))
+                             + glob.glob(os.path.join(d, "libfreenect.so*")))
+    found = ctypes.util.find_library("freenect")
     if found:
         candidates.append(found)
     for c in candidates:
+        if "sync" in os.path.basename(c):
+            continue
         try:
             return ctypes.CDLL(c)
         except OSError:
@@ -60,43 +80,108 @@ def find_libfreenect_sync():
 
 
 class Kinect:
-    def __init__(self):
-        self.lib = find_libfreenect_sync()
-        if self.lib is None:
-            sys.exit("libfreenect_sync not found. Run ./setup.sh first (it installs libfreenect with Homebrew).")
-        L = self.lib
-        L.freenect_sync_get_video.argtypes = [ctypes.POINTER(ctypes.c_void_p), ctypes.POINTER(ctypes.c_uint32), ctypes.c_int, ctypes.c_int]
-        L.freenect_sync_get_depth.argtypes = [ctypes.POINTER(ctypes.c_void_p), ctypes.POINTER(ctypes.c_uint32), ctypes.c_int, ctypes.c_int]
-        L.freenect_sync_set_led.argtypes = [ctypes.c_int, ctypes.c_int]
-        L.freenect_sync_set_tilt_degs.argtypes = [ctypes.c_int, ctypes.c_int]
-        self._ptr = ctypes.c_void_p()
-        self._ts = ctypes.c_uint32()
+    def __init__(self, motor=False):
+        L = find_libfreenect()
+        if L is None:
+            sys.exit("libfreenect not found. Run ./setup.sh first (it installs libfreenect with Homebrew).")
+        self.L = L
+        P, I = ctypes.c_void_p, ctypes.c_int
+        L.freenect_init.argtypes = [ctypes.POINTER(P), P]
+        L.freenect_set_log_level.argtypes = [P, I]
+        L.freenect_num_devices.argtypes = [P]
+        L.freenect_select_subdevices.argtypes = [P, I]
+        L.freenect_open_device.argtypes = [P, ctypes.POINTER(P), I]
+        L.freenect_find_video_mode.argtypes = [I, I]; L.freenect_find_video_mode.restype = FrameMode
+        L.freenect_find_depth_mode.argtypes = [I, I]; L.freenect_find_depth_mode.restype = FrameMode
+        L.freenect_set_video_mode.argtypes = [P, FrameMode]
+        L.freenect_set_depth_mode.argtypes = [P, FrameMode]
+        L.freenect_set_video_callback.argtypes = [P, FRAME_CB]
+        L.freenect_set_depth_callback.argtypes = [P, FRAME_CB]
+        for f in ("freenect_start_video", "freenect_start_depth", "freenect_stop_video", "freenect_stop_depth", "freenect_close_device"):
+            getattr(L, f).argtypes = [P]
+        L.freenect_process_events.argtypes = [P]
+        L.freenect_shutdown.argtypes = [P]
+        L.freenect_set_led.argtypes = [P, I]
+        L.freenect_set_tilt_degs.argtypes = [P, ctypes.c_double]
+
+        self.ctx, self.dev, self.motor = P(), P(), motor
+        if L.freenect_init(ctypes.byref(self.ctx), None) < 0:
+            sys.exit("libfreenect could not start (USB).")
+        L.freenect_set_log_level(self.ctx, LOG_WARNING)
+        n = L.freenect_num_devices(self.ctx)
+        if n < 1:
+            L.freenect_shutdown(self.ctx)
+            sys.exit("No Kinect found on USB. Check the cable and the power adapter.")
+        L.freenect_select_subdevices(self.ctx, DEVICE_CAMERA | (DEVICE_MOTOR if motor else 0))
+        if L.freenect_open_device(self.ctx, ctypes.byref(self.dev), 0) < 0:
+            L.freenect_shutdown(self.ctx)
+            sys.exit("Could not open the Kinect. Is another program using it (freenect-glview, camtest)?"
+                     + (" With --motor the 1473 model needs audios.bin; try without --motor." if motor else ""))
+
+        vm = L.freenect_find_video_mode(RESOLUTION_MEDIUM, FREENECT_VIDEO_RGB)
+        dm = L.freenect_find_depth_mode(RESOLUTION_MEDIUM, FREENECT_DEPTH_REGISTERED)
+        if not (vm.is_valid and dm.is_valid):
+            sys.exit("This libfreenect has no 640x480 RGB / registered depth mode.")
+        L.freenect_set_video_mode(self.dev, vm)
+        L.freenect_set_depth_mode(self.dev, dm)
+        self._vcb, self._dcb = FRAME_CB(self._on_video), FRAME_CB(self._on_depth)   # keep references alive
+        L.freenect_set_video_callback(self.dev, self._vcb)
+        L.freenect_set_depth_callback(self.dev, self._dcb)
+
+        self.cond = threading.Condition()
+        self._rgb, self._depth, self._rgb_seq, self._taken = None, None, 0, 0
+        self.running = True
+        L.freenect_start_video(self.dev)
+        L.freenect_start_depth(self.dev)
+        self.events = threading.Thread(target=self._pump, daemon=True)
+        self.events.start()
+
+    # libfreenect calls these from the event thread; copy the frame out of its buffer
+    def _on_video(self, dev, data, ts):
+        a = np.ctypeslib.as_array((ctypes.c_uint8 * (W * H * 3)).from_address(data)).reshape(H, W, 3).copy()
+        with self.cond:
+            self._rgb, self._rgb_seq = a, self._rgb_seq + 1
+            self.cond.notify_all()
+
+    def _on_depth(self, dev, data, ts):
+        a = np.ctypeslib.as_array((ctypes.c_uint16 * (W * H)).from_address(data)).reshape(H, W).copy()
+        with self.cond:
+            self._depth = a
+
+    def _pump(self):
+        while self.running:
+            if self.L.freenect_process_events(self.ctx) < 0:
+                print("USB error from the Kinect, stopping.", flush=True)
+                self.running = False
 
     def rgb(self):
-        if self.lib.freenect_sync_get_video(ctypes.byref(self._ptr), ctypes.byref(self._ts), 0, FREENECT_VIDEO_RGB) != 0:
-            return None
-        buf = (ctypes.c_uint8 * (W * H * 3)).from_address(self._ptr.value)
-        return np.frombuffer(buf, dtype=np.uint8).reshape(H, W, 3).copy()
+        with self.cond:
+            if not self.cond.wait_for(lambda: self._rgb_seq != self._taken or not self.running, timeout=2):
+                return None
+            self._taken = self._rgb_seq
+            return self._rgb
 
     def depth_mm(self):
-        if self.lib.freenect_sync_get_depth(ctypes.byref(self._ptr), ctypes.byref(self._ts), 0, FREENECT_DEPTH_REGISTERED) != 0:
-            return None
-        buf = (ctypes.c_uint16 * (W * H)).from_address(self._ptr.value)
-        return np.frombuffer(buf, dtype=np.uint16).reshape(H, W).copy()
+        with self.cond:
+            return self._depth if self._depth is not None else np.zeros((H, W), np.uint16)
 
     def led(self, mode):
-        try:
-            self.lib.freenect_sync_set_led(mode, 0)
-        except Exception:
-            pass
+        if self.motor:
+            self.L.freenect_set_led(self.dev, mode)
 
     def tilt(self, deg):
-        self.lib.freenect_sync_set_tilt_degs(int(max(-27, min(27, deg))), 0)
+        if not self.motor:
+            print("Tilt needs --motor (and, on the 1473 model, the audios.bin firmware).", flush=True)
+            return
+        self.L.freenect_set_tilt_degs(self.dev, float(max(-27, min(27, deg))))
 
     def stop(self):
+        self.running = False
+        L = self.L
         try:
-            self.led(LED_YELLOW)
-            self.lib.freenect_sync_stop()
+            L.freenect_stop_video(self.dev); L.freenect_stop_depth(self.dev)
+            self.events.join(timeout=1)
+            L.freenect_close_device(self.dev); L.freenect_shutdown(self.ctx)
         except Exception:
             pass
 
@@ -158,7 +243,7 @@ class Capture(threading.Thread):
             if rgb is None:
                 self.fails += 1
                 if self.fails in (1, 30) or self.fails % 300 == 0:
-                    print("No colour frame from the Kinect. Is the power adapter plugged in? (try: freenect-glview)", flush=True)
+                    print("No colour frame from the Kinect yet. Is the power adapter plugged in? (check: freenect-camtest)", flush=True)
                 time.sleep(0.2)
                 continue
             self.fails = 0
@@ -184,10 +269,11 @@ async def main():
     ap.add_argument("--near", type=float, default=500, help="depth view: mm shown as white")
     ap.add_argument("--far", type=float, default=4000, help="depth view: mm shown as black")
     ap.add_argument("--tilt", type=float, default=None, help="tilt the Kinect motor, degrees (-27..27)")
+    ap.add_argument("--motor", action="store_true", help="also open the tilt motor / LED (1473 model: needs audios.bin)")
     ap.add_argument("--fake", action="store_true", help="test pattern instead of the Kinect")
     a = ap.parse_args()
 
-    dev = FakeKinect() if a.fake else Kinect()
+    dev = FakeKinect() if a.fake else Kinect(motor=a.motor)
     if a.tilt is not None:
         dev.tilt(a.tilt)
     dev.led(LED_GREEN)
