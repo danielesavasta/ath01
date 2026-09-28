@@ -1,4 +1,5 @@
-// The menu (ATHENA letters) and the sections behind them. Only the owl section (tetradrachm) exists so far.
+// The menu (ATHENA letters) and the sections behind them. So far: owl (tetradrachm) and egg (a gallery
+// of artworks, content/egg.json, images in assets/egg/).
 // Hands arrive from scripts.js as an "ath:hands" event, once per camera frame, in viewport pixels.
 //
 // Menu:     a hand over a letter rolls it to its section's icon; staying there (T.dwell ms) opens the section.
@@ -10,13 +11,15 @@
 //           section closes because nobody was there, or after T.langReset ms with no hands in the menu.
 // The mouse works like a hand, for development; a click on an icon or a button acts at once.
 //
-// Keys while developing:  O open owl section · M back to menu · D controls panel · K room setup (js/venue.js)
+// Keys while developing:  O open owl section · G open egg section · M back to menu · D controls panel · K room setup (js/venue.js)
 //                          (inside the section) Space toss · I close-up · Esc leave close-up · F flip in hand
 
 import { createCoin } from "./coin/coin.js";
+import { createEgg } from "./egg/egg.js";
 import TEXTS from "../content/texts.js";
 
 const stage = document.getElementById("coinStage");
+const eggStage = document.getElementById("eggStage");
 const panel = document.getElementById("coinPanel");
 const ring = document.getElementById("selectRing");
 const container = document.querySelector(".container");
@@ -34,12 +37,12 @@ const ROLL_MS = 850;          // a little longer than the .letter transition in 
 // ───────────── the six slots ─────────────
 // slot order is the DOM order: A T / H E / N A (two columns, the statue between them)
 const SLOTS = [
-  { letter: "A", icon: "🦉", file: "owl.svg",    section: "owl" },
-  { letter: "T", icon: "🥚", file: "egg.svg"    },
-  { letter: "H", icon: "🦅", file: "eagle.svg"  },
-  { letter: "E", icon: "🦊", file: "fox.svg"    },
-  { letter: "N", icon: "🦥", file: "sloth.svg"  },
-  { letter: "A", icon: "🦫", file: "beaver.svg" }
+  { letter: "A", icon: "🦉", file: "owl.svg", section: "owl" }, // the coin
+  { letter: "T", icon: "🥚", file: "egg.svg", section: "egg" }, // the birth
+  { letter: "H", icon: "🦅", file: "eagle.svg", section: "eagle" },
+  { letter: "E", icon: "🦊", file: "fox.svg", section: "fox" },
+  { letter: "N", icon: "🦥", file: "sloth.svg", section: "sloth" },
+  { letter: "A", icon: "🦫", file: "beaver.svg", section: "beaver" }
 ];
 // an icon only takes part once its file has loaded (the others are not drawn yet)
 for (const s of SLOTS){
@@ -125,6 +128,16 @@ const coin = await createCoin({
   autostart: false
 });
 
+const egg = await createEgg({
+  stage: eggStage,
+  texts: textsFor(FIRST).egg,
+  dataUrl: "content/egg.json",
+  imagesDir: "assets/egg/"
+});
+
+// every section, by its SLOTS name; each exposes start/stop/reset/setTexts, and most also setHands or frame
+const SECTIONS = { owl: coin, egg };
+
 if (window.VENUE) window.VENUE.onChange(() => coin.relayout());
 
 // back button: bottom left of the frame, where a hand reaches it; the hand icons stay on top of it
@@ -155,6 +168,7 @@ function setLang(code){
   lang = code;
   const t = textsFor(code);
   coin.setTexts(t.owl);
+  egg.setTexts(t.egg);
   back.querySelector("span").textContent = t.menu.back;
   document.documentElement.lang = code;
   for (const l of LANGS){ l.el.classList.toggle("on", l.code === code); l.dwell = 0; l.el.style.setProperty("--p", 0); }
@@ -163,23 +177,25 @@ setLang(FIRST);
 
 let section = "menu", activeAt = 0;
 function openSection(name){
-  if (section !== "menu" || name !== "owl") return;
+  const s = SECTIONS[name];
+  if (section !== "menu" || !s) return;
   section = name; activeAt = performance.now();
   ring.style.opacity = 0;
-  coin.reset();                 // a fresh coin for every visit: dropped on the table, camera over the table
-  document.body.classList.add("in-section", "section-owl");
-  coin.start();
+  s.reset();                     // a fresh start for every visit (the coin dropped on the table, the gallery at its first image)
+  document.body.classList.add("in-section", "section-" + name);
+  s.start();
 }
 // why: "back" (the button, or M) keeps the language; "idle" means the visitor has gone
 function closeSection(why = "back"){
   if (section === "menu") return;
+  const s = SECTIONS[section];
+  document.body.classList.remove("in-section", "section-" + section);
   section = "menu";
   activeAt = performance.now();
   if (why === "idle") setLang(FIRST);
-  document.body.classList.remove("in-section", "section-owl");
   back.style.setProperty("--p", 0);
-  coin.stop();
-  for (const s of SLOTS){ s.over = false; s.dwell = 0; }
+  s.stop();
+  for (const sl of SLOTS){ sl.over = false; sl.dwell = 0; }
   athenaWave();
 }
 
@@ -274,12 +290,14 @@ function menuFrame(now, dt, pts){
 }
 
 function sectionFrame(now, dt, pts){
+  const active = SECTIONS[section];
+  active.frame?.(pts, dt);      // sections without hand physics of their own (the egg gallery) get dwell here
   const handsIn = pts.some((p) => !p.mouse);
-  if (handsIn || coin.holding) activeAt = now;
+  if (handsIn || active.holding) activeAt = now;
 
   // a hand resting on the back button (not one carrying the coin)
   const r = back.getBoundingClientRect(), pad = r.width * 0.15;
-  const over = !coin.holding && pts.some((p) => inside(r, p.px, p.py, pad));
+  const over = !active.holding && pts.some((p) => inside(r, p.px, p.py, pad));
   backDwell = over ? backDwell + dt : Math.max(0, backDwell - dt * 2);
   back.classList.toggle("hover", over);
 
@@ -297,6 +315,7 @@ requestAnimationFrame(frame);
 window.addEventListener("keydown", (e) => {
   if (e.target && e.target.tagName === "INPUT") return;
   if (e.code === "KeyO") openSection("owl");
+  if (e.code === "KeyG") openSection("egg");
   if (e.code === "KeyM") closeSection();
   if (e.code === "KeyD") document.body.classList.toggle("show-panel");
   activeAt = performance.now();
@@ -304,7 +323,7 @@ window.addEventListener("keydown", (e) => {
 
 // handy from the console while developing (openOwl / closeOwl kept for older notes)
 window.ath = {
-  coin, openSection, closeSection, athenaWave, setLang, slots: SLOTS, timing: T,
+  coin, egg, sections: SECTIONS, openSection, closeSection, athenaWave, setLang, slots: SLOTS, timing: T,
   get lang(){ return lang; },
   openOwl: () => openSection("owl"), closeOwl: closeSection,
   get section(){ return section; }

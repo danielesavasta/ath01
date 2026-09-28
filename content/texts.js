@@ -39,6 +39,11 @@ export default {
         branch:  { title: "ZEYTİN DALI VE HİLAL", text: "Baykuşun arkasında bir zeytin dalı ve küçük bir hilal. Hilalin, MÖ 480'de hilal ay altında kazanılan Salamis Savaşı'nı andığı düşünülür." },
         silver:  { title: "GÜMÜŞ",             text: "Dört drahmi, yani yaklaşık 17 gram gümüş. Gümüşü Atina yakınlarındaki Laurion madenlerinden çıkıyordu." }
       }
+    },
+
+    egg: {
+      hint: "Bir okun ya da noktanın üstünde birazcık bekle, başka bir esere geç.",
+      noImage: "Buraya henüz bir görsel eklenmedi"
     }
   },
 
@@ -65,6 +70,11 @@ export default {
         branch:  { title: "OLIVE SPRIG AND CRESCENT", text: "Behind the owl, an olive sprig and a small crescent moon. The crescent is thought to recall the Battle of Salamis, won under a crescent moon in 480 BC." },
         silver:  { title: "SILVER",       text: "Four drachmas: about 17 grams of silver, mined at Laurion near Athens." }
       }
+    },
+
+    egg: {
+      hint: "Rest a hand on an arrow, or a dot, for a moment to move to another artwork.",
+      noImage: "No image has been added here yet"
     }
   }
 };

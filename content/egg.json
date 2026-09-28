@@ -1,0 +1,282 @@
+{
+  "title": "Important Artistic Representations of Athena's Birth",
+  "subject": "Athena emerging fully armed from the head of Zeus",
+  "mythological_context": {
+    "summary": "According to Greek myth, Zeus swallowed Metis while she was pregnant. Athena later emerged fully grown and armed from Zeus's head, usually after Hephaestus struck it with an axe.",
+    "usual_figures": [
+      "Zeus",
+      "Athena",
+      "Hephaestus",
+      "Eileithyia",
+      "Ares",
+      "Apollo",
+      "Hermes",
+      "Poseidon",
+      "Other Olympian gods"
+    ],
+    "iconographic_features": [
+      "Athena wears a helmet and armor",
+      "Athena carries a spear and shield",
+      "Zeus is seated or enthroned",
+      "Hephaestus holds an axe",
+      "Eileithyia assists with the birth",
+      "The surrounding gods react with surprise or witness the event"
+    ]
+  },
+  "artworks": [
+    {
+      "id": "01",
+      "title": "Birth of Athena",
+      "artist_or_workshop": "C Painter",
+      "date": "Approximately 570–560 BCE",
+      "period": "High Archaic Greek",
+      "culture": "Attic Greek",
+      "medium": "Black-figure pottery; exaleiptron or tripod vessel",
+      "current_location": "Musée du Louvre, Paris",
+      "inventory_number": "CA 616",
+      "dimensions": {
+        "height_cm": 14,
+        "diameter_cm": 24
+      },
+      "scene_description": "Athena emerges from Zeus's head wearing a helmet and carrying a spear and shield. Zeus is seated with his attributes, while Hephaestus, Eileithyia, and other deities participate in or witness the event.",
+      "importance": "One of the earliest and most complete surviving visual formulations of the birth myth. It is a key example of the compact, narrative composition used by Archaic vase painters.",
+      "image_reference": {
+        "museum_page": "https://collections.louvre.fr/en/ark:/53355/cl010262975",
+        "image_page": "https://commons.wikimedia.org/wiki/File:Exaleiptron_birth_Athena_Louvre_CA616.jpg",
+        "additional_reference": "https://www.theoi.com/Gallery/K8.13.html"
+      },
+      "source_references": [
+        "https://collections.louvre.fr/en/ark:/53355/cl010262975",
+        "http://www.perseus.tufts.edu/hopper/artifact?name=Louvre+CA+616&object=Vase"
+      ]
+    },
+    {
+      "id": "02",
+      "title": "Birth of Athena Amphora",
+      "artist_or_workshop": "Unknown Attic black-figure vase painter",
+      "date": "Third quarter of the 6th century BCE",
+      "period": "Archaic Greek",
+      "culture": "Attic Greek",
+      "medium": "Black-figure amphora",
+      "current_location": "Kunsthistorisches Museum, Vienna",
+      "scene_description": "Zeus sits on a throne while Athena springs from his head after Hephaestus splits his skull with an axe. Eileithyia assists Zeus; Ares, Apollo, and Hermes appear among the witnessing gods.",
+      "importance": "This is one of the clearest surviving examples of the fully developed Archaic composition. It shows how vase painters expanded the central birth event into a crowded Olympian narrative.",
+      "image_reference": {
+        "museum_page": "https://www.khm.at/en/artworks/geburt-der-athena-56568-1",
+        "image_reference": "https://artsandculture.google.com/asset/geburt-der-athena/HQHUH2NOByrpXw?hl=de"
+      },
+      "source_references": [
+        "https://www.khm.at/en/artworks/geburt-der-athena-56568-1",
+        "https://artsandculture.google.com/asset/geburt-der-athena/HQHUH2NOByrpXw?hl=de"
+      ]
+    },
+    {
+      "id": "03",
+      "title": "Birth of Athena Amphora",
+      "artist_or_workshop": "Painter of the Birth of Athena",
+      "date": "Approximately 550 BCE",
+      "period": "Archaic Greek",
+      "culture": "Attic Greek",
+      "medium": "Red-figure pelike or amphora",
+      "current_location": "British Museum, London",
+      "inventory_reference": "Associated with the vase painter known as the Painter of the Birth of Athena",
+      "scene_description": "The scene presents the birth of Athena as the central narrative, with Zeus, Athena, and the attending gods arranged around the miraculous emergence.",
+      "importance": "The vase gave its name to the anonymous Painter of the Birth of Athena, demonstrating the importance of this myth in the history of Greek vase-painting attribution and scholarship.",
+      "image_reference": {
+        "museum_artist_page": "https://www.britishmuseum.org/collection/term/BIOG59970",
+        "image_search_page": "https://www.bmimages.com/results.asp?txtkeys1=painter%20of%20the%20birth%20of%20athena"
+      },
+      "source_references": [
+        "https://www.britishmuseum.org/collection/term/BIOG59970",
+        "https://www.bmimages.com/results.asp?txtkeys1=painter%20of%20the%20birth%20of%20athena"
+      ]
+    },
+    {
+      "id": "04",
+      "title": "Parthenon East Pediment",
+      "artist_or_workshop": "Workshop traditionally associated with Pheidias",
+      "date": "Approximately 437–432 BCE",
+      "period": "High Classical Greek",
+      "culture": "Athenian Greek",
+      "medium": "Pentelic marble architectural sculpture",
+      "original_location": "East pediment of the Parthenon, Athens",
+      "current_locations": [
+        "Acropolis Museum, Athens",
+        "British Museum, London",
+        "Other fragments in European collections"
+      ],
+      "scene_description": "The east pediment represented Athena's birth from Zeus's head before the assembled Olympian gods. Helios's rising chariot and Selene's or Nyx's departing chariot framed the scene, suggesting that the birth occurred at dawn.",
+      "importance": "The Parthenon gave the birth myth an unprecedented monumental civic and architectural setting. Although the central figures are largely lost, the subject is identified through ancient literary testimony and the surviving pedimental arrangement.",
+      "preservation_status": "The central birth group is missing or highly fragmentary. Surviving figures and fragments are divided primarily between Athens and London.",
+      "image_reference": {
+        "acropolis_museum_page": "https://www.theacropolismuseum.gr/en/exhibit-halls/parthenon-gallery",
+        "greek_ministry_page": "https://www.culture.gov.gr/en/parthenonas/SitePages/view.aspx?iID=7",
+        "british_museum_example": "https://www.britishmuseum.org/collection/object/G_1816-0610-91",
+        "cambridge_cast_page": "https://museum.classics.cam.ac.uk/collections/casts/parthenon-east-pediment"
+      },
+      "source_references": [
+        "https://www.theacropolismuseum.gr/en/exhibit-halls/parthenon-gallery",
+        "https://www.culture.gov.gr/en/parthenonas/SitePages/view.aspx?iID=7",
+        "https://museum.classics.cam.ac.uk/collections/casts/parthenon-east-pediment"
+      ]
+    },
+    {
+      "id": "05",
+      "title": "Birth of Athena on Attic Vase Painting",
+      "artist_or_workshop": "Various anonymous Attic vase painters",
+      "date": "Approximately 570–450 BCE",
+      "period": "Archaic to Early Classical Greek",
+      "culture": "Attic Greek",
+      "medium": "Black-figure and red-figure pottery",
+      "current_locations": "Museums in Europe, the United Kingdom, Greece, and the United States",
+      "scene_description": "Athena usually appears as a small or fully formed armed figure emerging from Zeus's head. Hephaestus frequently holds the axe, while Eileithyia and other gods frame the central event.",
+      "importance": "Vase painting is the principal surviving visual source for the birth myth. The repeated compositions reveal how Greek artists standardized and adapted the story across different vessel shapes and workshops.",
+      "image_reference": {
+        "louvre_example": "https://collections.louvre.fr/en/ark:/53355/cl010262975",
+        "world_history_overview": "https://www.worldhistory.org/athena/",
+        "gallery_reference": "https://www.hellenicaworld.com/Greece/Mythology/en/AthenaGallery1.html"
+      },
+      "source_references": [
+        "https://www.worldhistory.org/athena/",
+        "https://www.hellenicaworld.com/Greece/Mythology/en/AthenaGallery1.html"
+      ]
+    },
+    {
+      "id": "06",
+      "title": "The Birth of Pallas Athene",
+      "artist": "Constantin Hansen",
+      "date": "1850",
+      "period": "Danish Golden Age / Neoclassicism",
+      "culture": "Danish",
+      "medium": "Oil painting",
+      "current_location": "Statens Museum for Kunst, Copenhagen",
+      "inventory_number": "KMS4062",
+      "scene_description": "Athena appears as a fully armed goddess emerging from Zeus's forehead. Zeus reacts from his throne, while Hephaestus and Eileithyia witness the event.",
+      "importance": "This is an important nineteenth-century revival of the classical birth composition. Hansen adapts the ancient myth to a Neoclassical language associated with education, reason, civic culture, and the ideals of classical antiquity.",
+      "image_reference": {
+        "museum_collection_reference": "https://collection.smk.dk/#/en/detail/KMS4062",
+        "wikimedia_commons": "https://commons.wikimedia.org/wiki/File:Constantin_Hansen_-_The_Birth_of_Pallas_Athene_-_KMS4062_-_Statens_Museum_for_Kunst.jpg",
+        "additional_reference": "https://libera.art/w-4XBfNjXFzw/the-birth-of-pallas-athene"
+      },
+      "source_references": [
+        "https://commons.wikimedia.org/wiki/File:Constantin_Hansen_-_The_Birth_of_Pallas_Athene_-_KMS4062_-_Statens_Museum_for_Kunst.jpg",
+        "https://www.sdu.dk/en/om-sdu/institutter-centre/iks/forskning/forskningsprojekter/hidden-cultural-heritage"
+      ]
+    },
+    {
+      "id": "07",
+      "title": "The Birth of Athena",
+      "artist": "Constantin Hansen",
+      "date": "1844–1853",
+      "period": "Danish Golden Age / Historicist mural painting",
+      "culture": "Danish",
+      "medium": "Fresco",
+      "current_location": "Vestibule of the University of Copenhagen",
+      "scene_description": "Athena springs from Zeus's forehead in a warlike movement. Zeus reacts with surprise, while Eileithyia and Hephaestus stand nearby. The surrounding university decoration connects Athena with knowledge, science, and culture.",
+      "importance": "The fresco demonstrates how the myth was transformed into an allegory of intellectual birth: wisdom and culture emerge directly from the mind of the supreme god.",
+      "image_reference": {
+        "museum_article": "https://arkivet.thorvaldsensmuseum.dk/articles/the-decoration-of-the-vestibule-at-the-university-of-copenhagen-frue-plads",
+        "project_reference": "https://www.sdu.dk/en/om-sdu/institutter-centre/iks/forskning/forskningsprojekter/hidden-cultural-heritage"
+      },
+      "source_references": [
+        "https://arkivet.thorvaldsensmuseum.dk/articles/the-decoration-of-the-vestibule-at-the-university-of-copenhagen-frue-plads",
+        "https://www.sdu.dk/en/om-sdu/institutter-centre/iks/forskning/forskningsprojekter/hidden-cultural-heritage"
+      ]
+    },
+    {
+      "id": "08",
+      "title": "Birth of Minerva",
+      "artist": "René-Antoine Houasse",
+      "date": "Approximately 1706",
+      "period": "French Baroque",
+      "culture": "French",
+      "medium": "Oil painting",
+      "current_location": "Palace of Versailles, France",
+      "scene_description": "The Roman equivalent of Athena, Minerva, emerges from Jupiter's head surrounded by divine attendants and celestial figures.",
+      "importance": "The work represents the myth through its Roman identification as the birth of Minerva. It reflects the seventeenth-century courtly taste for mythological imagery, theatrical movement, and glorification of divine authority.",
+      "image_reference": {
+        "image_reference": "https://brewminate.com/etruscan-visual-representations-of-the-birth-of-athena-and-minerva-a-comparative-study/",
+        "related_work_reference": "https://artsandculture.google.com/"
+      },
+      "source_references": [
+        "https://brewminate.com/etruscan-visual-representations-of-the-birth-of-athena-and-minerva-a-comparative-study/"
+      ],
+      "note": "The museum image and catalogue information should be verified directly through the Palace of Versailles collection before publication or commercial use."
+    },
+    {
+      "id": "09",
+      "title": "Etruscan Representations of the Birth of Minerva",
+      "artist_or_workshop": "Various Etruscan artists",
+      "date": "Approximately 6th–4th centuries BCE",
+      "period": "Etruscan",
+      "culture": "Etruscan Italy",
+      "medium": "Ceramics and other visual media",
+      "scene_description": "Etruscan versions adapt the Greek story of Athena's birth into the local figure of Menrva or Minerva, generally emphasizing the armed goddess emerging from the head of the chief god.",
+      "importance": "These works demonstrate the transmission and adaptation of the myth beyond Greece. Etruscan artists retained the central Zeus-or-Jupiter and armed-goddess structure while incorporating local religious traditions.",
+      "image_reference": {
+        "research_article": "https://brewminate.com/etruscan-visual-representations-of-the-birth-of-athena-and-minerva-a-comparative-study/"
+      },
+      "source_references": [
+        "https://brewminate.com/etruscan-visual-representations-of-the-birth-of-athena-and-minerva-a-comparative-study/"
+      ]
+    },
+    {
+      "id": "10",
+      "title": "Later Artistic Tradition of Athena's Birth",
+      "artist_or_workshop": "Various Renaissance, Baroque, Neoclassical, and modern artists",
+      "date": "15th century CE to present",
+      "period": "European post-classical tradition",
+      "culture": "European and international",
+      "medium": "Painting, printmaking, sculpture, illustration, and digital reproductions",
+      "scene_description": "Later artists often present Athena or Minerva as an embodiment of wisdom, warfare, reason, state power, or artistic and intellectual achievement. Some works depict her literal birth, while others use the birth myth indirectly through her attributes.",
+      "importance": "The myth became a flexible symbol of knowledge emerging from the mind, often adapted for royal, civic, academic, and political contexts.",
+      "image_reference": {
+        "general_image_category": "https://commons.wikimedia.org/wiki/Category:Paintings_of_Athena",
+        "athena_art_overview": "https://en.wikipedia.org/wiki/Athena"
+      },
+      "source_references": [
+        "https://commons.wikimedia.org/wiki/Category:Paintings_of_Athena",
+        "https://en.wikipedia.org/wiki/Athena"
+      ],
+      "note": "This entry is contextual rather than a single artwork and should not be treated as a catalogue record."
+    }
+  ],
+  "recommended_priority_for_study": [
+    {
+      "rank": 1,
+      "artwork_id": "01",
+      "reason": "Early, detailed, and well-preserved ancient representation."
+    },
+    {
+      "rank": 2,
+      "artwork_id": "04",
+      "reason": "Most important monumental civic representation, despite major losses."
+    },
+    {
+      "rank": 3,
+      "artwork_id": "02",
+      "reason": "Clear and richly populated Archaic vase composition."
+    },
+    {
+      "rank": 4,
+      "artwork_id": "03",
+      "reason": "Important work associated with the Painter of the Birth of Athena."
+    },
+    {
+      "rank": 5,
+      "artwork_id": "06",
+      "reason": "Major nineteenth-century revival of the ancient subject."
+    },
+    {
+      "rank": 6,
+      "artwork_id": "07",
+      "reason": "Important allegorical adaptation for an academic institution."
+    },
+    {
+      "rank": 7,
+      "artwork_id": "08",
+      "reason": "Representative Baroque transformation of Athena into Minerva."
+    }
+  ],
+  "image_rights_note": "Museum collection pages and Wikimedia Commons are provided as image-reference links, not as a guarantee of unrestricted reproduction rights. Check the individual museum's copyright, licensing, and image-use conditions before publishing or redistributing images."
+}

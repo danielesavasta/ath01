@@ -43,7 +43,25 @@ body.section-owl #coinStage{
     transition: opacity .6s ease;
 }
 .container{ transition: opacity .6s ease; }
-body.section-owl .container{ opacity: 0; pointer-events: none; }
+body.in-section .container{ opacity: 0; pointer-events: none; }
+
+/* egg section: a gallery of artworks (content/egg.json), under the hand icons and the statue */
+#eggStage{
+    position: absolute;
+    left: calc(50vw - 960 * var(--u));
+    top: calc(50vh - 540 * var(--u));
+    width: calc(1920 * var(--u));
+    height: calc(1080 * var(--u));
+    z-index: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .6s ease, visibility 0s linear .6s;
+}
+body.section-egg #eggStage{
+    opacity: 1;
+    visibility: visible;
+    transition: opacity .6s ease;
+}
 
 /* language buttons, bottom left of the menu */
 #langSwitch{

@@ -3,6 +3,10 @@
 Files meant to be edited without touching the code.
 
 - `texts.js`: every word a visitor reads, in each language (menu, hints, the tally, the coin's info cards).
+- `egg.json`: the artworks shown in the egg section's gallery (title, artist, date, description, ...).
+  Each entry's `id` picks its picture: put the image at `assets/egg/<id>.jpg` (`.jpeg`, `.png` and `.webp`
+  also work). An entry without a matching file just shows its text. Check an image's rights before adding
+  it (`image_rights_note` in the file).
 - `venue.js`: settings for the room. Where the real statue stands in the projection (a black mask so
   nothing is projected onto her, or filled with light so the projector lights her), whether the statue photo is shown, which part of the camera image is
   used and how picky the hand detection is. Set it up on the running page with `K`, then use
