@@ -20,13 +20,14 @@ Background research and the section texts: `docs/athena-six-aspects.md` (read it
 ## Running it
 
 - One click on a Mac: `start.command` (bridge with auto-restart + web server on 5510 + Chrome; `--kiosk`).
+  On the Windows PC: `start-windows.bat` (builds and runs `KinectBridge.exe`, which also serves the page on 8770).
   Or serve the repo root (VS Code Live Server, port 5504, or `python3 -m http.server`) and open `index.htm`.
-- Hands: Kinect **depth** if the bridge runs (works in the dark; the page keeps looking for the bridge), else
-  the webcam with MediaPipe. `?source=depth|kinect|webcam` forces one (`kinect` = Kinect colour + MediaPipe).
-  Kinect v1: `tools/kinect/setup.sh` once, then `tools/kinect/.venv/bin/python tools/kinect/bridge.py`
-  (`--fake` for a synthetic moving hand). The room is learned automatically (K → Kamera → "Odayı baştan öğren"
-  to redo it). With depth a
-  "closed hand" is a hand pushed ~12 cm towards the wall (Owl grab). See `tools/kinect/README.md`.
+- Hands, in this order (the page keeps looking for a bridge, start order doesn't matter):
+  **skeleton** = Windows bridge `tools/kinect-win/` (Kinect SDK 1.8 skeletons, raised hands, open/closed by
+  grip, works in the dark; the venue plan, `start-windows.bat`; not yet run on a real PC) ·
+  **kinect** = Mac bridge `tools/kinect/bridge.py`, colour picture + MediaPipe (needs light) · **webcam**.
+  `?source=skeleton|kinect|webcam|depth` forces one. `depth` (Mac bridge, hands found in depth, push towards
+  the wall to grab) is only an option: Ege found reach-and-push awkward. See both READMEs.
 - `?lite` skips the 5 MB coin model. The mouse works like a hand (press = closed hand).
 - Keys: `O` owl · `G` egg · `W` war · `C` craft · `M` menu · `K` room setup · `D` coin physics panel ·
   in the owl section `Space` toss, `I` close-up, `Esc` leave close-up, `F` flip in hand.

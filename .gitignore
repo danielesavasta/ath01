@@ -5,3 +5,5 @@ CLAUDE.local.md
 node_modules/
 tools/test/smoke-*.png
 tools/kinect/background.npy
+tools/kinect-win/*.exe
+tools/kinect-win/*.dll

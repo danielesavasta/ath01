@@ -70,10 +70,14 @@ const camera = new Camera(videoElement, {
     flipHorizontal: true,
 });
 
-// Camera source, in this order: the Kinect's depth (hands found by tools/kinect/bridge.py, works in the dark),
-// otherwise the webcam with MediaPipe. ?source=depth | kinect | webcam on the URL forces one; `kinect` is
-// the Kinect's colour picture with MediaPipe, as before depth. The page keeps looking for the bridge every
-// few seconds, so starting it after the page, or restarting it, switches over without a reload.
+// Hand source, in this order:
+//   skeleton  the Windows bridge (tools/kinect-win): Kinect SDK skeletons, raised hands, open/closed by grip.
+//             Works in the dark. This is the venue setup.
+//   kinect    the Mac bridge (tools/kinect/bridge.py): the Kinect's colour picture with MediaPipe (needs light)
+//   webcam    MediaPipe on the webcam
+// ?source=skeleton | kinect | webcam | depth forces one; `depth` is the Mac bridge's hands found in depth
+// (no fingers: a push towards the wall closes the hand), kept as an option only. The page keeps looking for
+// a bridge every few seconds, so starting it after the page, or restarting it, switches over without a reload.
 const BRIDGE = 'ws://127.0.0.1:8770';
 const KINECT_URL = BRIDGE + '/rgb';
 const frameSize = { w: 0, h: 0 }; // size of the images MediaPipe gets (the chosen part of the camera image)
@@ -89,8 +93,10 @@ function setSource(src) {
 function startCamera() {
     const forced = new URLSearchParams(location.search).get('source');
     if (forced === 'webcam') return startWebcam();
-    const look = () => (forced === 'kinect' ? startKinect() : startDepth()).catch(() => {
-        if (forced === 'kinect') updatenote.innerText = 'Waiting for the Kinect bridge (tools/kinect/bridge.py)...';
+    const attempt = () => forced === 'kinect' ? startKinect() : forced === 'depth' ? startDepth(false)
+        : forced === 'skeleton' ? startDepth(true) : startDepth(true).catch(() => startKinect());
+    const look = () => attempt().catch(() => {
+        if (forced && forced !== 'webcam') updatenote.innerText = 'Waiting for the Kinect bridge...';
         else if (!webcamOn) startWebcam();
         setTimeout(look, KINECT_RETRY);
     });
@@ -158,21 +164,26 @@ function depthSettings() {
     const d = venue().detect.depth || {};
     return { near: d.near, far: d.far, reach: d.reach, margin: d.margin };
 }
-function startDepth() {
+// skeletonOnly: take the bridge only if it tracks skeletons (the Windows bridge); the Mac bridge is then
+// used through its colour picture instead
+function startDepth(skeletonOnly) {
     return new Promise((resolve, reject) => {
         const ws = new WebSocket(BRIDGE + '/hands');
         let opened = false, pic = null;
-        const timer = setTimeout(() => { if (!opened) { ws.close(); reject(); } }, 1500);
+        const timer = setTimeout(() => { if (!opened) { ws.close(); reject(); } }, 2500);
         const send = (m) => { if (ws.readyState === 1) ws.send(JSON.stringify(m)); };
-        ws.onopen = () => {
+        ws.onopen = () => send({ settings: depthSettings() });
+        // the first message says which bridge this is
+        const accept = (m) => {
+            if (skeletonOnly && !m.skeleton) { clearTimeout(timer); ws.close(); reject(); return false; }
             opened = true; clearTimeout(timer);
             isVideoRunning = true; usingKinect = true;
-            updatenote.innerText = 'Kinect depth connected. Tracking hands.';
-            setSource('depth');
-            send({ settings: depthSettings() });
-            window.athDepth = { learn: () => send({ learn: true }), status: {} };
+            updatenote.innerText = m.skeleton ? 'Kinect skeleton connected. Tracking hands.' : 'Kinect depth connected. Tracking hands.';
+            setSource(m.skeleton ? 'skeleton' : 'depth');
+            window.athDepth = { learn: () => send({ learn: true }), status: {}, skeleton: !!m.skeleton };
             pic = depthPicture();
             resolve();
+            return true;
         };
         if (window.VENUE) window.VENUE.onChange(() => send({ settings: depthSettings() }));
         ws.onerror = () => { if (!opened) { clearTimeout(timer); reject(); } };
@@ -188,6 +199,7 @@ function startDepth() {
         ws.onmessage = (e) => {
             let m;
             try { m = JSON.parse(e.data); } catch (err) { return; }
+            if (!opened && !accept(m)) return;
             if (window.athDepth) window.athDepth.status = { bg: m.bg, learning: m.learning, hands: m.hands.length };
             if (window.athCamera) window.athCamera.points = m.hands;
             onDepthHands(m);
@@ -227,8 +239,10 @@ function onDepthHands(m) {
         const cx = h.x * m.w - c.x, cy = h.y * m.h - c.y;           // in the chosen part, not mirrored
         if (cx < 0 || cy < 0 || cx > width || cy > height) continue;
         const mx = width - cx, body = width - (h.bx * m.w - c.x);   // mirrored, like the MediaPipe path
-        // the side: which side of their body the hand is on (after mirroring, a right hand is to the right)
-        found.push({ open: true, z: h.z, vote: mx >= body ? 1 : -1, up: 0, dx: 0, dy: -1,
+        // the side: the skeleton knows it; otherwise which side of their body the hand is on
+        // (after mirroring, a right hand is to the right)
+        const vote = h.side ? (h.side === 'Right' ? 1 : -1) : (mx >= body ? 1 : -1);
+        found.push({ open: true, z: h.z, grip: h.closed, vote, up: 0, dx: 0, dy: -1,
                      sx: ox + mx * s, sy: oy + cy * s, camX: mx / width, camY: cy / height });
     }
     finishHands(found, map, width, height);
@@ -427,6 +441,7 @@ function finishHands(found, map, width, height) {
     // lately, and opens again halfway back.
     const push = (venue().detect.depth || {}).push || 120;
     for (const h of found) {
+        if (h.grip !== undefined) { h.open = !h.grip; continue; }    // the skeleton bridge knows open or closed
         if (h.z === undefined) continue;
         if (h.zRef === undefined) h.zRef = h.z;
         if (!h.pushed && h.z < h.zRef - push) h.pushed = true;

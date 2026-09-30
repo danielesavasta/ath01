@@ -6,7 +6,12 @@ When the bridge runs, the page finds hands in the Kinect's **depth**, which work
 uses the webcam with MediaPipe. The page keeps looking for the bridge, so the order you start things in
 doesn't matter, and a restarted bridge is picked up without reloading.
 
-## Depth (the default with the Kinect)
+## Depth (optional: `?source=depth`)
+
+On the Mac the page uses the Kinect's colour picture with MediaPipe by default. The venue plan is the Windows
+bridge (`tools/kinect-win/`), which has real skeletons and open/closed hands in the dark. Depth below works
+in the dark on the Mac too, but hands must reach towards the wall to count and a push closes them, which
+felt awkward in testing; it is kept as an option.
 
 The Kinect hangs on the wall and faces the visitors. The bridge learns the empty room once; whatever stands
 in front of it is a person, and a hand is the part of a person clearly nearer to the wall than the rest of
@@ -22,7 +27,7 @@ their body: an arm reaching towards the projection. Hanging arms and bodies are 
 3. Depth has no fingers. For the coin, pushing the hand about 12 cm towards the wall (quickly) closes it;
    pulling back opens it (*Tutmak için öne itme*). The owl hint says so when depth is in use.
 
-`?source=kinect` uses the Kinect's colour picture with MediaPipe instead, as before; `?source=webcam` the webcam.
+`?source=kinect` (the default on the Mac) uses the Kinect's colour picture with MediaPipe; `?source=webcam` the webcam.
 
 ## Starting everything (Mac)
 
