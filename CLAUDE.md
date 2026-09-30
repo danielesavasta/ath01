@@ -20,9 +20,11 @@ Background research and the section texts: `docs/athena-six-aspects.md` (read it
 ## Running it
 
 - Serve the repo root (VS Code Live Server, port 5504, or `python3 -m http.server`) and open `index.htm`.
-- Camera: the Kinect bridge if it runs, else the webcam. `?source=webcam|kinect` forces one.
+- Hands: Kinect **depth** if the bridge runs (works in the dark; the page keeps looking for the bridge), else
+  the webcam with MediaPipe. `?source=depth|kinect|webcam` forces one (`kinect` = Kinect colour + MediaPipe).
   Kinect v1: `tools/kinect/setup.sh` once, then `tools/kinect/.venv/bin/python tools/kinect/bridge.py`
-  (`--video rgb|hires|ir`, `--fake` for a test pattern). See `tools/kinect/README.md`.
+  (`--fake` for a synthetic moving hand). At the venue: `K` → Kamera → "Boş odayı öğren". With depth a
+  "closed hand" is a hand pushed ~12 cm towards the wall (Owl grab). See `tools/kinect/README.md`.
 - `?lite` skips the 5 MB coin model. The mouse works like a hand (press = closed hand).
 - Keys: `O` owl · `G` egg · `W` war · `C` craft · `M` menu · `K` room setup · `D` coin physics panel ·
   in the owl section `Space` toss, `I` close-up, `Esc` leave close-up, `F` flip in hand.
@@ -35,7 +37,9 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
 
 - **Frame.** Everything is laid out on a 1920×1080 frame centred in the window; `--u` (css/main.css) is one
   frame pixel. Position new elements with `calc(N * var(--u))` and the frame offsets used in `css/sections.css`.
-- **`js/scripts.js`** (Daniele's base, extended): camera source, sends only the venue's camera crop to MediaPipe,
+- **`tools/kinect/bridge.py`**: `/hands` (JSON hands from depth: empty-room background, then the part of each
+  person ≥ `detect.depth.reach` mm nearer than their body), `/depth` (picture for the setup screen), `/rgb`.
+- **`js/scripts.js`** (Daniele's base, extended): hand source (depth JSON or MediaPipe), sends only the venue's camera crop to MediaPipe,
   cover-maps results onto the frame, keeps stable hand ids and colours, left/right per tracked hand (MediaPipe's
   label is swapped because our image is not mirrored, plus knuckle order), ignores hands not pointing up
   (`detect.upOnly`), draws the hand icons, and dispatches `ath:hands`:
@@ -112,7 +116,7 @@ If not, the same mechanic works with sparks or embers.
 3. Offline: `lib/hands.js` still loads its wasm/model files from jsDelivr (`locateFile` in `js/scripts.js`).
    Vendor the files from `@mediapipe/hands` into `lib/mediapipe/` and point `locateFile` there.
 4. `assets/owl.af~lock~` (an Affinity lock file) was committed by accident; remove it and add `*~lock~` to `.gitignore`.
-5. At the venue: `K` → mask over the real statue, statue photo off, camera crop; save `content/venue.js`.
-   Hand detection at 2 m needs light on visitors or the Kinect `--video ir` mode; test on site.
+5. At the venue: `K` → mask over the real statue, statue photo off, camera crop, learn the empty room (depth),
+   Craft part outlines; save `content/venue.js`. Test depth with several visitors at once on site.
 6. GitHub still lists Claude as a contributor because merge `6fd18fe` brought back old commits with
    co-author lines. Only fixable by rewriting `main`; not worth it unless Daniele agrees.

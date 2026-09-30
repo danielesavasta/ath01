@@ -20,7 +20,8 @@
                                     [1200, 700], [1138, 580], [1008, 540], [1063, 420], [1048, 260], [990, 150]],
                 light: { on: false, color: '#fff1dc', level: 0.55, soft: 12, slope: 0.3 } },
         camera: { zoom: 1, cx: 0.5, cy: 0.5 },
-        detect: { confidence: 0.6, upOnly: 70 },
+        detect: { confidence: 0.6, upOnly: 70,
+                  depth: { near: 500, far: 4000, reach: 220, margin: 120, push: 120 } },
         // cloth parts lit by the Craft section (js/craft/), drawn on the statue photo; redraw them at the venue (K)
         parts: [
             { id: 'chiton',   points: [[755, 620], [815, 615], [840, 690], [875, 770], [890, 840], [930, 880], [970, 910], [940, 940], [850, 1000], [760, 1030], [740, 840], [735, 700]] },
@@ -141,6 +142,15 @@
               <label class="vs-slider">Yakınlaştırma <output data-o="zoom"></output><input type="range" min="1" max="3" step="0.05" data-k="zoom"></label>
               <label class="vs-slider">Algılama eşiği <output data-o="confidence"></output><input type="range" min="0.3" max="0.9" step="0.05" data-k="confidence"></label>
               <label class="vs-slider">Yukarı bakan el: dikeyden en fazla <output data-o="upOnly"></output><input type="range" min="20" max="180" step="5" data-k="upOnly"></label>
+              <div class="vs-depth">
+                <p><b>Derinlik (Kinect)</b>: eller karanlıkta da bulunur. Kinect duvarda, ziyaretçilere bakar; bir el,
+                  sahibinin gövdesinden belli bir mesafe öne (duvara doğru) uzanınca el sayılır. Önce odayı boşken öğret.</p>
+                <button data-act="learn">Boş odayı öğren (5 sn sonra)</button>
+                <p class="vs-depth-status"></p>
+                <label class="vs-slider">Gövdeden öne uzanma <output data-o="reach"></output><input type="range" min="80" max="500" step="10" data-k="reach"></label>
+                <label class="vs-slider">En uzak <output data-o="far"></output><input type="range" min="1500" max="6000" step="100" data-k="far"></label>
+                <label class="vs-slider">Tutmak için öne itme <output data-o="push"></output><input type="range" min="50" max="300" step="10" data-k="push"></label>
+              </div>
               <p class="vs-live"></p>
             </div>
             <div class="vs-foot">
@@ -163,6 +173,7 @@
             else if (k === 'level' || k === 'soft' || k === 'slope') S.mask.light[k] = v;
             else if (k === 'statueImage') S.statueImage = v;
             else if (k === 'zoom') { S.camera.zoom = v; clampCamera(); }
+            else if (k === 'reach' || k === 'far' || k === 'push') S.detect.depth[k] = v;
             else S.detect[k] = v;
             changed(); refresh();
         }));
@@ -170,6 +181,15 @@
         ui.querySelector('[data-act="partShape"]').addEventListener('click', () => {
             const id = S.parts[part] && S.parts[part].id, d = DEFAULTS.parts.find((p) => p.id === id);
             if (d) { S.parts[part].points = clone(d.points); changed(); refresh(); }
+        });
+        ui.querySelector('[data-act="learn"]').addEventListener('click', () => {
+            if (!window.athDepth) { note('Kinect derinliği bağlı değil (tools/kinect/bridge.py çalışıyor mu?).'); return; }
+            let n = 5;
+            const tick = () => {
+                if (n > 0) { note(`Kinect'in önünden çekil: ${n}`); n--; setTimeout(tick, 1000); return; }
+                window.athDepth.learn(); note('Boş oda öğreniliyor...');
+            };
+            tick();
         });
         ui.querySelector('[data-act="save"]').addEventListener('click', saveFile);
         ui.querySelector('[data-act="revert"]').addEventListener('click', () => {
@@ -208,6 +228,10 @@
             list.appendChild(b);
         });
         set('zoom', S.camera.zoom); set('confidence', S.detect.confidence); set('upOnly', S.detect.upOnly);
+        set('reach', S.detect.depth.reach); set('far', S.detect.depth.far); set('push', S.detect.depth.push);
+        ui.querySelector('[data-o="reach"]').textContent = S.detect.depth.reach + ' mm';
+        ui.querySelector('[data-o="far"]').textContent = (S.detect.depth.far / 1000).toFixed(1) + ' m';
+        ui.querySelector('[data-o="push"]').textContent = S.detect.depth.push + ' mm';
         ui.querySelector('[data-o="zoom"]').textContent = S.camera.zoom.toFixed(2) + '×';
         ui.querySelector('[data-o="confidence"]').textContent = S.detect.confidence.toFixed(2);
         ui.querySelector('[data-o="upOnly"]').textContent = S.detect.upOnly >= 180 ? 'her yön' : S.detect.upOnly + '°';
@@ -342,7 +366,16 @@
         g.fillRect(ox, oy, W, ry - oy); g.fillRect(ox, ry + crop.h * s, W, oy + H - ry - crop.h * s);
         g.fillRect(ox, ry, rx - ox, crop.h * s); g.fillRect(rx + crop.w * s, ry, ox + W - rx - crop.w * s, crop.h * s);
         g.strokeStyle = '#F0B429'; g.lineWidth = 2; g.strokeRect(rx, ry, crop.w * s, crop.h * s);
+        // hands found in depth, where the bridge sees them
+        for (const p of cam.points || []) {
+            g.beginPath(); g.arc(ox + (1 - p.x) * W, oy + p.y * H, 12, 0, Math.PI * 2);
+            g.strokeStyle = '#3FA08C'; g.lineWidth = 3; g.stroke();
+        }
         live.textContent = `Kamera ${cam.w}×${cam.h} · el bulucuya giden alan ${crop.w}×${crop.h} piksel · şu an ${lastHands} el`;
+        const st = window.athDepth && window.athDepth.status;
+        ui.querySelector('.vs-depth').hidden = !window.athDepth;
+        if (st) ui.querySelector('.vs-depth-status').textContent = st.learning != null
+            ? `Öğreniliyor: %${Math.round(st.learning * 100)}` : (st.bg ? 'Boş oda öğrenildi.' : 'Boş oda henüz öğrenilmedi: tüm oda hareket gibi görünür.');
     }
 
     function saveFile() {
@@ -358,7 +391,8 @@ window.VENUE_FILE = {
     light: { on: ${S.mask.light.on}, color: '${S.mask.light.color}', level: ${S.mask.light.level}, soft: ${S.mask.light.soft}, slope: ${S.mask.light.slope} }
   },
   camera: { zoom: ${+S.camera.zoom.toFixed(3)}, cx: ${+S.camera.cx.toFixed(4)}, cy: ${+S.camera.cy.toFixed(4)} },
-  detect: { confidence: ${S.detect.confidence}, upOnly: ${S.detect.upOnly} },
+  detect: { confidence: ${S.detect.confidence}, upOnly: ${S.detect.upOnly},
+            depth: { near: ${S.detect.depth.near}, far: ${S.detect.depth.far}, reach: ${S.detect.depth.reach}, margin: ${S.detect.depth.margin}, push: ${S.detect.depth.push} } },
   parts: [
 ${S.parts.map((p) => `    { id: '${p.id}', points: [${p.points.map((q) => `[${q[0]}, ${q[1]}]`).join(', ')}] }`).join(',\n')}
   ]

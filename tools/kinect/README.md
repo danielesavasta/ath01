@@ -1,8 +1,27 @@
 # Kinect (Xbox 360, v1) as the camera
 
 Browsers can't see a Kinect v1: it isn't a standard webcam. `bridge.py` reads it through
-[libfreenect](https://github.com/OpenKinect/libfreenect) and streams frames to the page over a
-local WebSocket. `index.htm` uses the Kinect when the bridge is running and the webcam otherwise.
+[libfreenect](https://github.com/OpenKinect/libfreenect) and talks to the page over a local WebSocket.
+When the bridge runs, the page finds hands in the Kinect's **depth**, which works in the dark; otherwise it
+uses the webcam with MediaPipe. The page keeps looking for the bridge, so the order you start things in
+doesn't matter, and a restarted bridge is picked up without reloading.
+
+## Depth (the default with the Kinect)
+
+The Kinect hangs on the wall and faces the visitors. The bridge learns the empty room once; whatever stands
+in front of it is a person, and a hand is the part of a person clearly nearer to the wall than the rest of
+their body: an arm reaching towards the projection. Hanging arms and bodies are ignored.
+
+1. At the venue, with the Kinect in place: press `K`, tab *Kamera*, **Boş odayı öğren**. You get 5 seconds
+   to step out of view. The empty room is kept in `tools/kinect/background.npy` (not committed), so this is
+   needed again only if the Kinect or the furniture moves.
+2. The same tab shows the depth picture with every hand found circled in green. Adjust *Gövdeden öne uzanma*
+   (how far in front of the body a hand must be, default 22 cm) and *En uzak* (default 4 m), then
+   *Dosyaya kaydet*.
+3. Depth has no fingers. For the coin, pushing the hand about 12 cm towards the wall (quickly) closes it;
+   pulling back opens it (*Tutmak için öne itme*). The owl hint says so when depth is in use.
+
+`?source=kinect` uses the Kinect's colour picture with MediaPipe instead, as before; `?source=webcam` the webcam.
 
 ## Once
 
@@ -40,7 +59,7 @@ The hand detector (MediaPipe) needs a hand to be a reasonable size in the pictur
 4. **`--video ir`**: the Kinect's infrared camera. It works in the dark, because the Kinect lights the room with its own invisible infrared dots; the bridge blurs the dots away (`--ir-blur 1` to `4`, default 2) and sends a grey picture. Worth trying in the real room; whether the detector does well enough on it at 2 m has to be tried there. `tools/kinect/viewer.html` shows what the page gets.
 5. **If none of this is enough:** an infrared-sensitive USB camera (sold as "NoIR" or "night vision", 1080p, no IR-cut filter) with an 850 nm infrared floodlight next to it. Visitors see nothing, the camera sees them clearly lit, and the page uses it as a webcam (`?source=webcam`). This is the usual setup for dark museum rooms and costs little.
 
-Depth (`/depth`) also works in the dark and finds hands reliably, but it can't tell an open hand from a fist at 2 m, which the coin needs for grabbing. It could drive a different gesture (pushing the hand forward to grab); that would change how the coin is played, so it's not in yet.
+With the Kinect, depth (above) is the default and avoids all of this; the points below apply to `?source=kinect` and the webcam.
 
 ## Only hands pointing up
 
@@ -48,3 +67,6 @@ A hand counts only if it points up, within *Yukarı bakan el* degrees of vertica
 
 ## Notes
 - If `freenect-camtest` receives no frames either, the problem is the connection (power, cable, USB hub), not this code.
+- Only one program can use the Kinect. If the bridge says it can't open it, look for another bridge still
+  running (`pgrep -f bridge.py`) and stop it. Ctrl-C or `kill` stop the bridge and release the Kinect.
+- `Unable to claim interface` lines at start are libfreenect trying the audio part; harmless if frames follow.

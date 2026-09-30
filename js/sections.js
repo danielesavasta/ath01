@@ -193,7 +193,9 @@ function setLang(code){
   if (!LANGS.some((l) => l.code === code)) code = FIRST;
   lang = code;
   const t = textsFor(code);
-  coin.setTexts(t.owl);
+  // with the Kinect's depth there are no fingers: the coin is held by pushing the hand towards the wall
+  coin.setTexts(window.athSource === "depth" && t.owl.hint.playPush
+    ? { ...t.owl, hint: { ...t.owl.hint, play: t.owl.hint.playPush } } : t.owl);
   egg.setTexts(t.egg);
   war.setTexts(t.war);
   craft.setTexts(t.craft);
@@ -202,6 +204,7 @@ function setLang(code){
   for (const l of LANGS){ l.el.classList.toggle("on", l.code === code); l.dwell = 0; l.el.style.setProperty("--p", 0); }
 }
 setLang(FIRST);
+window.addEventListener("ath:source", () => setLang(lang));
 
 let section = "menu", activeAt = 0;
 function openSection(name){

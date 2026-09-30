@@ -70,18 +70,26 @@ const camera = new Camera(videoElement, {
     flipHorizontal: true,
 });
 
-// Camera source: the Kinect bridge (tools/kinect/bridge.py) when it is running, otherwise the webcam.
-// ?source=kinect or ?source=webcam on the URL forces one. The page keeps looking for the bridge every few
-// seconds, so starting it after the page, or restarting it, switches to the Kinect without a reload.
-const KINECT_URL = 'ws://127.0.0.1:8770/rgb';
+// Camera source, in this order: the Kinect's depth (hands found by tools/kinect/bridge.py, works in the dark),
+// otherwise the webcam with MediaPipe. ?source=depth | kinect | webcam on the URL forces one; `kinect` is
+// the Kinect's colour picture with MediaPipe, as before depth. The page keeps looking for the bridge every
+// few seconds, so starting it after the page, or restarting it, switches over without a reload.
+const BRIDGE = 'ws://127.0.0.1:8770';
+const KINECT_URL = BRIDGE + '/rgb';
 const frameSize = { w: 0, h: 0 }; // size of the images MediaPipe gets (the chosen part of the camera image)
 
 const KINECT_RETRY = 3000;   // ms between looks for the bridge
 let usingKinect = false, webcamOn = false;
+// which source the hands come from now ('depth', 'kinect' or 'webcam'): js/sections.js words the owl's hint by it
+function setSource(src) {
+    if (window.athSource === src) return;
+    window.athSource = src;
+    window.dispatchEvent(new CustomEvent('ath:source', { detail: { source: src } }));
+}
 function startCamera() {
     const forced = new URLSearchParams(location.search).get('source');
     if (forced === 'webcam') return startWebcam();
-    const look = () => startKinect().catch(() => {
+    const look = () => (forced === 'kinect' ? startKinect() : startDepth()).catch(() => {
         if (forced === 'kinect') updatenote.innerText = 'Waiting for the Kinect bridge (tools/kinect/bridge.py)...';
         else if (!webcamOn) startWebcam();
         setTimeout(look, KINECT_RETRY);
@@ -98,7 +106,7 @@ function startWebcam() {
     frameSize.w = frameSize.h = 0;
     webcamOn = true;
     camera.start()
-        .then(() => { isVideoRunning = true; if (!usingKinect) updatenote.innerText = 'Webcam started. Tracking hands.'; })
+        .then(() => { isVideoRunning = true; if (!usingKinect) { updatenote.innerText = 'Webcam started. Tracking hands.'; setSource('webcam'); } })
         .catch((e) => { updatenote.innerText = 'No camera: ' + (e && e.message ? e.message : e); });
 }
 
@@ -114,6 +122,7 @@ function startKinect() {
             opened = true; clearTimeout(timer);
             isVideoRunning = true; usingKinect = true;
             updatenote.innerText = 'Kinect connected. Tracking hands.';
+            setSource('kinect');
             resolve();
         };
         ws.onerror = () => { if (!opened) { clearTimeout(timer); reject(); } };
@@ -121,6 +130,7 @@ function startKinect() {
             if (!opened) return;
             usingKinect = false;
             updatenote.innerText = webcamOn ? 'Kinect bridge stopped: webcam until it is back.' : 'Kinect bridge stopped: waiting for it.';
+            if (webcamOn) setSource('webcam');
             window.dispatchEvent(new Event('ath:kinect-lost'));
         };
         ws.onmessage = async (e) => {
@@ -139,6 +149,89 @@ function startKinect() {
             }
         };
     });
+}
+
+// Depth: the bridge sends the hands it finds (JSON on /hands) and the depth picture (/depth, only for the
+// setup screen, K). The page sends it the room's depth settings (content/venue.js detect.depth) and asks it
+// to learn the empty room (window.athDepth.learn()).
+function depthSettings() {
+    const d = venue().detect.depth || {};
+    return { near: d.near, far: d.far, reach: d.reach, margin: d.margin };
+}
+function startDepth() {
+    return new Promise((resolve, reject) => {
+        const ws = new WebSocket(BRIDGE + '/hands');
+        let opened = false, pic = null;
+        const timer = setTimeout(() => { if (!opened) { ws.close(); reject(); } }, 1500);
+        const send = (m) => { if (ws.readyState === 1) ws.send(JSON.stringify(m)); };
+        ws.onopen = () => {
+            opened = true; clearTimeout(timer);
+            isVideoRunning = true; usingKinect = true;
+            updatenote.innerText = 'Kinect depth connected. Tracking hands.';
+            setSource('depth');
+            send({ settings: depthSettings() });
+            window.athDepth = { learn: () => send({ learn: true }), status: {} };
+            pic = depthPicture();
+            resolve();
+        };
+        if (window.VENUE) window.VENUE.onChange(() => send({ settings: depthSettings() }));
+        ws.onerror = () => { if (!opened) { clearTimeout(timer); reject(); } };
+        ws.onclose = () => {
+            if (!opened) return;
+            usingKinect = false;
+            if (pic) pic.close();
+            window.athDepth = null;
+            updatenote.innerText = webcamOn ? 'Kinect bridge stopped: webcam until it is back.' : 'Kinect bridge stopped: waiting for it.';
+            if (webcamOn) setSource('webcam');
+            window.dispatchEvent(new Event('ath:kinect-lost'));
+        };
+        ws.onmessage = (e) => {
+            let m;
+            try { m = JSON.parse(e.data); } catch (err) { return; }
+            if (window.athDepth) window.athDepth.status = { bg: m.bg, learning: m.learning, hands: m.hands.length };
+            if (window.athCamera) window.athCamera.points = m.hands;
+            onDepthHands(m);
+        };
+    });
+}
+// the depth picture, decoded only while the setup screen is open (it shows it in the Kamera tab)
+function depthPicture() {
+    const ws = new WebSocket(BRIDGE + '/depth');
+    ws.binaryType = 'blob';
+    const c = document.createElement('canvas'), x = c.getContext('2d');
+    let busy = false;
+    ws.onmessage = async (e) => {
+        if (busy || !document.body.classList.contains('venue-setup')) return;
+        busy = true;
+        try {
+            const bmp = await createImageBitmap(e.data);
+            if (c.width !== bmp.width) { c.width = bmp.width; c.height = bmp.height; }
+            x.drawImage(bmp, 0, 0); bmp.close();
+            window.athCamera = { el: c, w: c.width, h: c.height, points: window.athCamera && window.athCamera.points };
+        } catch (err) { /* skip the frame */ } finally { busy = false; }
+    };
+    return ws;
+}
+function onDepthHands(m) {
+    if (!isVideoRunning) return;
+    if (!window.athCamera || !window.athCamera.el) window.athCamera = { el: null, w: m.w, h: m.h, points: m.hands };
+    const c = window.VENUE ? window.VENUE.cameraCrop(m.w, m.h) : { x: 0, y: 0, w: m.w, h: m.h };
+    const width = c.w, height = c.h;
+    frameSize.w = width; frameSize.h = height;
+    fitDrawingCanvas();
+    const map = frameRect();
+    const s = Math.max(map.w / width, map.h / height);
+    const ox = map.x + (map.w - width * s) / 2, oy = map.y + (map.h - height * s) / 2;
+    const found = [];
+    for (const h of m.hands) {
+        const cx = h.x * m.w - c.x, cy = h.y * m.h - c.y;           // in the chosen part, not mirrored
+        if (cx < 0 || cy < 0 || cx > width || cy > height) continue;
+        const mx = width - cx, body = width - (h.bx * m.w - c.x);   // mirrored, like the MediaPipe path
+        // the side: which side of their body the hand is on (after mirroring, a right hand is to the right)
+        found.push({ open: true, z: h.z, vote: mx >= body ? 1 : -1, up: 0, dx: 0, dy: -1,
+                     sx: ox + mx * s, sy: oy + cy * s, camX: mx / width, camY: cy / height });
+    }
+    finishHands(found, map, width, height);
 }
 
 // ── Screen mapping ──
@@ -205,7 +298,7 @@ function identifyHands(found, now, maxJump) {
             const d = Math.hypot(p.sx - h.sx, p.sy - h.sy);
             if (d < bd) { bd = d; best = p; }
         }
-        if (best) { taken.add(best.id); h.id = best.id; h.colour = best.colour; h.side = best.side; h.label = best.label; h.frames = best.frames + 1; h.wasUp = best.wasUp; }
+        if (best) { taken.add(best.id); h.id = best.id; h.colour = best.colour; h.side = best.side; h.label = best.label; h.frames = best.frames + 1; h.wasUp = best.wasUp; h.zRef = best.zRef; h.pushed = best.pushed; }
         else { h.id = nextHandId++; h.side = 0; h.label = null; h.frames = 0; h.wasUp = false; }
         decideSide(h);
         h.seen = now;
@@ -322,7 +415,25 @@ function onResults(results) {
         found.push({ open, vote, up, dx: xs[9] - xs[0], dy: ys[9] - ys[0], sx: ox + centerX * s, sy: oy + centerY * s, camX: centerX / width, camY: centerY / height });
     }
 
+    finishHands(found, map, width, height);
+}
+
+// Shared by both sources (MediaPipe on a picture, or hands found in depth): keep ids and colours, keep
+// only hands pointing up, draw the icons, and tell the page (js/sections.js) where the hands are.
+function finishHands(found, map, width, height) {
     identifyHands(found, performance.now(), map.w * 0.18);
+    // Depth has no fingers: a hand pushed towards the wall (towards the Kinect) counts as a closed hand,
+    // for grabbing the coin. It closes when the hand comes `push` mm nearer than where it has been resting
+    // lately, and opens again halfway back.
+    const push = (venue().detect.depth || {}).push || 120;
+    for (const h of found) {
+        if (h.z === undefined) continue;
+        if (h.zRef === undefined) h.zRef = h.z;
+        if (!h.pushed && h.z < h.zRef - push) h.pushed = true;
+        else if (h.pushed && h.z > h.zRef - push * 0.5) h.pushed = false;
+        if (!h.pushed) h.zRef += (h.z - h.zRef) * 0.08;
+        h.open = !h.pushed;
+    }
     // Only hands pointing up take part: arms hanging down, or hands resting on a railing, are ignored.
     // A hand already in play gets 20° more, so tilting it while throwing doesn't make it vanish.
     const upOnly = venue().detect.upOnly;

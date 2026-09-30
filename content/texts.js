@@ -25,6 +25,8 @@ export default {
       tally: { athena: "ATHENA", owl: "BAYKUŞ" },
       hint: {
         play: "Sikkeyi avucunla yakala, havaya savur, bırak.\nAthena mı gelecek, baykuş mu?",
+        // with the Kinect's depth (no fingers): push the hand towards the wall to hold the coin
+        playPush: "Sikkeyi tutmak için elini duvara doğru it.\nSavur, elini geri çek: Athena mı, baykuş mu?",
         inspect: "Elini beyaz bir halkanın üstünde biraz tut, hikâyesi açılsın.\nSikkeyi yakalayıp yavaşça çevirebilir, hızla savurup yeniden atabilirsin."
       },
       loading: "Sikke hazırlanıyor",
@@ -80,6 +82,7 @@ export default {
       tally: { athena: "ATHENA", owl: "OWL" },
       hint: {
         play: "Catch the coin in your fist, flick it up and let go.\nWill it land on Athena or the owl?",
+        playPush: "Push your hand towards the wall to hold the coin.\nFlick it and pull back: Athena or the owl?",
         inspect: "Rest your hand on a white ring to read its story.\nCatch the coin to turn it slowly, or flick it to toss again."
       },
       loading: "Getting the coin ready",

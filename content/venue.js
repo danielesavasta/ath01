@@ -35,7 +35,17 @@ window.VENUE_FILE = {
 
   detect: {
     confidence: 0.6,   // 0.3 finds more hands (and more false ones), 0.8 only clear ones
-    upOnly: 70         // a hand counts only if it points up, at most this many degrees from vertical (180: any)
+    upOnly: 70,        // a hand counts only if it points up, at most this many degrees from vertical (180: any)
+
+    // Kinect depth (tools/kinect/bridge.py; the page uses it when the bridge runs). The Kinect hangs on the
+    // wall facing the visitors; learn the empty room once (K, Kamera). Millimetres.
+    depth: {
+      near: 500,       // nearer than this is ignored
+      far: 4000,       // further than this is ignored
+      reach: 220,      // a hand counts when it is this much nearer to the wall than its owner's body
+      margin: 120,     // how much nearer than the empty room something must be to count as a person
+      push: 120        // pushing a hand this much towards the wall closes it (grabs the coin)
+    }
   },
 
   // cloth parts the Craft section lights on the statue (setup screen: "Kumaş parçaları").

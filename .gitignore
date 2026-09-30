@@ -4,3 +4,4 @@ CLAUDE.local.md
 *~lock~
 node_modules/
 tools/test/smoke-*.png
+tools/kinect/background.npy

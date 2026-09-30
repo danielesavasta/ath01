@@ -4,8 +4,10 @@
 Reads the Kinect through libfreenect (via ctypes, nothing to compile), camera only,
 and streams frames to the page over a local WebSocket:
 
-    ws://127.0.0.1:8770/rgb     the camera picture, JPEG (the page finds hands in it)
+    ws://127.0.0.1:8770/rgb     the camera picture, JPEG (the page finds hands in it with MediaPipe)
     ws://127.0.0.1:8770/depth   depth aligned to colour, 8-bit JPEG (near = bright)
+    ws://127.0.0.1:8770/hands   hands found in the depth picture, JSON, every frame (works in the dark).
+                                The page sends its settings and "learn the empty room" on the same socket.
 
 Run:   .venv/bin/python bridge.py            (Ctrl-C to stop)
 Test without a Kinect:   .venv/bin/python bridge.py --fake
@@ -18,17 +20,21 @@ Test without a Kinect:   .venv/bin/python bridge.py --fake
 """
 import argparse
 import asyncio
+import collections
 import ctypes
 import ctypes.util
 import glob
 import io
+import json
 import math
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import threading
 import time
+import warnings
 
 import numpy as np
 from PIL import Image, ImageDraw
@@ -274,6 +280,121 @@ def clean_ir(ir, blur):
     return (a * 255).astype(np.uint8)
 
 
+# ───────────── hands from depth ─────────────
+# The Kinect hangs on the wall and faces the visitors. The empty room (and the statue) is learned once as a
+# background; whatever stands in front of it is a person. A hand is the part of a person that is clearly
+# nearer to the Kinect than the rest of their body: an arm reaching towards the wall. Hanging arms and
+# bodies are ignored. Works in the dark: depth is measured with the Kinect's own infrared.
+CELL = 4                                  # the depth picture is searched on a grid of 4x4 pixel cells (160x120)
+BG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "background.npy")
+BG_FRAMES = 45                            # frames averaged when learning the empty room (about 1.5 s)
+
+
+def cells(d):
+    """640x480 depth in mm -> 160x120, the nearest valid value in each cell (0 = no reading)."""
+    a = d.astype(np.float32)
+    a[a == 0] = np.inf
+    a = a.reshape(H // CELL, CELL, W // CELL, CELL).min(axis=(1, 3))
+    a[np.isinf(a)] = 0
+    return a
+
+
+def components(mask):
+    """Connected regions of a boolean grid (4-neighbours) -> list of (rows, cols) index arrays."""
+    h, w = mask.shape
+    seen = np.zeros_like(mask, dtype=bool)
+    out = []
+    for r0, c0 in zip(*np.nonzero(mask)):
+        if seen[r0, c0]:
+            continue
+        seen[r0, c0] = True
+        q, rs, cs = collections.deque([(r0, c0)]), [], []
+        while q:
+            r, c = q.popleft()
+            rs.append(r); cs.append(c)
+            for rr, cc in ((r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1)):
+                if 0 <= rr < h and 0 <= cc < w and mask[rr, cc] and not seen[rr, cc]:
+                    seen[rr, cc] = True
+                    q.append((rr, cc))
+        out.append((np.array(rs), np.array(cs)))
+    return out
+
+
+class HandFinder:
+    # the page sends these from content/venue.js (detect.depth), so they are set up per room with K
+    DEFAULTS = {"near": 500, "far": 4000, "margin": 120, "reach": 220, "body": 150, "hand": 4}
+
+    def __init__(self):
+        self.s = dict(self.DEFAULTS)
+        self.bg = None
+        self.learning = None
+        try:
+            bg = np.load(BG_FILE)
+            if bg.shape == (H // CELL, W // CELL):
+                self.bg = bg
+                print("Empty room loaded from background.npy", flush=True)
+        except Exception:
+            pass
+
+    def settings(self, d):
+        for k, v in d.items():
+            if k in self.s and isinstance(v, (int, float)):
+                self.s[k] = float(v)
+
+    def learn(self):
+        self.learning = []
+
+    def status(self):
+        return {"bg": self.bg is not None,
+                "learning": None if self.learning is None else round(len(self.learning) / BG_FRAMES, 2)}
+
+    def find(self, depth_mm):
+        s = self.s
+        d = cells(depth_mm)
+        if self.learning is not None:
+            self.learning.append(d)
+            if len(self.learning) >= BG_FRAMES:
+                st = np.stack(self.learning)
+                st[st == 0] = np.nan
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", RuntimeWarning)      # cells with no reading at all
+                    bg = np.nanmedian(st, axis=0)
+                self.bg = np.nan_to_num(bg, nan=0).astype(np.float32)
+                self.learning = None
+                try:
+                    np.save(BG_FILE, self.bg)
+                except Exception:
+                    pass
+                print("Empty room learned.", flush=True)
+            return []
+        fg = (d > s["near"]) & (d < s["far"])
+        if self.bg is not None:
+            far_bg = np.where(self.bg > 0, self.bg, np.inf)          # no reading in the empty room: anything counts
+            fg &= d < far_bg - s["margin"]
+        hands = []
+        for rs, cs in components(fg):
+            if len(rs) < s["body"]:
+                continue
+            z = d[rs, cs]
+            body = float(np.median(z))
+            near = z < body - s["reach"]
+            if not near.any():
+                continue
+            sub = np.zeros_like(fg)
+            sub[rs[near], cs[near]] = True
+            for hr, hc in components(sub):
+                if len(hr) < s["hand"]:
+                    continue
+                hz = d[hr, hc]
+                tip = hz.min()
+                front = hz < tip + 80                                # the most forward part is the hand
+                x = (hc[front].mean() + 0.5) * CELL / W
+                y = (hr[front].mean() + 0.5) * CELL / H
+                hands.append({"x": round(float(x), 4), "y": round(float(y), 4), "z": round(float(hz[front].mean())),
+                              "bx": round(float((cs.mean() + 0.5) * CELL / W), 4), "n": int(len(hr))})
+        return hands
+
+
 # ───────────── capture thread ─────────────
 class Capture(threading.Thread):
     def __init__(self, dev, fps, quality, near, far, ir_blur=2):
@@ -281,6 +402,9 @@ class Capture(threading.Thread):
         self.dev, self.period, self.quality, self.near, self.far = dev, 1.0 / fps, quality, near, far
         self.ir_blur = ir_blur
         self.want_depth = False
+        self.want_hands = False
+        self.finder = HandFinder()
+        self.hands_json = None
         self.rgb_jpeg = None
         self.depth_jpeg = None
         self.seq = 0
@@ -313,6 +437,13 @@ class Capture(threading.Thread):
                 v = np.clip((self.far - d) / (self.far - self.near), 0, 1) * 255
                 v[~valid] = 0
                 self.depth_jpeg = self.encode(v.astype(np.uint8), "L")
+            if self.want_hands:
+                try:
+                    found = self.finder.find(self.dev.depth_mm())
+                except Exception as e:
+                    print("hand finder:", e, flush=True)
+                    found = []
+                self.hands_json = json.dumps({"w": W, "h": H, "hands": found, **self.finder.status()})
             self.seq += 1
             dt = time.time() - t
             if dt < self.period:
@@ -341,21 +472,39 @@ async def main():
     dev.led(LED_GREEN)
     cap = Capture(dev, a.fps, a.quality, a.near, a.far, a.ir_blur)
     cap.start()
-    clients = {"rgb": 0, "depth": 0}
+    clients = {"rgb": 0, "depth": 0, "hands": 0}
+
+    def wants():
+        cap.want_depth = clients["depth"] > 0
+        cap.want_hands = clients["hands"] > 0
+
+    # the page sends {"settings": {...}} and {"learn": true} on /hands
+    async def listen(ws):
+        async for msg in ws:
+            try:
+                m = json.loads(msg)
+            except Exception:
+                continue
+            if isinstance(m.get("settings"), dict):
+                cap.finder.settings(m["settings"])
+            if m.get("learn"):
+                print("Learning the empty room: keep the area in front of the Kinect clear.", flush=True)
+                cap.finder.learn()
 
     async def handler(ws):
         path = ws.request.path.strip("/") or "rgb"
         if path not in clients:
-            await ws.close(code=1008, reason="use /rgb or /depth")
+            await ws.close(code=1008, reason="use /rgb, /depth or /hands")
             return
         clients[path] += 1
-        cap.want_depth = clients["depth"] > 0
+        wants()
         print(f"+ {path} client ({clients[path]})", flush=True)
+        listener = asyncio.create_task(listen(ws)) if path == "hands" else None
         last = -1
         try:
             while True:
                 if cap.seq != last:
-                    frame = cap.rgb_jpeg if path == "rgb" else cap.depth_jpeg
+                    frame = {"rgb": cap.rgb_jpeg, "depth": cap.depth_jpeg, "hands": cap.hands_json}[path]
                     if frame is not None:
                         await ws.send(frame)
                         last = cap.seq
@@ -363,21 +512,29 @@ async def main():
         except Exception:
             pass
         finally:
+            if listener:
+                listener.cancel()
             clients[path] -= 1
-            cap.want_depth = clients["depth"] > 0
+            wants()
             print(f"- {path} client", flush=True)
 
-    print(f"Kinect bridge on ws://127.0.0.1:{a.port}/rgb  and  /depth" + ("  (test pattern)" if a.fake else ""), flush=True)
+    print(f"Kinect bridge on ws://127.0.0.1:{a.port}/rgb, /depth and /hands" + ("  (test pattern)" if a.fake else ""), flush=True)
     try:
         async with serve(handler, "127.0.0.1", a.port, max_size=None, compression=None):
             await asyncio.Future()
     finally:
         cap.running = False
-        dev.stop()
+        # release the Kinect, but never hang on it: a bridge left running keeps the Kinect busy for the next one
+        t = threading.Thread(target=dev.stop, daemon=True)
+        t.start()
+        t.join(timeout=2)
 
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGTERM, signal.default_int_handler)     # `kill` stops it like Ctrl-C
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\nstopped")
+        pass
+    print("\nstopped", flush=True)
+    os._exit(0)
