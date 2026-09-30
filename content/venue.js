@@ -42,7 +42,7 @@ window.VENUE_FILE = {
     depth: {
       near: 500,       // nearer than this is ignored
       far: 4000,       // further than this is ignored
-      reach: 220,      // a hand counts when it is this much nearer to the wall than its owner's body
+      reach: 180,      // a hand counts when it is this much nearer to the wall than its owner's body
       margin: 120,     // how much nearer than the empty room something must be to count as a person
       push: 120        // pushing a hand this much towards the wall closes it (grabs the coin)
     }

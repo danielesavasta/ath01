@@ -21,7 +21,7 @@
                 light: { on: false, color: '#fff1dc', level: 0.55, soft: 12, slope: 0.3 } },
         camera: { zoom: 1, cx: 0.5, cy: 0.5 },
         detect: { confidence: 0.6, upOnly: 70,
-                  depth: { near: 500, far: 4000, reach: 220, margin: 120, push: 120 } },
+                  depth: { near: 500, far: 4000, reach: 180, margin: 120, push: 120 } },
         // cloth parts lit by the Craft section (js/craft/), drawn on the statue photo; redraw them at the venue (K)
         parts: [
             { id: 'chiton',   points: [[755, 620], [815, 615], [840, 690], [875, 770], [890, 840], [930, 880], [970, 910], [940, 940], [850, 1000], [760, 1030], [740, 840], [735, 700]] },
@@ -144,8 +144,9 @@
               <label class="vs-slider">Yukarı bakan el: dikeyden en fazla <output data-o="upOnly"></output><input type="range" min="20" max="180" step="5" data-k="upOnly"></label>
               <div class="vs-depth">
                 <p><b>Derinlik (Kinect)</b>: eller karanlıkta da bulunur. Kinect duvarda, ziyaretçilere bakar; bir el,
-                  sahibinin gövdesinden belli bir mesafe öne (duvara doğru) uzanınca el sayılır. Önce odayı boşken öğret.</p>
-                <button data-act="learn">Boş odayı öğren (5 sn sonra)</button>
+                  sahibinin gövdesinden belli bir mesafe öne (duvara doğru) uzanınca el sayılır. Oda kendini öğrenir;
+                  eşyalar yer değiştirdiyse ya da tuhaf eller çıkıyorsa buradan baştan öğret.</p>
+                <button data-act="learn">Odayı baştan öğren (5 sn sonra)</button>
                 <p class="vs-depth-status"></p>
                 <label class="vs-slider">Gövdeden öne uzanma <output data-o="reach"></output><input type="range" min="80" max="500" step="10" data-k="reach"></label>
                 <label class="vs-slider">En uzak <output data-o="far"></output><input type="range" min="1500" max="6000" step="100" data-k="far"></label>
@@ -187,7 +188,7 @@
             let n = 5;
             const tick = () => {
                 if (n > 0) { note(`Kinect'in önünden çekil: ${n}`); n--; setTimeout(tick, 1000); return; }
-                window.athDepth.learn(); note('Boş oda öğreniliyor...');
+                window.athDepth.learn(); note('Oda öğreniliyor...');
             };
             tick();
         });
@@ -375,7 +376,7 @@
         const st = window.athDepth && window.athDepth.status;
         ui.querySelector('.vs-depth').hidden = !window.athDepth;
         if (st) ui.querySelector('.vs-depth-status').textContent = st.learning != null
-            ? `Öğreniliyor: %${Math.round(st.learning * 100)}` : (st.bg ? 'Boş oda öğrenildi.' : 'Boş oda henüz öğrenilmedi: tüm oda hareket gibi görünür.');
+            ? `Oda öğreniliyor: %${Math.round(st.learning * 100)}` : (st.bg ? 'Oda öğrenildi; kendini güncelliyor.' : 'Oda henüz öğrenilmedi.');
     }
 
     function saveFile() {

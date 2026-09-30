@@ -12,16 +12,23 @@ The Kinect hangs on the wall and faces the visitors. The bridge learns the empty
 in front of it is a person, and a hand is the part of a person clearly nearer to the wall than the rest of
 their body: an arm reaching towards the projection. Hanging arms and bodies are ignored.
 
-1. At the venue, with the Kinect in place: press `K`, tab *Kamera*, **Boş odayı öğren**. You get 5 seconds
-   to step out of view. The empty room is kept in `tools/kinect/background.npy` (not committed), so this is
-   needed again only if the Kinect or the furniture moves.
+1. Nothing to set up first: the bridge learns the room when it starts and keeps learning it (someone who
+   walks away is taken out at once; something that stays put for a minute becomes part of the room). It is
+   kept in `tools/kinect/background.npy` (not committed). If odd hands appear after furniture moved: `K`,
+   tab *Kamera*, **Odayı baştan öğren** (5 seconds to step out of view).
 2. The same tab shows the depth picture with every hand found circled in green. Adjust *Gövdeden öne uzanma*
-   (how far in front of the body a hand must be, default 22 cm) and *En uzak* (default 4 m), then
-   *Dosyaya kaydet*.
+   (how far in front of the body a hand must be, default 18 cm) and *En uzak* (default 4 m), then
+   *Dosyaya kaydet*. A hand shows after 4 frames in a row and survives 4 missed frames, so it doesn't flicker.
 3. Depth has no fingers. For the coin, pushing the hand about 12 cm towards the wall (quickly) closes it;
    pulling back opens it (*Tutmak için öne itme*). The owl hint says so when depth is in use.
 
 `?source=kinect` uses the Kinect's colour picture with MediaPipe instead, as before; `?source=webcam` the webcam.
+
+## Starting everything (Mac)
+
+Double-click `start.command` in the repo root: it stops any bridge left over, starts the bridge (and starts
+it again if it stops), a local web server on port 5510 and Chrome. `./start.command --kiosk` for full screen.
+Close the Terminal window to stop everything.
 
 ## Once
 

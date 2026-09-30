@@ -287,7 +287,7 @@ def clean_ir(ir, blur):
 # bodies are ignored. Works in the dark: depth is measured with the Kinect's own infrared.
 CELL = 4                                  # the depth picture is searched on a grid of 4x4 pixel cells (160x120)
 BG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "background.npy")
-BG_FRAMES = 45                            # frames averaged when learning the empty room (about 1.5 s)
+BG_FRAMES = 45                            # frames averaged when learning the room (about 1.5 s)
 
 
 def cells(d):
@@ -321,18 +321,31 @@ def components(mask):
 
 
 class HandFinder:
+    """Hands in the depth picture. The room learns itself: at start (and with the setup button) from a
+    second and a half of frames, and afterwards cell by cell: where the room reads further away than
+    remembered (someone left), it is taken at once; whatever stays put in front of it for BG_ABSORB
+    seconds (a chair moved in) becomes part of the room. A hand must be seen in several frames running
+    before it is reported, and is kept through a few missed frames, so it neither flickers nor blinks."""
     # the page sends these from content/venue.js (detect.depth), so they are set up per room with K
-    DEFAULTS = {"near": 500, "far": 4000, "margin": 120, "reach": 220, "body": 150, "hand": 4}
+    DEFAULTS = {"near": 500, "far": 4000, "margin": 120, "reach": 180, "body": 150, "hand": 4}
+    BORDER = 2              # cells along the edges of the picture are ignored (the depth edge is noisy)
+    HAND_MAX = 600          # cells: bigger than this is not a hand
+    BG_ABSORB = 60          # s something must stay put before it counts as part of the room
+    CONFIRM, KEEP = 4, 4    # frames a hand must be seen before it shows / may be missed before it goes
+    MATCH = 0.06            # how far (fraction of the width) a hand may move between frames
 
     def __init__(self):
         self.s = dict(self.DEFAULTS)
         self.bg = None
-        self.learning = None
+        self.learning = []                     # learn the room at start
+        self.cand = self.count = None          # per cell: a value that stays put in front of the room, and for how long
+        self.tracks, self.next_id = [], 1
+        self.saved = time.time()
         try:
             bg = np.load(BG_FILE)
             if bg.shape == (H // CELL, W // CELL):
-                self.bg = bg
-                print("Empty room loaded from background.npy", flush=True)
+                self.bg, self.learning = bg, None
+                print("Room loaded from background.npy (it keeps learning).", flush=True)
         except Exception:
             pass
 
@@ -348,7 +361,35 @@ class HandFinder:
         return {"bg": self.bg is not None,
                 "learning": None if self.learning is None else round(len(self.learning) / BG_FRAMES, 2)}
 
-    def find(self, depth_mm):
+    def _save(self):
+        try:
+            np.save(BG_FILE, self.bg)
+        except Exception:
+            pass
+        self.saved = time.time()
+
+    def _adapt(self, d, dt):
+        bg = self.bg
+        valid = d > 0
+        if self.cand is None:
+            self.cand, self.count = d.copy(), np.zeros_like(d)
+        # the room reads further than remembered, or had no reading there: take it
+        farther = valid & ((bg == 0) | (d > bg + 60))
+        bg[farther] = d[farther]
+        # the same as remembered: follow slowly (drift, noise)
+        same = valid & ~farther & (np.abs(d - bg) < 60)
+        bg[same] += (d[same] - bg[same]) * 0.02
+        # something in front that stays put for BG_ABSORB seconds becomes part of the room
+        steady = valid & (np.abs(d - self.cand) < 60)
+        self.count = np.where(steady, self.count + dt, 0)
+        self.cand = np.where(steady, self.cand, d)
+        absorb = self.count > self.BG_ABSORB
+        bg[absorb] = d[absorb]
+        self.count[absorb] = 0
+        if time.time() - self.saved > 120:
+            self._save()
+
+    def find(self, depth_mm, dt=1 / 30):
         s = self.s
         d = cells(depth_mm)
         if self.learning is not None:
@@ -360,18 +401,18 @@ class HandFinder:
                     warnings.simplefilter("ignore", RuntimeWarning)      # cells with no reading at all
                     bg = np.nanmedian(st, axis=0)
                 self.bg = np.nan_to_num(bg, nan=0).astype(np.float32)
-                self.learning = None
-                try:
-                    np.save(BG_FILE, self.bg)
-                except Exception:
-                    pass
-                print("Empty room learned.", flush=True)
-            return []
+                self.learning, self.cand = None, None
+                self._save()
+                print("Room learned.", flush=True)
+            return self._track([])
+        self._adapt(d, dt)
+        b = self.BORDER
         fg = (d > s["near"]) & (d < s["far"])
-        if self.bg is not None:
-            far_bg = np.where(self.bg > 0, self.bg, np.inf)          # no reading in the empty room: anything counts
-            fg &= d < far_bg - s["margin"]
-        hands = []
+        fg[:b, :] = fg[-b:, :] = False
+        fg[:, :b] = fg[:, -b:] = False
+        far_bg = np.where(self.bg > 0, self.bg, np.inf)              # no reading in the room: anything counts
+        fg &= d < far_bg - s["margin"]
+        found = []
         for rs, cs in components(fg):
             if len(rs) < s["body"]:
                 continue
@@ -383,16 +424,35 @@ class HandFinder:
             sub = np.zeros_like(fg)
             sub[rs[near], cs[near]] = True
             for hr, hc in components(sub):
-                if len(hr) < s["hand"]:
+                if not s["hand"] <= len(hr) <= self.HAND_MAX:
                     continue
                 hz = d[hr, hc]
-                tip = hz.min()
-                front = hz < tip + 80                                # the most forward part is the hand
-                x = (hc[front].mean() + 0.5) * CELL / W
-                y = (hr[front].mean() + 0.5) * CELL / H
-                hands.append({"x": round(float(x), 4), "y": round(float(y), 4), "z": round(float(hz[front].mean())),
-                              "bx": round(float((cs.mean() + 0.5) * CELL / W), 4), "n": int(len(hr))})
-        return hands
+                front = hz < hz.min() + 80                             # the most forward part is the hand
+                found.append({"x": float((hc[front].mean() + 0.5) * CELL / W), "y": float((hr[front].mean() + 0.5) * CELL / H),
+                              "z": float(hz[front].mean()), "bx": float((cs.mean() + 0.5) * CELL / W), "n": int(len(hr))})
+        return self._track(found)
+
+    def _track(self, found):
+        """Match hands to the ones of the last frames; report only those seen CONFIRM frames running."""
+        for t in self.tracks:
+            t["hit"] = False
+        for h in found:
+            best, bd = None, self.MATCH
+            for t in self.tracks:
+                dd = math.hypot(t["x"] - h["x"], (t["y"] - h["y"]) * H / W)
+                if not t["hit"] and dd < bd:
+                    best, bd = t, dd
+            if best is None:
+                best = {"id": self.next_id, "seen": 0, "miss": 0}
+                self.next_id += 1
+                self.tracks.append(best)
+            best.update(h, hit=True, seen=best["seen"] + 1, miss=0)
+        for t in self.tracks:
+            if not t["hit"]:
+                t["miss"] += 1
+        self.tracks = [t for t in self.tracks if t["miss"] <= self.KEEP]
+        return [{"x": round(t["x"], 4), "y": round(t["y"], 4), "z": round(t["z"]), "bx": round(t["bx"], 4), "n": t["n"]}
+                for t in self.tracks if t["seen"] >= self.CONFIRM]
 
 
 # ───────────── capture thread ─────────────
