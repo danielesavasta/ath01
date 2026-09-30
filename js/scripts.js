@@ -62,7 +62,8 @@ async function sendFrame(source, camW, camH) {
 
 const camera = new Camera(videoElement, {
     onFrame: async () => {
-        if (videoElement.videoWidth) await sendFrame(videoElement, videoElement.videoWidth, videoElement.videoHeight);
+        // the webcam keeps running as a fallback, but while the Kinect is connected only its frames count
+        if (!usingKinect && videoElement.videoWidth) await sendFrame(videoElement, videoElement.videoWidth, videoElement.videoHeight);
     },
     width: 1280,
     height: 720,
@@ -70,17 +71,23 @@ const camera = new Camera(videoElement, {
 });
 
 // Camera source: the Kinect bridge (tools/kinect/bridge.py) when it is running, otherwise the webcam.
-// ?source=kinect or ?source=webcam on the URL forces one.
+// ?source=kinect or ?source=webcam on the URL forces one. The page keeps looking for the bridge every few
+// seconds, so starting it after the page, or restarting it, switches to the Kinect without a reload.
 const KINECT_URL = 'ws://127.0.0.1:8770/rgb';
 const frameSize = { w: 0, h: 0 }; // size of the images MediaPipe gets (the chosen part of the camera image)
 
+const KINECT_RETRY = 3000;   // ms between looks for the bridge
+let usingKinect = false, webcamOn = false;
 function startCamera() {
     const forced = new URLSearchParams(location.search).get('source');
     if (forced === 'webcam') return startWebcam();
-    startKinect().catch(() => {
-        if (forced === 'kinect') { updatenote.innerText = 'Kinect bridge not running (tools/kinect/bridge.py).'; return; }
-        startWebcam();
+    const look = () => startKinect().catch(() => {
+        if (forced === 'kinect') updatenote.innerText = 'Waiting for the Kinect bridge (tools/kinect/bridge.py)...';
+        else if (!webcamOn) startWebcam();
+        setTimeout(look, KINECT_RETRY);
     });
+    look();
+    window.addEventListener('ath:kinect-lost', () => setTimeout(look, KINECT_RETRY));
 }
 
 function startWebcam() {
@@ -89,8 +96,9 @@ function startWebcam() {
         return;
     }
     frameSize.w = frameSize.h = 0;
+    webcamOn = true;
     camera.start()
-        .then(() => { isVideoRunning = true; updatenote.innerText = 'Webcam started. Tracking hands.'; })
+        .then(() => { isVideoRunning = true; if (!usingKinect) updatenote.innerText = 'Webcam started. Tracking hands.'; })
         .catch((e) => { updatenote.innerText = 'No camera: ' + (e && e.message ? e.message : e); });
 }
 
@@ -104,12 +112,17 @@ function startKinect() {
         const timer = setTimeout(() => { if (!opened) { ws.close(); reject(); } }, 1500);
         ws.onopen = () => {
             opened = true; clearTimeout(timer);
-            isVideoRunning = true;
+            isVideoRunning = true; usingKinect = true;
             updatenote.innerText = 'Kinect connected. Tracking hands.';
             resolve();
         };
         ws.onerror = () => { if (!opened) { clearTimeout(timer); reject(); } };
-        ws.onclose = () => { if (opened) updatenote.innerText = 'Kinect bridge stopped. Restart it and reload the page.'; };
+        ws.onclose = () => {
+            if (!opened) return;
+            usingKinect = false;
+            updatenote.innerText = webcamOn ? 'Kinect bridge stopped: webcam until it is back.' : 'Kinect bridge stopped: waiting for it.';
+            window.dispatchEvent(new Event('ath:kinect-lost'));
+        };
         ws.onmessage = async (e) => {
             if (busy) return; // skip frames while MediaPipe is still busy with the last one
             busy = true;
