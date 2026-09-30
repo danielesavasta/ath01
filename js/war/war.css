@@ -1,0 +1,59 @@
+/* War section: arrows and the aegis on one canvas (js/war/war.js), texts on top */
+.war-stage{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
+}
+.war-canvas{ position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* arrows turned to stone, top left (same place and look as the coin's tally) */
+.war-tally{
+    position: absolute;
+    left: calc(70 * var(--u));
+    top: calc(54 * var(--u));
+    display: flex;
+    align-items: baseline;
+    gap: calc(34 * var(--u));
+    pointer-events: none;
+}
+.war-tally .name{ font-size: calc(30 * var(--u)); letter-spacing: .08em; }
+.war-tally .num{ font-size: calc(44 * var(--u)); font-weight: 600; letter-spacing: .04em; }
+
+.war-hint{
+    position: absolute;
+    right: calc(70 * var(--u));
+    top: calc(62 * var(--u));
+    max-width: calc(560 * var(--u));
+    font-size: calc(21 * var(--u));
+    line-height: 1.5;
+    color: #B9AE99;
+    text-align: right;
+    white-space: pre-line;
+    pointer-events: none;
+}
+
+/* the War sentences, one at a time, bottom right; the latest bright, the earlier ones dimmed */
+.war-lines{
+    position: absolute;
+    right: calc(70 * var(--u));
+    bottom: calc(70 * var(--u));
+    width: calc(560 * var(--u));
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: calc(18 * var(--u));
+    text-align: right;
+    pointer-events: none;
+}
+.war-line{
+    font-size: calc(22 * var(--u));
+    line-height: 1.4;
+    color: #E3D8C3;
+    opacity: 0;
+    transform: translateY(calc(12 * var(--u)));
+    transition: opacity 1.2s ease, transform 1.2s ease, font-size .6s ease;
+}
+.war-line.in{ opacity: .4; transform: none; }
+.war-line.in.now{ opacity: 1; font-size: calc(30 * var(--u)); }

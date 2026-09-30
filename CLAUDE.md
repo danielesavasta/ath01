@@ -24,7 +24,7 @@ Background research and the section texts: `docs/athena-six-aspects.md` (read it
   Kinect v1: `tools/kinect/setup.sh` once, then `tools/kinect/.venv/bin/python tools/kinect/bridge.py`
   (`--video rgb|hires|ir`, `--fake` for a test pattern). See `tools/kinect/README.md`.
 - `?lite` skips the 5 MB coin model. The mouse works like a hand (press = closed hand).
-- Keys: `O` owl · `G` egg · `M` menu · `K` room setup · `D` coin physics panel ·
+- Keys: `O` owl · `G` egg · `W` war · `M` menu · `K` room setup · `D` coin physics panel ·
   in the owl section `Space` toss, `I` close-up, `Esc` leave close-up, `F` flip in hand.
 - Headless check without a camera: `tools/test/smoke.mjs` (Playwright; stubs MediaPipe, feeds fake hands).
 
@@ -47,13 +47,17 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
     resting `T.dwell` opens `SECTIONS[slot.section]`. Returning rolls all letters back to ATHENA.
   - Inside a section: ANA SAYFA / HOME button bottom left (hand dwell), idle return after `T.idleReturn`
     with a countdown ring, TR/EN buttons in the menu (reset to Turkish when a visitor leaves).
-  - `SECTIONS = { owl: coin, egg }`. **Section contract**: `start()`, `stop()`, `reset()`, `setTexts(t)`,
+  - `SECTIONS = { owl: coin, egg, war }`. **Section contract**: `start()`, `stop()`, `reset()`, `setTexts(t)`,
     and either `setHands(list)` (fed from `ath:hands`, NDC coords) or `frame(pts, dt)` (called every animation
     frame with `[{ px, py, open?, mouse? }]`). Optional: `holding` (blocks the back button and idle return),
     `relayout()` (called when the venue mask changes).
 - **Owl / coin** (`js/coin/`, README there): three.js + cannon-es tetradrachm. Throw with a closed hand,
   lands upright, close-up with info rings after idle, Roman-numeral tally in Cinzel with a marble texture
   (`assets/stone.jpg`, cut from the statue photo). It avoids landing behind the statue mask.
+- **War** (`js/war/`): 2D canvas. Arrows fly in from the frame edges and fall short before the statue band.
+  A hand held still (within `T.stillTol` px) raises the gorgoneion; arrows near it turn to stone and crumble.
+  A War sentence appears after `T.firstLine` arrows, then every `T.perLine`; after the last the volley rests
+  for `T.rest` and starts again. All tuning in `T` at the top of `war.js`. No fail state.
 - **Egg / Birth** (`js/egg/`, Daniele): gallery of artworks of Athena's birth from `content/egg.json`,
   images in `assets/egg/<id>.jpg`, hand dwell on arrows/dots.
 
@@ -69,29 +73,28 @@ the mask hides it at the venue (`VENUE.statueBandNdc()` gives its horizontal ext
 
 ## The six topics
 
+Order agreed with Ege: left column top to bottom Birth, War, Mind; right column Owl, Craft, Gymnasion.
+
 | Slot | Section id | Topic | Status |
 |---|---|---|---|
-| A | `owl` | The Owl (coin, trade) | done |
-| T | `egg` | Birth | gallery done (Daniele); images to add in `assets/egg/` |
-| H | `eagle` | placeholder | topic and icon to assign |
-| E | `fox` | placeholder | topic and icon to assign |
-| N | `sloth` | placeholder | topic and icon to assign |
-| A | `beaver` | placeholder | topic and icon to assign |
+| A (left, top) | `egg` | Birth | gallery done (Daniele), icon `zeus.svg`; images to add in `assets/egg/` |
+| T (right, top) | `owl` | The Owl (coin, trade) | done |
+| H (left, middle) | `war` | War | first version, stillness under test; icon pending (uses `owl.svg`) |
+| E (right, middle) | `craft` | Craft | to build; needs `assets/craft.svg` |
+| N (left, bottom) | `mind` | Mind | to build; needs `assets/mind.svg` |
+| A (right, bottom) | `gymnasion` | Gymnasion | to build; needs `assets/gymnasion.svg` |
 
-Remaining topics: **War, Craft, Mind, Gymnasion**. The docs suggest Gymnasion last (bottom-right A): its
-last sentence, about the rough back made to stand against a wall, closes the piece. Emoji keys and file names in `SLOTS` are placeholders
-from Daniele; each needs an SVG icon in `assets/` (white line drawing, like `owl.svg`) and a slot decision.
+Gymnasion is last (bottom right) because its last sentence, about the rough back made to stand against a
+wall, closes the piece. Icons: SVG in `assets/` (white line drawing, like `owl.svg`); a slot without its file
+does not roll to an icon and cannot be opened by hand.
 
-**War, proposed (not yet agreed with Ege):** the aegis. Arrows fly slowly from the frame edges towards
-Athena; an open hand raises a shield with the gorgoneion; an arrow meeting it turns to stone, greys to marble
-and crumbles. Every few arrows held off, one War sentence appears (texts in the docs); after the last
-("She is not fighting. She is watching.") the volley stops. Black-figure pottery look (terracotta on black),
-2D canvas, tally of arrows held off. Alternatives discussed: phalanx (hands lock into a shield wall), order
-from fury (slow hands arrange spinning spears). Open question: is the museum fine with arrows?
+**War, chosen:** the aegis with stillness (a moving hand does nothing, a still one is the gorgon's stare),
+no fail state. Black-figure look (terracotta on black). Open question: is the museum fine with arrows?
+If not, the same mechanic works with sparks or embers.
 
 ## Known issues / next steps
 
-1. Pick War direction → build it as `js/war/` following the section contract; add its texts to `texts.js`.
+1. War: tune stillness with Ege on the Kinect/webcam (`T.stillTol`, `T.stillAfter`), War icon.
 2. Then Craft, Mind, Gymnasion, same pattern. Budget about a day each; keep them simple.
 3. Offline: `lib/hands.js` still loads its wasm/model files from jsDelivr (`locateFile` in `js/scripts.js`).
    Vendor the files from `@mediapipe/hands` into `lib/mediapipe/` and point `locateFile` there.

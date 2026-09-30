@@ -93,4 +93,20 @@ for (const name of Object.keys(await page.evaluate(() => Object.fromEntries(Obje
   console.log("opened and closed:", name);
 }
 await page.screenshot({ path: shot("menu") });
+
+// 4. war: a hand held still beside the statue raises the aegis and turns arrows to stone; a moving one does not
+const war = await page.evaluate(async () => {
+  ath.openSection("war");
+  const fx = (x, y) => { const r = document.getElementById("warStage").getBoundingClientRect();
+    return [r.left + x / 1920 * r.width, r.top + y / 1080 * r.height]; };
+  let moving = 0;
+  for (let i = 0; i < 60; i++){ const [x, y] = fx(250 + i * 6, 560); feedAt(x, y); await new Promise((r) => setTimeout(r, 33));
+    moving = Math.max(moving, ...ath.war.hands.map((h) => h.g)); }
+  const [x, y] = fx(480, 560);
+  await hold(x, y, 12000);
+  const g = Math.max(0, ...ath.war.hands.map((h) => h.g));
+  return `aegis while moving ${moving.toFixed(2)}, while still ${g.toFixed(2)}, arrows turned to stone ${ath.war.count}`;
+});
+console.log("war ->", war);
+await page.screenshot({ path: shot("war-still") });
 await browser.close();

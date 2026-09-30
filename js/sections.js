@@ -1,5 +1,5 @@
-// The menu (ATHENA letters) and the sections behind them. So far: owl (tetradrachm) and egg (a gallery
-// of artworks, content/egg.json, images in assets/egg/).
+// The menu (ATHENA letters) and the sections behind them. So far: owl (tetradrachm), egg (a gallery
+// of artworks, content/egg.json, images in assets/egg/) and war (arrows and the aegis).
 // Hands arrive from scripts.js as an "ath:hands" event, once per camera frame, in viewport pixels.
 //
 // Menu:     a hand over a letter rolls it to its section's icon; staying there (T.dwell ms) opens the section.
@@ -11,11 +11,12 @@
 //           section closes because nobody was there, or after T.langReset ms with no hands in the menu.
 // The mouse works like a hand, for development; a click on an icon or a button acts at once.
 //
-// Keys while developing:  O open owl section · G open egg section · M back to menu · D controls panel · K room setup (js/venue.js)
+// Keys while developing:  O open owl section · G open egg section · W open war section · M back to menu · D controls panel · K room setup (js/venue.js)
 //                          (inside the section) Space toss · I close-up · Esc leave close-up · F flip in hand
 
 import { createCoin } from "./coin/coin.js";
 import { createEgg } from "./egg/egg.js";
+import { createWar } from "./war/war.js";
 import TEXTS from "../content/texts.js";
 
 const stage = document.getElementById("coinStage");
@@ -35,14 +36,15 @@ const T = {
 const ROLL_MS = 850;          // a little longer than the .letter transition in main.css
 
 // ───────────── the six slots ─────────────
-// slot order is the DOM order: A T / H E / N A (two columns, the statue between them)
+// slot order is the DOM order: A T / H E / N A (two columns, the statue between them), so
+// left column top to bottom: birth, war, mind · right column: owl, craft, gymnasion
 const SLOTS = [
-  { letter: "A", icon: "🦉", file: "owl.svg", section: "owl" }, // the coin
-  { letter: "T", icon: "🥚", file: "egg.svg", section: "egg" }, // the birth
-  { letter: "H", icon: "🦅", file: "eagle.svg", section: "eagle" },
-  { letter: "E", icon: "🦊", file: "fox.svg", section: "fox" },
-  { letter: "N", icon: "🦥", file: "sloth.svg", section: "sloth" },
-  { letter: "A", icon: "🦫", file: "beaver.svg", section: "beaver" }
+  { letter: "A", icon: "🥚", file: "zeus.svg", section: "egg" },        // birth
+  { letter: "T", icon: "🦉", file: "owl.svg", section: "owl" },         // the coin
+  { letter: "H", icon: "⚔", file: "owl.svg", section: "war" },          // war (placeholder icon)
+  { letter: "E", icon: "🧵", file: "craft.svg", section: "craft" },
+  { letter: "N", icon: "🧠", file: "mind.svg", section: "mind" },
+  { letter: "A", icon: "🏛", file: "gymnasion.svg", section: "gymnasion" }
 ];
 // an icon only takes part once its file has loaded (the others are not drawn yet)
 for (const s of SLOTS){
@@ -110,6 +112,7 @@ const FIRST = LANGS[0].code;
 function merge(base, over){
   if (over === undefined) return base;
   if (typeof base !== "object" || base === null || typeof over !== "object" || over === null) return over;
+  if (Array.isArray(base) || Array.isArray(over)) return over;       // lists (war.lines) replace, they do not merge
   const out = { ...base };
   for (const k of Object.keys(over)) out[k] = merge(base[k], over[k]);
   return out;
@@ -135,10 +138,17 @@ const egg = await createEgg({
   imagesDir: "assets/egg/"
 });
 
-// every section, by its SLOTS name; each exposes start/stop/reset/setTexts, and most also setHands or frame
-const SECTIONS = { owl: coin, egg };
+const war = createWar({
+  stage: document.getElementById("warStage"),
+  texts: textsFor(FIRST).war,
+  statueBand,
+  stoneTexture: "assets/stone.jpg"
+});
 
-if (window.VENUE) window.VENUE.onChange(() => coin.relayout());
+// every section, by its SLOTS name; each exposes start/stop/reset/setTexts, and most also setHands or frame
+const SECTIONS = { owl: coin, egg, war };
+
+if (window.VENUE) window.VENUE.onChange(() => { coin.relayout(); war.relayout(); });
 
 // back button: bottom left of the frame, where a hand reaches it; the hand icons stay on top of it
 const back = document.createElement("div");
@@ -169,6 +179,7 @@ function setLang(code){
   const t = textsFor(code);
   coin.setTexts(t.owl);
   egg.setTexts(t.egg);
+  war.setTexts(t.war);
   back.querySelector("span").textContent = t.menu.back;
   document.documentElement.lang = code;
   for (const l of LANGS){ l.el.classList.toggle("on", l.code === code); l.dwell = 0; l.el.style.setProperty("--p", 0); }
@@ -316,6 +327,7 @@ window.addEventListener("keydown", (e) => {
   if (e.target && e.target.tagName === "INPUT") return;
   if (e.code === "KeyO") openSection("owl");
   if (e.code === "KeyG") openSection("egg");
+  if (e.code === "KeyW") openSection("war");
   if (e.code === "KeyM") closeSection();
   if (e.code === "KeyD") document.body.classList.toggle("show-panel");
   activeAt = performance.now();
@@ -323,7 +335,7 @@ window.addEventListener("keydown", (e) => {
 
 // handy from the console while developing (openOwl / closeOwl kept for older notes)
 window.ath = {
-  coin, egg, sections: SECTIONS, openSection, closeSection, athenaWave, setLang, slots: SLOTS, timing: T,
+  coin, egg, war, sections: SECTIONS, openSection, closeSection, athenaWave, setLang, slots: SLOTS, timing: T,
   get lang(){ return lang; },
   openOwl: () => openSection("owl"), closeOwl: closeSection,
   get section(){ return section; }

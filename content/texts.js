@@ -44,6 +44,18 @@ export default {
     egg: {
       hint: "Bir okun ya da noktanın üstünde birazcık bekle, başka bir esere geç.",
       noImage: "Buraya henüz bir görsel eklenmedi"
+    },
+
+    // one sentence appears every few arrows turned to stone, in this order
+    war: {
+      tally: "TAŞ",
+      hint: "Elini kaldır ve kıpırdatmadan tut.\nOklar taşa dönsün.",
+      lines: [
+        "Ares savaşın öfkesidir, Athena savaşın aklıdır.",
+        "Göğsündeki aigis'te Medusa'nın başı vardır; saldırmak için değil, uzak tutmak için.",
+        "Ona Promachos derlerdi: en önde duran.",
+        "Miğferi yüzüne indirilmemiş, başına itilmiştir. Savaşta değil, nöbettedir."
+      ]
     }
   },
 
@@ -75,6 +87,17 @@ export default {
     egg: {
       hint: "Rest a hand on an arrow, or a dot, for a moment to move to another artwork.",
       noImage: "No image has been added here yet"
+    },
+
+    war: {
+      tally: "STONE",
+      hint: "Raise your hand and hold it still.\nThe arrows will turn to stone.",
+      lines: [
+        "Ares is the fury of war. Athena is its intelligence.",
+        "On her chest the aegis carries the head of Medusa, worn to keep danger away rather than to attack.",
+        "They called her Promachos, the one who stands in front.",
+        "Her helmet is pushed back, not lowered. She is not fighting. She is watching."
+      ]
     }
   }
 };
