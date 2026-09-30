@@ -1,59 +1,37 @@
-/* War section: arrows and the aegis on one canvas (js/war/war.js), texts on top */
-.war-stage{
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
-}
+/* War section: arrows on one canvas (js/war/war.js), texts on top. Type: the shared system in css/sections.css. */
+.war-stage{ position: relative; width: 100%; height: 100%; overflow: hidden; }
 .war-canvas{ position: absolute; inset: 0; width: 100%; height: 100%; }
 
-/* arrows turned to stone, top left (same place and look as the coin's tally) */
-.war-tally{
-    position: absolute;
-    left: calc(70 * var(--u));
-    top: calc(54 * var(--u));
-    display: flex;
-    align-items: baseline;
-    gap: calc(34 * var(--u));
-    pointer-events: none;
-}
-.war-tally .name{ font-size: calc(30 * var(--u)); letter-spacing: .08em; }
-.war-tally .num{ font-size: calc(44 * var(--u)); font-weight: 600; letter-spacing: .04em; }
+/* arrows turned to stone, top left: the word small, the numeral carved */
+.war-tally{ position: absolute; left: calc(70 * var(--u)); top: calc(58 * var(--u)); pointer-events: none; }
+.war-tally .num{ font-family: "Cinzel", Georgia, serif; font-weight: 600; font-size: calc(64 * var(--u)); line-height: 1.1; margin-top: calc(6 * var(--u)); }
 
+/* top right: a short line and a small picture of the gesture (a hand settling, then the gorgoneion) */
 .war-hint{
-    position: absolute;
-    right: calc(70 * var(--u));
-    top: calc(62 * var(--u));
-    max-width: calc(560 * var(--u));
-    font-size: calc(21 * var(--u));
-    line-height: 1.5;
-    color: #B9AE99;
-    text-align: right;
-    white-space: pre-line;
-    pointer-events: none;
+    position: absolute; right: calc(70 * var(--u)); top: calc(62 * var(--u));
+    display: flex; align-items: center; gap: calc(20 * var(--u)); pointer-events: none;
 }
+.war-hint .text{ text-align: right; white-space: pre-line; }
+@property --demo{ syntax: "<number>"; inherits: false; initial-value: 0; }
+.war-demo{ position: relative; width: calc(72 * var(--u)); height: calc(72 * var(--u)); }
+.war-demo-ring{
+    position: absolute; inset: 0; border-radius: 50%;
+    background: conic-gradient(var(--amber) calc(var(--demo) * 1turn), rgba(255,255,255,.3) 0);
+    -webkit-mask: radial-gradient(circle, transparent calc(34 * var(--u)), #000 calc(35 * var(--u)));
+    mask: radial-gradient(circle, transparent calc(34 * var(--u)), #000 calc(35 * var(--u)));
+    animation: war-demo-fill 3.6s linear infinite;
+}
+.war-demo img{ position: absolute; inset: calc(10 * var(--u)); width: calc(52 * var(--u)); height: calc(52 * var(--u)); }
+.war-demo-hand{ animation: war-demo-hand 3.6s linear infinite; }
+.war-demo-g{ opacity: 0; animation: war-demo-g 3.6s linear infinite; }
+@keyframes war-demo-fill{ 0%{ --demo: 0; opacity: 1; } 55%{ --demo: 1; opacity: 1; } 65%, 100%{ --demo: 1; opacity: 0; } }
+@keyframes war-demo-hand{ 0%, 55%{ opacity: .8; } 65%, 92%{ opacity: 0; } 100%{ opacity: .8; } }
+@keyframes war-demo-g{ 0%, 55%{ opacity: 0; } 65%, 92%{ opacity: 1; } 100%{ opacity: 0; } }
 
-/* the War sentences, one at a time, bottom right; the latest bright, the earlier ones dimmed */
-.war-lines{
-    position: absolute;
-    right: calc(70 * var(--u));
-    bottom: calc(70 * var(--u));
-    width: calc(560 * var(--u));
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    gap: calc(18 * var(--u));
-    text-align: right;
-    pointer-events: none;
-}
+/* one War sentence at a time, right of the statue, left aligned */
 .war-line{
-    font-size: calc(22 * var(--u));
-    line-height: 1.4;
-    color: #E3D8C3;
-    opacity: 0;
-    transform: translateY(calc(12 * var(--u)));
-    transition: opacity 1.2s ease, transform 1.2s ease, font-size .6s ease;
+    position: absolute; left: calc(1320 * var(--u)); top: calc(420 * var(--u)); width: calc(520 * var(--u));
+    pointer-events: none; opacity: 0; transform: translateY(calc(10 * var(--u)));
+    transition: opacity .6s ease, transform .6s ease;
 }
-.war-line.in{ opacity: .4; transform: none; }
-.war-line.in.now{ opacity: 1; font-size: calc(30 * var(--u)); }
+.war-line.in{ opacity: 1; transform: none; transition-duration: 1.1s; }

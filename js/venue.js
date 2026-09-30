@@ -7,6 +7,7 @@
 //   VENUE.get()                 current settings
 //   VENUE.onChange(fn)          fn(settings) after every change
 //   VENUE.statueBandNdc()       left and right edge of the statue mask, -1..1 across the frame
+//   VENUE.get().parts           the cloth parts the Craft section lights: [{ id, points }], frame px
 //
 // Loaded as a plain script before js/scripts.js, which reads the camera and detection settings.
 
@@ -19,7 +20,14 @@
                                     [1200, 700], [1138, 580], [1008, 540], [1063, 420], [1048, 260], [990, 150]],
                 light: { on: false, color: '#fff1dc', level: 0.55, soft: 12, slope: 0.3 } },
         camera: { zoom: 1, cx: 0.5, cy: 0.5 },
-        detect: { confidence: 0.6, upOnly: 70 }
+        detect: { confidence: 0.6, upOnly: 70 },
+        // cloth parts lit by the Craft section (js/craft/), drawn on the statue photo; redraw them at the venue (K)
+        parts: [
+            { id: 'chiton',   points: [[755, 620], [815, 615], [840, 690], [875, 770], [890, 840], [930, 880], [970, 910], [940, 940], [850, 1000], [760, 1030], [740, 840], [735, 700]] },
+            { id: 'aegis',    points: [[815, 615], [900, 580], [1040, 580], [1055, 700], [1045, 860], [1025, 905], [970, 905], [930, 880], [890, 840], [875, 770], [840, 690]] },
+            { id: 'himation', points: [[1040, 580], [1110, 580], [1150, 640], [1175, 740], [1195, 840], [1200, 910], [1150, 920], [1100, 960], [1060, 940], [1045, 860], [1055, 700]] },
+            { id: 'roll',     points: [[760, 1045], [890, 975], [1000, 915], [1040, 910], [1070, 940], [1060, 980], [970, 1030], [870, 1075], [765, 1080]] }
+        ]
     };
     const clone = (o) => JSON.parse(JSON.stringify(o));
     // objects merge key by key; arrays and values replace
@@ -93,7 +101,9 @@
     };
 
     // ───────────── setup screen ─────────────
-    let ui = null, tab = 'mask';
+    let ui = null, tab = 'mask', part = 0;
+    // the outline being edited: the mask, or one cloth part
+    const editPoints = () => tab === 'parts' ? (S.parts[part] || S.parts[0]).points : S.mask.points;
     function el(tag, attrs = {}, html = '') {
         const e = document.createElement(tag);
         for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
@@ -104,10 +114,10 @@
         ui = el('div', { id: 'venueSetup' });
         ui.innerHTML = `
           <canvas class="vs-cam"></canvas>
-          <svg class="vs-edit" viewBox="0 0 ${FRAME_W} ${FRAME_H}" preserveAspectRatio="none"><polygon class="vs-poly"></polygon><g class="vs-handles"></g></svg>
+          <svg class="vs-edit" viewBox="0 0 ${FRAME_W} ${FRAME_H}" preserveAspectRatio="none"><g class="vs-others"></g><polygon class="vs-poly"></polygon><g class="vs-handles"></g></svg>
           <div class="vs-panel">
             <div class="vs-head"><b>KURULUM</b><span>K ile kapat</span></div>
-            <div class="vs-tabs"><button data-tab="mask">Heykel maskesi</button><button data-tab="camera">Kamera</button></div>
+            <div class="vs-tabs"><button data-tab="mask">Heykel maskesi</button><button data-tab="parts">Kumaş parçaları</button><button data-tab="camera">Kamera</button></div>
             <div class="vs-body" data-for="mask">
               <label><input type="checkbox" data-k="maskOn"> Maske açık: heykelin üstü siyah, oraya hiçbir şey yansımaz</label>
               <label><input type="checkbox" data-k="lightOn"> Heykeli projektörle aydınlat (maskenin içi ışık olur)</label>
@@ -120,6 +130,11 @@
               <label><input type="checkbox" data-k="statueImage"> Heykel fotoğrafı görünsün (sadece çalışırken)</label>
               <p>Noktaları sürükle. Kenarın üstüne çift tıkla: yeni nokta. Noktaya sağ tıkla: sil.</p>
               <button data-act="statueShape">Fotoğraftaki heykelin şekline dön</button>
+            </div>
+            <div class="vs-body" data-for="parts">
+              <p>Zanaat bölümünde aydınlanan parçalar. Birini seç, noktalarını heykelin üstündeki kıvrımlara oturt. Maskeyle aynı: sürükle, kenara çift tıkla, noktaya sağ tıkla.</p>
+              <div class="vs-parts"></div>
+              <button data-act="partShape">Bu parçayı fotoğraftaki şekline döndür</button>
             </div>
             <div class="vs-body" data-for="camera">
               <p>Kameranın gördüğü, çerçeve de ekrana gelen alan. Ziyaretçilerin ellerinin gezindiği bölgeyi kapsasın; ne kadar dar olursa uzaktaki eller o kadar iyi bulunur. Sürükle: taşı. Tekerlek: yakınlaştır.</p>
@@ -152,6 +167,10 @@
             changed(); refresh();
         }));
         ui.querySelector('[data-act="statueShape"]').addEventListener('click', () => { S.mask.points = clone(DEFAULTS.mask.points); changed(); refresh(); });
+        ui.querySelector('[data-act="partShape"]').addEventListener('click', () => {
+            const id = S.parts[part] && S.parts[part].id, d = DEFAULTS.parts.find((p) => p.id === id);
+            if (d) { S.parts[part].points = clone(d.points); changed(); refresh(); }
+        });
         ui.querySelector('[data-act="save"]').addEventListener('click', saveFile);
         ui.querySelector('[data-act="revert"]').addEventListener('click', () => {
             try { localStorage.removeItem(KEY); } catch (e) { /* nothing kept */ }
@@ -180,6 +199,14 @@
         ui.querySelector('[data-o="soft"]').textContent = L.soft + ' px';
         ui.querySelector('[data-o="slope"]').textContent = Math.abs(L.slope) < 0.03 ? 'her yer eşit'
             : (L.slope > 0 ? 'üstten, alt %' : 'alttan, üst %') + Math.round((1 - Math.abs(L.slope)) * 100);
+        const list = ui.querySelector('.vs-parts');
+        list.innerHTML = '';
+        S.parts.forEach((p, i) => {
+            const b = el('button', {}, p.id);
+            b.classList.toggle('on', i === part);
+            b.addEventListener('click', () => { part = i; refresh(); });
+            list.appendChild(b);
+        });
         set('zoom', S.camera.zoom); set('confidence', S.detect.confidence); set('upOnly', S.detect.upOnly);
         ui.querySelector('[data-o="zoom"]').textContent = S.camera.zoom.toFixed(2) + '×';
         ui.querySelector('[data-o="confidence"]').textContent = S.detect.confidence.toFixed(2);
@@ -194,9 +221,13 @@
         const svg = ui.querySelector('.vs-edit'), g = svg.querySelector('.vs-handles');
         const r = frameRect();
         Object.assign(svg.style, { left: r.x + 'px', top: r.y + 'px', width: FRAME_W * r.u + 'px', height: FRAME_H * r.u + 'px' });
-        svg.querySelector('.vs-poly').setAttribute('points', S.mask.points.map((p) => p.join(',')).join(' '));
+        const P = editPoints();
+        svg.querySelector('.vs-poly').setAttribute('points', P.map((p) => p.join(',')).join(' '));
+        // while editing a part, the others (and the mask) show as thin outlines
+        svg.querySelector('.vs-others').innerHTML = tab !== 'parts' ? '' : [S.mask.points, ...S.parts.filter((p, i) => i !== part).map((p) => p.points)]
+            .map((q) => `<polygon points="${q.map((p) => p.join(',')).join(' ')}"/>`).join('');
         g.innerHTML = '';
-        S.mask.points.forEach((p, i) => {
+        P.forEach((p, i) => {
             const c = document.createElementNS(SVGNS, 'circle');
             c.setAttribute('cx', p[0]); c.setAttribute('cy', p[1]); c.setAttribute('r', 14);
             c.dataset.i = i;
@@ -206,26 +237,26 @@
     function wireMaskEditing() {
         const svg = ui.querySelector('.vs-edit');
         svg.addEventListener('pointerdown', (e) => {
-            if (tab !== 'mask' || e.button !== 0 || e.target.tagName !== 'circle') return;
+            if (tab === 'camera' || e.button !== 0 || e.target.tagName !== 'circle') return;
             dragging = +e.target.dataset.i;
             svg.setPointerCapture(e.pointerId);
         });
         svg.addEventListener('pointermove', (e) => {
             if (dragging < 0) return;
             const [x, y] = toFrame(e);
-            S.mask.points[dragging] = [Math.max(-50, Math.min(FRAME_W + 50, x)), Math.max(-50, Math.min(FRAME_H + 50, y))];
+            editPoints()[dragging] = [Math.max(-50, Math.min(FRAME_W + 50, x)), Math.max(-50, Math.min(FRAME_H + 50, y))];
             changed(false); drawMaskEditor();
         });
         svg.addEventListener('pointerup', () => { if (dragging >= 0) { dragging = -1; changed(); } });
         svg.addEventListener('contextmenu', (e) => {
             e.preventDefault();
-            if (tab !== 'mask' || e.target.tagName !== 'circle' || S.mask.points.length <= 3) return;
-            S.mask.points.splice(+e.target.dataset.i, 1);
+            if (tab === 'camera' || e.target.tagName !== 'circle' || editPoints().length <= 3) return;
+            editPoints().splice(+e.target.dataset.i, 1);
             changed(); drawMaskEditor();
         });
         svg.addEventListener('dblclick', (e) => {
-            if (tab !== 'mask') return;
-            const q = toFrame(e), P = S.mask.points;
+            if (tab === 'camera') return;
+            const q = toFrame(e), P = editPoints();
             let best = 0, bd = Infinity;
             for (let i = 0; i < P.length; i++) {
                 const a = P[i], b = P[(i + 1) % P.length];
@@ -327,7 +358,10 @@ window.VENUE_FILE = {
     light: { on: ${S.mask.light.on}, color: '${S.mask.light.color}', level: ${S.mask.light.level}, soft: ${S.mask.light.soft}, slope: ${S.mask.light.slope} }
   },
   camera: { zoom: ${+S.camera.zoom.toFixed(3)}, cx: ${+S.camera.cx.toFixed(4)}, cy: ${+S.camera.cy.toFixed(4)} },
-  detect: { confidence: ${S.detect.confidence}, upOnly: ${S.detect.upOnly} }
+  detect: { confidence: ${S.detect.confidence}, upOnly: ${S.detect.upOnly} },
+  parts: [
+${S.parts.map((p) => `    { id: '${p.id}', points: [${p.points.map((q) => `[${q[0]}, ${q[1]}]`).join(', ')}] }`).join(',\n')}
+  ]
 };
 `;
         const a = document.createElement('a');

@@ -109,4 +109,22 @@ const war = await page.evaluate(async () => {
 });
 console.log("war ->", war);
 await page.screenshot({ path: shot("war-still") });
+
+// 5. craft: a hand resting in front of a cloth part lights it and opens its panel; moving to another part switches
+const craft = await page.evaluate(async () => {
+  ath.closeSection(); await new Promise((r) => setTimeout(r, 700));
+  ath.openSection("craft");
+  const r = document.getElementById("craftStage").getBoundingClientRect();
+  const at = (id) => { const p = ath.craft.parts.find((q) => q.id === id).points;
+    const c = p.reduce((s, q) => [s[0] + q[0] / p.length, s[1] + q[1] / p.length], [0, 0]);
+    return [r.left + c[0] / 1920 * r.width, r.top + c[1] / 1080 * r.height]; };
+  await hold(...at("chiton"), 2200);
+  const first = ath.craft.chosen, side1 = document.querySelector(".craft-panel").classList.contains("right") ? "right" : "left";
+  await hold(...at("himation"), 2400);
+  const side2 = document.querySelector(".craft-panel").classList.contains("right") ? "right" : "left";
+  return `chose ${first} (panel ${side1}), then ${ath.craft.chosen} (panel ${side2})`;
+});
+console.log("craft ->", craft);
+await page.waitForTimeout(900);
+await page.screenshot({ path: shot("craft") });
 await browser.close();

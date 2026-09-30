@@ -1,5 +1,6 @@
 // The menu (ATHENA letters) and the sections behind them. So far: owl (tetradrachm), egg (a gallery
-// of artworks, content/egg.json, images in assets/egg/) and war (arrows and the aegis).
+// of artworks, content/egg.json, images in assets/egg/), war (arrows and the aegis) and craft (the cloth,
+// part by part, lit on the statue).
 // Hands arrive from scripts.js as an "ath:hands" event, once per camera frame, in viewport pixels.
 //
 // Menu:     a hand over a letter rolls it to its section's icon; staying there (T.dwell ms) opens the section.
@@ -11,12 +12,13 @@
 //           section closes because nobody was there, or after T.langReset ms with no hands in the menu.
 // The mouse works like a hand, for development; a click on an icon or a button acts at once.
 //
-// Keys while developing:  O open owl section · G open egg section · W open war section · M back to menu · D controls panel · K room setup (js/venue.js)
+// Keys while developing:  O open owl section · G open egg section · W war · C craft · M back to menu · D controls panel · K room setup (js/venue.js)
 //                          (inside the section) Space toss · I close-up · Esc leave close-up · F flip in hand
 
 import { createCoin } from "./coin/coin.js";
 import { createEgg } from "./egg/egg.js";
 import { createWar } from "./war/war.js";
+import { createCraft } from "./craft/craft.js";
 import TEXTS from "../content/texts.js";
 
 const stage = document.getElementById("coinStage");
@@ -145,10 +147,24 @@ const war = createWar({
   stoneTexture: "assets/stone.jpg"
 });
 
-// every section, by its SLOTS name; each exposes start/stop/reset/setTexts, and most also setHands or frame
-const SECTIONS = { owl: coin, egg, war };
+const craft = createCraft({
+  stage: document.getElementById("craftStage"),
+  texts: textsFor(FIRST).craft,
+  statueBand,
+  parts: () => (window.VENUE ? window.VENUE.get().parts : []),
+  statue: () => (window.VENUE ? window.VENUE.get().mask.points : null),
+  photo: () => (window.VENUE ? window.VENUE.get().statueImage : true),
+  imagesDir: "assets/craft/"
+});
 
-if (window.VENUE) window.VENUE.onChange(() => { coin.relayout(); war.relayout(); });
+// every section, by its SLOTS name; each exposes start/stop/reset/setTexts, and most also setHands or frame
+const SECTIONS = { owl: coin, egg, war, craft };
+
+if (window.VENUE) window.VENUE.onChange(() => { coin.relayout(); war.relayout(); craft.relayout(); });
+
+// js/scripts.js asks, for every hand icon it draws, whether the open section wants it hidden (false)
+// or blended into another image ({ img, mix }); null keeps the hand
+window.athHandSkin = (id) => (section === "menu" ? null : SECTIONS[section].handSkin?.(id) ?? null);
 
 // back button: bottom left of the frame, where a hand reaches it; the hand icons stay on top of it
 const back = document.createElement("div");
@@ -180,6 +196,7 @@ function setLang(code){
   coin.setTexts(t.owl);
   egg.setTexts(t.egg);
   war.setTexts(t.war);
+  craft.setTexts(t.craft);
   back.querySelector("span").textContent = t.menu.back;
   document.documentElement.lang = code;
   for (const l of LANGS){ l.el.classList.toggle("on", l.code === code); l.dwell = 0; l.el.style.setProperty("--p", 0); }
@@ -328,6 +345,7 @@ window.addEventListener("keydown", (e) => {
   if (e.code === "KeyO") openSection("owl");
   if (e.code === "KeyG") openSection("egg");
   if (e.code === "KeyW") openSection("war");
+  if (e.code === "KeyC") openSection("craft");
   if (e.code === "KeyM") closeSection();
   if (e.code === "KeyD") document.body.classList.toggle("show-panel");
   activeAt = performance.now();
@@ -335,7 +353,7 @@ window.addEventListener("keydown", (e) => {
 
 // handy from the console while developing (openOwl / closeOwl kept for older notes)
 window.ath = {
-  coin, egg, war, sections: SECTIONS, openSection, closeSection, athenaWave, setLang, slots: SLOTS, timing: T,
+  coin, egg, war, craft, sections: SECTIONS, openSection, closeSection, athenaWave, setLang, slots: SLOTS, timing: T,
   get lang(){ return lang; },
   openOwl: () => openSection("owl"), closeOwl: closeSection,
   get section(){ return section; }

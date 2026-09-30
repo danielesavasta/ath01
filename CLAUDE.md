@@ -24,7 +24,7 @@ Background research and the section texts: `docs/athena-six-aspects.md` (read it
   Kinect v1: `tools/kinect/setup.sh` once, then `tools/kinect/.venv/bin/python tools/kinect/bridge.py`
   (`--video rgb|hires|ir`, `--fake` for a test pattern). See `tools/kinect/README.md`.
 - `?lite` skips the 5 MB coin model. The mouse works like a hand (press = closed hand).
-- Keys: `O` owl · `G` egg · `W` war · `M` menu · `K` room setup · `D` coin physics panel ·
+- Keys: `O` owl · `G` egg · `W` war · `C` craft · `M` menu · `K` room setup · `D` coin physics panel ·
   in the owl section `Space` toss, `I` close-up, `Esc` leave close-up, `F` flip in hand.
 - Headless check without a camera: `tools/test/smoke.mjs` (Playwright; stubs MediaPipe, feeds fake hands).
 
@@ -47,27 +47,38 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
     resting `T.dwell` opens `SECTIONS[slot.section]`. Returning rolls all letters back to ATHENA.
   - Inside a section: ANA SAYFA / HOME button bottom left (hand dwell), idle return after `T.idleReturn`
     with a countdown ring, TR/EN buttons in the menu (reset to Turkish when a visitor leaves).
-  - `SECTIONS = { owl: coin, egg, war }`. **Section contract**: `start()`, `stop()`, `reset()`, `setTexts(t)`,
+  - `SECTIONS = { owl: coin, egg, war, craft }`. **Section contract**: `start()`, `stop()`, `reset()`, `setTexts(t)`,
     and either `setHands(list)` (fed from `ath:hands`, NDC coords) or `frame(pts, dt)` (called every animation
     frame with `[{ px, py, open?, mouse? }]`). Optional: `holding` (blocks the back button and idle return),
-    `relayout()` (called when the venue mask changes).
+    `relayout()` (called when the venue mask changes), `handSkin(id)` (asked by `scripts.js` for every hand icon:
+    `false` hides it, `{ img, mix }` blends it into another image, `null` keeps the hand).
 - **Owl / coin** (`js/coin/`, README there): three.js + cannon-es tetradrachm. Throw with a closed hand,
   lands upright, close-up with info rings after idle, Roman-numeral tally in Cinzel with a marble texture
   (`assets/stone.jpg`, cut from the statue photo). It avoids landing behind the statue mask.
 - **War** (`js/war/`): 2D canvas. Arrows fly in from the frame edges and fall short before the statue band.
   A hand held still (within `T.stillTol` px) raises the gorgoneion; arrows near it turn to stone and crumble.
   A War sentence appears after `T.firstLine` arrows, then every `T.perLine`; after the last the volley rests
-  for `T.rest` and starts again. All tuning in `T` at the top of `war.js`. No fail state.
+  for `T.rest` and starts again. All tuning in `T` at the top of `war.js`. No fail state. A still hand's icon
+  turns into `assets/gorgon.svg` (via `handSkin`).
+- **Craft** (`js/craft/`): cloth parts are outlines in `content/venue.js` `parts` (drawn on the statue photo;
+  redraw them at the venue in `K` → "Kumaş parçaları"). A hand in front of a part lights the whole part and its
+  icon is hidden; resting there it brightens and goes from warm to pure white (no ring); when full, the part is
+  chosen and its panel (texts `craft.parts.<id>`, photo `assets/craft/<id>.jpg`) opens on the nearer side.
+  No leader line (statue and wall are at different depths). Light drawn on `#craftLight` above the mask.
 - **Egg / Birth** (`js/egg/`, Daniele): gallery of artworks of Athena's birth from `content/egg.json`,
   images in `assets/egg/<id>.jpg`, hand dwell on arrows/dots.
 
-Layers (z-index): coin/egg stages 0 · back and language buttons 0 (after the stages) · hand icons `#drawing` 1 ·
-letters 3 · selection ring 5 · statue photo 40000 · venue mask 45000 (covers everything) · setup screen 60000.
+Layers (z-index): section stages 0 · back and language buttons 0 (after the stages) · hand icons `#drawing` 1 ·
+letters 3 · selection ring 5 · statue photo 40000 · venue mask 45000 (covers everything) · craft light 45100 ·
+setup screen 60000.
 
 ## Visual language (keep new sections consistent)
 
 Black background (black = no light on the wall). Cinzel capitals with the marble texture for anything carved
-(`.stone-text` in css/sections.css). White rings for "rest your hand here", amber `#F0B429` for progress.
+(`.stone-text` in css/sections.css). Type system (css/sections.css, agreed with Ege): Cinzel only for carved words
+(names, numerals, counters like "II / IV"); Source Serif 4 (`--font-text`, vendored) for everything read, in the
+classes `.t-sentence` 40 · `.t-body` 23 · `.t-hint` 20 · `.t-label` 17 (frame px), `.t-title`, `.t-greek`, `.t-rule`.
+Left aligned on a fixed edge, one sentence at a time. Owl and egg only take the font so far, not the layout. White rings for "rest your hand here", amber `#F0B429` for progress.
 Hints top right, tally/score top left, back button bottom left. Nothing important inside the statue band:
 the mask hides it at the venue (`VENUE.statueBandNdc()` gives its horizontal extent).
 
@@ -79,8 +90,8 @@ Order agreed with Ege: left column top to bottom Birth, War, Mind; right column 
 |---|---|---|---|
 | A (left, top) | `egg` | Birth | gallery done (Daniele), icon `zeus.svg`; images to add in `assets/egg/` |
 | T (right, top) | `owl` | The Owl (coin, trade) | done |
-| H (left, middle) | `war` | War | first version, stillness under test; icon pending (uses `owl.svg`) |
-| E (right, middle) | `craft` | Craft | to build; needs `assets/craft.svg` |
+| H (left, middle) | `war` | War | built, stillness under test; icon pending (uses `owl.svg`) |
+| E (right, middle) | `craft` | Craft | built with 4 draft parts; parts, texts, photos to decide; needs `assets/craft.svg` |
 | N (left, bottom) | `mind` | Mind | to build; needs `assets/mind.svg` |
 | A (right, bottom) | `gymnasion` | Gymnasion | to build; needs `assets/gymnasion.svg` |
 
@@ -95,6 +106,8 @@ If not, the same mechanic works with sparks or embers.
 ## Known issues / next steps
 
 1. War: tune stillness with Ege on the Kinect/webcam (`T.stillTol`, `T.stillAfter`), War icon.
+   Craft: decide the parts with the museum (the draft ids chiton, aegis, himation, roll are guesses from the
+   photo; texts in `texts.js` are marked DRAFT), real close-up photos, calibrate outlines on site.
 2. Then Craft, Mind, Gymnasion, same pattern. Budget about a day each; keep them simple.
 3. Offline: `lib/hands.js` still loads its wasm/model files from jsDelivr (`locateFile` in `js/scripts.js`).
    Vendor the files from `@mediapipe/hands` into `lib/mediapipe/` and point `locateFile` there.

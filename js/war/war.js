@@ -1,6 +1,6 @@
 // War section (Promachos). Arrows fly slowly in from the edges of the frame towards the statue.
-// A hand held still raises the aegis: the gorgoneion opens around it and every arrow that comes near
-// turns to stone, greys and crumbles. A moving hand does nothing. Arrows nobody stops fall short before
+// A hand held still turns into the gorgoneion (its icon becomes assets/gorgon.svg, through handSkin)
+// and every arrow that comes near turns to stone, greys and crumbles. A moving hand does nothing. Arrows nobody stops fall short before
 // they reach her, so nothing is ever lost. Every few arrows turned to stone one War sentence appears
 // (content/texts.js, war.lines); after the last one the volley stops, and starts again after T.rest.
 //
@@ -18,7 +18,7 @@ const T = {
   stillAfter: 350,           // ms of stillness before the aegis starts to rise
   rise: 500,                 // ms for it to open fully
   fall: 220,                 // ms for it to close once the hand moves
-  reach: 170,                // px around a raised aegis where arrows turn to stone
+  reach: 130,                // px around a still hand where arrows turn to stone (the icon itself is 90)
   spawnEvery: [900, 1700],   // ms between arrows
   maxArrows: 9,
   speed: [200, 280],         // px per second along the flight
@@ -31,7 +31,7 @@ const T = {
   crumble: 1300              // ms the pieces take to fall and fade
 };
 
-const CLAY = "#C8693A", CLAY_DARK = "#8E4424";
+const CLAY = "#C8693A";
 const rand = (a, b) => a + Math.random() * (b - a);
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
@@ -44,65 +44,26 @@ function roman(n){
   return s;
 }
 
-// the gorgoneion, black-figure style: a terracotta disc, the face in black, snakes around the rim
-function drawGorgoneion(){
-  const R = 100, c = document.createElement("canvas");
-  c.width = c.height = 2 * (R + 30);
-  const g = c.getContext("2d");
-  g.translate(R + 30, R + 30);
-  g.lineCap = "round"; g.lineJoin = "round";
-
-  // snakes: wavy strokes out from the rim, each with a small head
-  g.strokeStyle = CLAY; g.fillStyle = CLAY; g.lineWidth = 5;
-  for (let i = 0; i < 14; i++){
-    const a = (i / 14) * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a);
-    g.beginPath();
-    for (let k = 0; k <= 10; k++){
-      const r = R * 0.78 + k * 3.2, w = Math.sin(k * 1.1 + i) * 5;
-      const x = ca * r - sa * w, y = sa * r + ca * w;
-      k ? g.lineTo(x, y) : g.moveTo(x, y);
-    }
-    g.stroke();
-    const hr = R * 0.78 + 34, hw = Math.sin(11 + i) * 5;
-    g.beginPath(); g.arc(ca * hr - sa * hw, sa * hr + ca * hw, 5.5, 0, Math.PI * 2); g.fill();
-  }
-
-  // the disc and an incised ring
-  g.beginPath(); g.arc(0, 0, R * 0.8, 0, Math.PI * 2); g.fill();
-  g.strokeStyle = "#000"; g.lineWidth = 2.5;
-  g.beginPath(); g.arc(0, 0, R * 0.72, 0, Math.PI * 2); g.stroke();
-
-  // the face, in black
-  g.fillStyle = "#000"; g.strokeStyle = "#000"; g.lineWidth = 4;
-  for (const s of [-1, 1]){
-    g.beginPath(); g.arc(s * 24, -16, 11, 0, Math.PI * 2); g.fill();                       // eye
-    g.fillStyle = CLAY; g.beginPath(); g.arc(s * 24, -16, 4, 0, Math.PI * 2); g.fill(); g.fillStyle = "#000";
-    g.beginPath(); g.moveTo(s * 8, -30); g.quadraticCurveTo(s * 24, -40, s * 40, -28); g.stroke();   // brow
-  }
-  g.beginPath(); g.moveTo(0, -18); g.lineTo(-7, 6); g.lineTo(7, 6); g.stroke();              // nose
-  g.beginPath(); g.ellipse(0, 26, 32, 15, 0, 0, Math.PI * 2); g.fill();                      // mouth
-  g.fillStyle = CLAY;
-  for (const s of [-1, 1]){                                                                  // tusks
-    g.beginPath(); g.moveTo(s * 20, 14); g.lineTo(s * 14, 14); g.lineTo(s * 18, 30); g.fill();
-  }
-  g.beginPath(); g.moveTo(-9, 22); g.lineTo(9, 22); g.lineTo(6, 46); g.quadraticCurveTo(0, 52, -6, 46); g.fill();   // tongue
-  g.fillStyle = "#000"; g.beginPath(); g.moveTo(0, 26); g.lineTo(0, 44); g.lineWidth = 1.5; g.stroke();
-  return { canvas: c, R };
-}
-
 export function createWar(opts){
   const stage = opts.stage;
   stage.classList.add("war-stage");
+  const gorgonSrc = opts.gorgon || "assets/gorgon.svg";
   stage.innerHTML = `
     <canvas class="war-canvas" width="${W}" height="${H}"></canvas>
-    <div class="war-tally"><span class="name stone-text"></span><span class="num stone-text"></span></div>
-    <div class="war-hint"></div>
-    <div class="war-lines"></div>`;
+    <div class="war-tally"><div class="t-label name"></div><div class="num stone-text"></div></div>
+    <div class="war-hint">
+      <div class="t-hint text"></div>
+      <div class="war-demo"><div class="war-demo-ring"></div><img class="war-demo-hand" src="assets/openHand.svg" alt=""><img class="war-demo-g" src="${gorgonSrc}" alt=""></div>
+    </div>
+    <div class="war-line"><div class="t-label count"></div><div class="t-rule"></div><div class="t-sentence text"></div></div>`;
   const cv = stage.querySelector(".war-canvas"), g = cv.getContext("2d");
   const tallyName = stage.querySelector(".war-tally .name"), tallyNum = stage.querySelector(".war-tally .num");
-  const hintEl = stage.querySelector(".war-hint"), linesEl = stage.querySelector(".war-lines");
+  const hintEl = stage.querySelector(".war-hint .text"), lineEl = stage.querySelector(".war-line");
+  const lineCount = lineEl.querySelector(".count"), lineText = lineEl.querySelector(".text");
 
-  const gorgon = drawGorgoneion();
+  const gorgon = new Image();
+  gorgon.src = gorgonSrc;
+  const ICON = 90;                // the hand icon's size (js/scripts.js HAND_ICON), for the mouse's gorgoneion
   let stone = null;               // the statue's marble, for arrows turned to stone
   if (opts.stoneTexture){
     const img = new Image();
@@ -113,36 +74,33 @@ export function createWar(opts){
   let TX = opts.texts || {};
   let band = [700, 1240];         // where the statue stands, frame px
   let arrows = [], bits = [], hands = new Map();
-  let count = 0, shown = 0, phase = "volley", calm = 0, nextIn = 600, running = false;
+  let count = 0, shown = 0, phase = "volley", calm = 0, nextIn = 600, running = false, swap = 0;
 
   function relayout(){
     const b = opts.statueBand && opts.statueBand();
     band = b ? [(b[0] + 1) / 2 * W, (b[1] + 1) / 2 * W] : [700, 1240];
   }
 
+  // one sentence at a time: the counter (II / IV), a hairline, the sentence
+  function renderLine(){
+    const lines = TX.lines || [];
+    lineCount.innerHTML = shown ? `${roman(shown)}&nbsp;&nbsp;/&nbsp;&nbsp;${roman(lines.length)}` : "";
+    lineText.textContent = shown ? lines[shown - 1] || "" : "";
+    lineEl.classList.toggle("in", shown > 0);
+  }
   function applyTexts(){
     hintEl.textContent = TX.hint || "";
     tallyName.textContent = TX.tally || "";
-    const lines = TX.lines || [];
-    linesEl.innerHTML = "";
-    for (let i = 0; i < shown; i++){
-      const d = document.createElement("div");
-      d.className = "war-line in" + (i === shown - 1 ? " now" : "");
-      d.textContent = lines[i] || "";
-      linesEl.appendChild(d);
-    }
+    renderLine();
   }
+  // the old sentence fades out, then the new one fades in
   function showLine(){
     const lines = TX.lines || [];
-    for (const d of linesEl.children) d.classList.remove("now");
-    const d = document.createElement("div");
-    d.className = "war-line now";
-    d.textContent = lines[shown] || "";
-    linesEl.appendChild(d);
-    void d.offsetWidth;
-    d.classList.add("in");
     shown++;
     if (shown >= lines.length){ phase = "calm"; calm = 0; }
+    lineEl.classList.remove("in");
+    clearTimeout(swap);
+    swap = setTimeout(renderLine, shown > 1 ? 700 : 60);
   }
 
   // an arrow from the left or right edge, aimed at the edge of the statue band, in a slight arc
@@ -246,28 +204,25 @@ export function createWar(opts){
   function draw(){
     g.clearRect(0, 0, W, H);
 
-    // hands: a white ring while the hand settles (amber as it fills), the gorgoneion once it is still
-    for (const h of hands.values()){
+    // hands: a white ring while the hand settles, filling amber; once still, the icon itself becomes the
+    // gorgoneion (handSkin below). The mouse has no icon, so its gorgoneion is drawn here.
+    for (const [key, h] of hands){
       const p = clamp01(h.still / (T.stillAfter + T.rise));
       if (h.g < 1){
         g.lineWidth = 3;
+        g.globalAlpha = 1 - h.g;
         g.strokeStyle = "rgba(255,255,255,.3)";
-        g.beginPath(); g.arc(h.x, h.y, 70, 0, Math.PI * 2); g.stroke();
+        g.beginPath(); g.arc(h.x, h.y, 60, 0, Math.PI * 2); g.stroke();
         if (p > 0){
           g.strokeStyle = "#F0B429";
-          g.beginPath(); g.arc(h.x, h.y, 70, -Math.PI / 2, -Math.PI / 2 + p * Math.PI * 2); g.stroke();
+          g.beginPath(); g.arc(h.x, h.y, 60, -Math.PI / 2, -Math.PI / 2 + p * Math.PI * 2); g.stroke();
         }
+        g.globalAlpha = 1;
       }
-      if (h.g > 0){
-        const k = (0.55 + 0.45 * h.g) * 1.3, size = gorgon.canvas.width * k;   // big enough to show round the hand icon
-        g.save();
+      if (key === "mouse" && h.g > 0 && gorgon.complete){
         g.globalAlpha = h.g;
-        g.drawImage(gorgon.canvas, h.x - size / 2, h.y - size / 2, size, size);
-        g.globalAlpha = 0.22 * h.g;
-        g.strokeStyle = CLAY; g.lineWidth = 2;
-        g.setLineDash([4, 10]);
-        g.beginPath(); g.arc(h.x, h.y, T.reach * h.g, 0, Math.PI * 2); g.stroke();
-        g.restore();
+        g.drawImage(gorgon, h.x - ICON / 2, h.y - ICON / 2, ICON, ICON);
+        g.globalAlpha = 1;
       }
     }
 
@@ -298,7 +253,7 @@ export function createWar(opts){
 
   function reset(){
     arrows = []; bits = []; hands.clear();
-    count = 0; shown = 0; phase = "volley"; calm = 0; nextIn = 600;
+    count = 0; shown = 0; phase = "volley"; calm = 0; nextIn = 600; clearTimeout(swap);
     tallyNum.textContent = roman(0);
     applyTexts();
     g.clearRect(0, 0, W, H);
@@ -314,6 +269,8 @@ export function createWar(opts){
     setTexts(t){ TX = t || {}; applyTexts(); },
     frame,
     relayout,
+    // js/scripts.js asks for each hand's icon: a still hand blends into the gorgoneion
+    handSkin(id){ const h = hands.get(id); return h && h.g > 0 ? { img: gorgon, mix: h.g } : null; },
     get running(){ return running; },
     get count(){ return count; },
     get hands(){ return [...hands.values()]; },

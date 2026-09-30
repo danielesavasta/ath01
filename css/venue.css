@@ -20,6 +20,8 @@
 #venueSetup[data-tab="camera"] .vs-edit{ display: none; }
 #venueSetup .vs-poly{ fill: rgba(240,60,50,.28); stroke: #F04438; stroke-width: 3; vector-effect: non-scaling-stroke; }
 #venueSetup.lit .vs-poly{ fill: none; stroke-dasharray: 8 6; }
+#venueSetup .vs-others polygon{ fill: none; stroke: rgba(255,255,255,.45); stroke-width: 1.5; stroke-dasharray: 4 5; vector-effect: non-scaling-stroke; }
+#venueSetup .vs-parts{ display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
 #venueSetup .vs-handles circle{ fill: #fff; stroke: #F04438; stroke-width: 3; cursor: grab; vector-effect: non-scaling-stroke; }
 #venueSetup .vs-panel{
     position: absolute; right: 16px; bottom: 16px; width: 360px; max-width: calc(100vw - 32px);
@@ -47,3 +49,4 @@
 #venueSetup input[type=checkbox]{ accent-color: #F0B429; margin-top: 2px; }
 #venueSetup .vs-foot{ display: flex; gap: 8px; flex-wrap: wrap; }
 #venueSetup .vs-note{ color: #F0B429; min-height: 1em; }
+#venueSetup .vs-parts button.on{ background: #E3D8C3; color: #0B0B0C; }

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-60 -60 120 120">
+  <!-- gorgoneion, black-figure: terracotta disc, face in black, snakes round the rim -->
+  <g fill="none" stroke="#C8693A" stroke-width="4.2" stroke-linecap="round">
+    <path id="s" d="M0 -36 C 5 -41, -5 -46, 0 -51"/>
+    <use href="#s" transform="rotate(30)"/><use href="#s" transform="rotate(60)"/><use href="#s" transform="rotate(90)"/>
+    <use href="#s" transform="rotate(120)"/><use href="#s" transform="rotate(150)"/><use href="#s" transform="rotate(180)"/>
+    <use href="#s" transform="rotate(210)"/><use href="#s" transform="rotate(240)"/><use href="#s" transform="rotate(270)"/>
+    <use href="#s" transform="rotate(300)"/><use href="#s" transform="rotate(330)"/>
+  </g>
+  <circle r="38" fill="#C8693A"/>
+  <circle r="34" fill="none" stroke="#000" stroke-width="1.6"/>
+  <g fill="#000">
+    <circle cx="-12" cy="-8" r="6.5"/><circle cx="12" cy="-8" r="6.5"/>
+    <path d="M-22 -17 Q -12 -23 -3 -16 L -4 -14 Q -12 -19 -21 -14 Z"/>
+    <path d="M22 -17 Q 12 -23 3 -16 L 4 -14 Q 12 -19 21 -14 Z"/>
+    <path d="M0 -12 L -4 3 L 4 3 Z"/>
+    <path d="M-17 9 Q 0 4 17 9 Q 14 22 0 23 Q -14 22 -17 9 Z"/>
+  </g>
+  <g fill="#C8693A">
+    <circle cx="-12" cy="-8" r="2.3"/><circle cx="12" cy="-8" r="2.3"/>
+    <path d="M-11 9 L -7 9 L -9 17 Z"/><path d="M11 9 L 7 9 L 9 17 Z"/>
+    <path d="M-5 11 L 5 11 L 4 27 Q 0 31 -4 27 Z"/>
+  </g>
+</svg>

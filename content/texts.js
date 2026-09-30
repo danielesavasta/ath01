@@ -49,13 +49,25 @@ export default {
     // one sentence appears every few arrows turned to stone, in this order
     war: {
       tally: "TAŞ",
-      hint: "Elini kaldır ve kıpırdatmadan tut.\nOklar taşa dönsün.",
+      hint: "Elini kaldır,\nkıpırdatmadan tut.",
       lines: [
         "Ares savaşın öfkesidir, Athena savaşın aklıdır.",
         "Göğsündeki aigis'te Medusa'nın başı vardır; saldırmak için değil, uzak tutmak için.",
         "Ona Promachos derlerdi: en önde duran.",
         "Miğferi yüzüne indirilmemiş, başına itilmiştir. Savaşta değil, nöbettedir."
       ]
+    },
+
+    // DRAFT: which garments these are must be checked with the museum before the opening.
+    // One entry per part in content/venue.js (same id); photo in assets/craft/<id>.jpg.
+    craft: {
+      hint: "Elini heykelin önünde gezdir,\nbir parçanın üstünde bekle.",
+      parts: {
+        chiton:   { title: "KİTON",    greek: "χιτών",   text: "En altta giyilen ince giysi. Sık ve keskin kıvrımlar hafif bir kumaşı taklit eder." },
+        aegis:    { title: "AİGİS",    greek: "αἰγίς",   text: "Göğsü örten pullu deri. Ortasında Medusa'nın başı, kenarında kıvrılan yılanlar." },
+        himation: { title: "HİMATİON", greek: "ἱμάτιον", text: "Omuzdan aşağı dökülen kalın örtü. Kıvrımları kitonunkilerden daha derin ve ağır." },
+        roll:     { title: "KIVRIM",   greek: "",        text: "Örtünün kalçadan geçen, sarılmış kenarı." }
+      }
     }
   },
 
@@ -91,13 +103,23 @@ export default {
 
     war: {
       tally: "STONE",
-      hint: "Raise your hand and hold it still.\nThe arrows will turn to stone.",
+      hint: "Raise your hand\nand hold it still.",
       lines: [
         "Ares is the fury of war. Athena is its intelligence.",
         "On her chest the aegis carries the head of Medusa, worn to keep danger away rather than to attack.",
         "They called her Promachos, the one who stands in front.",
         "Her helmet is pushed back, not lowered. She is not fighting. She is watching."
       ]
+    },
+
+    craft: {
+      hint: "Move your hand over the statue\nand rest it on a part.",
+      parts: {
+        chiton:   { title: "CHITON",   greek: "χιτών",   text: "The thin garment worn underneath. Close, sharp folds imitate a light fabric." },
+        aegis:    { title: "AEGIS",    greek: "αἰγίς",   text: "The scaled skin over her chest, with Medusa's head at the centre and snakes coiled along the edge." },
+        himation: { title: "HIMATION", greek: "ἱμάτιον", text: "The heavy mantle falling from the shoulder. Its folds are deeper and heavier than the chiton's." },
+        roll:     { title: "THE ROLL", greek: "",        text: "The rolled edge of the mantle, drawn across the hips." }
+      }
     }
   }
 };

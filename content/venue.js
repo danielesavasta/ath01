@@ -36,5 +36,14 @@ window.VENUE_FILE = {
   detect: {
     confidence: 0.6,   // 0.3 finds more hands (and more false ones), 0.8 only clear ones
     upOnly: 70         // a hand counts only if it points up, at most this many degrees from vertical (180: any)
-  }
+  },
+
+  // cloth parts the Craft section lights on the statue (setup screen: "Kumaş parçaları").
+  // Their words are in content/texts.js (craft.parts), matched by id; photos in assets/craft/<id>.jpg.
+  parts: [
+      { id: 'chiton',   points: [[755, 620], [815, 615], [840, 690], [875, 770], [890, 840], [930, 880], [970, 910], [940, 940], [850, 1000], [760, 1030], [740, 840], [735, 700]] },
+      { id: 'aegis',    points: [[815, 615], [900, 580], [1040, 580], [1055, 700], [1045, 860], [1025, 905], [970, 905], [930, 880], [890, 840], [875, 770], [840, 690]] },
+      { id: 'himation', points: [[1040, 580], [1110, 580], [1150, 640], [1175, 740], [1195, 840], [1200, 910], [1150, 920], [1100, 960], [1060, 940], [1045, 860], [1055, 700]] },
+      { id: 'roll',     points: [[760, 1045], [890, 975], [1000, 915], [1040, 910], [1070, 940], [1060, 980], [970, 1030], [870, 1075], [765, 1080]] }
+  ]
 };

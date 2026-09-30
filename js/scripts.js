@@ -328,21 +328,34 @@ function onResults(results) {
     const size = HAND_ICON * map.u;
     const handInfos = [];
     for (const h of shown) {
+        // the open section may hide a hand's icon (false) or blend it into another image ({ img, mix: 0..1 }),
+        // see window.athHandSkin in js/sections.js
+        const skin = window.athHandSkin ? window.athHandSkin(h.id) : null;
+        if (skin === false) continue;
+        const mix = skin ? Math.max(0, Math.min(1, skin.mix)) : 0;
         const img = h.open ? openImg : closeImg;
-        drawingCtx.save();
-        drawingCtx.translate(h.sx, h.sy);
-        if (h.label === 'Left') drawingCtx.scale(-1, 1); // mirror the icon for a left hand
-        drawingCtx.rotate(h.angle);
-        const tint = tintedSilhouette(img, h.colour);
-        if (tint) {
-            drawingCtx.globalAlpha = 0.5;
-            drawingCtx.drawImage(tint, -size / 2, -size / 2, size, size);
-            drawingCtx.globalAlpha = 1;
+        if (mix < 1) {
+            drawingCtx.save();
+            drawingCtx.translate(h.sx, h.sy);
+            if (h.label === 'Left') drawingCtx.scale(-1, 1); // mirror the icon for a left hand
+            drawingCtx.rotate(h.angle);
+            const tint = tintedSilhouette(img, h.colour);
+            if (tint) {
+                drawingCtx.globalAlpha = 0.5 * (1 - mix);
+                drawingCtx.drawImage(tint, -size / 2, -size / 2, size, size);
+            }
+            drawingCtx.globalAlpha = 1 - mix;
+            drawingCtx.shadowColor = 'rgba(0,0,0,0.5)';
+            drawingCtx.shadowBlur = 8;
+            drawingCtx.drawImage(img, -size / 2, -size / 2, size, size);
+            drawingCtx.restore();
         }
-        drawingCtx.shadowColor = 'rgba(0,0,0,0.5)';
-        drawingCtx.shadowBlur = 8;
-        drawingCtx.drawImage(img, -size / 2, -size / 2, size, size);
-        drawingCtx.restore();
+        if (mix > 0 && skin.img.complete) {   // upright, not turned with the hand
+            drawingCtx.save();
+            drawingCtx.globalAlpha = mix;
+            drawingCtx.drawImage(skin.img, h.sx - size / 2, h.sy - size / 2, size, size);
+            drawingCtx.restore();
+        }
         handInfos.push(`H${h.id}${h.label === 'Left' ? 'L' : 'R'} ${Math.round(h.sx)}|${Math.round(h.sy)}`);
     }
     if (updatenote) updatenote.innerText = handInfos.join(' ');
