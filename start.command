@@ -22,7 +22,7 @@ WEB=$!
     else
       echo "Kinect bridge not set up (tools/kinect/setup.sh). Running with the webcam."; sleep 3600
     fi
-    echo "Bridge stopped; starting it again in 3 s."; sleep 3
+    echo "Bridge stopped; starting it again in 3 s (plug the Kinect in if it is out)."; sleep 3
   done
 ) &
 LOOP=$!

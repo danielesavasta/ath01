@@ -482,8 +482,13 @@ class Capture(threading.Thread):
             rgb = self.dev.rgb()
             if rgb is None:
                 self.fails += 1
-                if self.fails in (1, 30) or self.fails % 300 == 0:
-                    print("No colour frame from the Kinect yet. Is the power adapter plugged in? (check: freenect-camtest)", flush=True)
+                if self.fails == 1:
+                    print("No picture from the Kinect. Is the power adapter plugged in? (check: freenect-camtest)", flush=True)
+                # rgb() waits 2 s; after about 6 s without pictures the connection is dead (the Kinect was
+                # unplugged, or the USB hung): quit, so start.command starts the bridge again and reconnects
+                if self.fails >= 3 and not isinstance(self.dev, FakeKinect):
+                    print("No picture for 6 s: stopping, so the bridge can be started again.", flush=True)
+                    os._exit(3)
                 time.sleep(0.2)
                 continue
             self.fails = 0
