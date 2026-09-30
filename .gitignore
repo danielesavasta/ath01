@@ -1,0 +1,6 @@
+.DS_Store
+CLAUDE.local.md
+.claude/settings.local.json
+*~lock~
+node_modules/
+tools/test/smoke-*.png
