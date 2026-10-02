@@ -137,7 +137,7 @@ const egg = await createEgg({
   stage: eggStage,
   texts: textsFor(FIRST).egg,
   dataUrl: "content/egg.json",
-  imagesDir: "assets/images/"
+  imagesDir: "assets/gallery/"
 });
 
 const war = createWar({
