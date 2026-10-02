@@ -72,8 +72,9 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
   icon is hidden; resting there it brightens and goes from warm to pure white (no ring); when full, the part is
   chosen and its panel (texts `craft.parts.<id>`, photo `assets/craft/<id>.jpg`) opens on the nearer side.
   No leader line (statue and wall are at different depths). Light drawn on `#craftLight` above the mask.
-- **Egg / Birth** (`js/egg/`, Daniele): gallery of artworks of Athena's birth from `content/egg.json`,
-  images in `assets/egg/<id>.jpg`, hand dwell on arrows/dots.
+- **Egg / Birth** (`js/egg/`, Daniele): masonry of scrolling "swimlane" rows of artworks from `content/egg.json`,
+  images in `assets/images/<id>.jpg|webp`. Rows auto-scroll, alternating direction; a hand (or the mouse)
+  resting over a tile grows it in place, pushing row neighbours apart, and shows its title/meta/description.
 
 Layers (z-index): section stages 0 · back and language buttons 0 (after the stages) · hand icons `#drawing` 1 ·
 letters 3 · selection ring 5 · statue photo 40000 · venue mask 45000 (covers everything) · craft light 45100 ·
@@ -81,11 +82,14 @@ setup screen 60000.
 
 ## Visual language (keep new sections consistent)
 
-Black background (black = no light on the wall). Cinzel capitals with the marble texture for anything carved
-(`.stone-text` in css/sections.css). Type system (css/sections.css, agreed with Ege): Cinzel only for carved words
-(names, numerals, counters like "II / IV"); Source Serif 4 (`--font-text`, vendored) for everything read, in the
-classes `.t-sentence` 40 · `.t-body` 23 · `.t-hint` 20 · `.t-label` 17 (frame px), `.t-title`, `.t-greek`, `.t-rule`.
-Left aligned on a fixed edge, one sentence at a time. Owl and egg only take the font so far, not the layout. White rings for "rest your hand here", amber `#F0B429` for progress.
+Black background (black = no light on the wall). No carved/marble/antique look: flat red for anything
+carved (`.stone-text` in css/sections.css). Type system (css/sections.css, agreed with Ege): Roboto
+Condensed only for carved/label words (names, numerals, counters like "II / IV", not yet vendored — see
+the comment above its `@font-face` in `css/sections.css`); Source Serif 4 (`--font-text`, vendored) for
+everything read, in the classes `.t-sentence` 40 · `.t-body` 23 · `.t-hint` 20 · `.t-label` 17 (frame px),
+`.t-title`, `.t-greek`, `.t-rule`. Left aligned on a fixed edge, one sentence at a time. Owl and egg only
+take the font so far, not the layout. White rings for "rest your hand here", red (`var(--amber)`, still
+named that in the CSS) for progress; every interface accent stays a shade of red, not amber or teal.
 Hints top right, tally/score top left, back button bottom left. Nothing important inside the statue band:
 the mask hides it at the venue (`VENUE.statueBandNdc()` gives its horizontal extent).
 
@@ -95,7 +99,7 @@ Order agreed with Ege: left column top to bottom Birth, War, Mind; right column 
 
 | Slot | Section id | Topic | Status |
 |---|---|---|---|
-| A (left, top) | `egg` | Birth | gallery done (Daniele), icon `zeus.svg`; images to add in `assets/egg/` |
+| A (left, top) | `egg` | Birth | gallery done (Daniele), icon `zeus.svg`; images in `assets/images/` |
 | T (right, top) | `owl` | The Owl (coin, trade) | done |
 | H (left, middle) | `war` | War | built, stillness under test; icon pending (uses `owl.svg`) |
 | E (right, middle) | `craft` | Craft | built with 4 draft parts; parts, texts, photos to decide; needs `assets/craft.svg` |

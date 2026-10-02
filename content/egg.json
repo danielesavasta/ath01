@@ -203,43 +203,8 @@
       ],
       "note": "The museum image and catalogue information should be verified directly through the Palace of Versailles collection before publication or commercial use."
     },
-    {
-      "id": "09",
-      "title": "Etruscan Representations of the Birth of Minerva",
-      "artist_or_workshop": "Various Etruscan artists",
-      "date": "Approximately 6th–4th centuries BCE",
-      "period": "Etruscan",
-      "culture": "Etruscan Italy",
-      "medium": "Ceramics and other visual media",
-      "scene_description": "Etruscan versions adapt the Greek story of Athena's birth into the local figure of Menrva or Minerva, generally emphasizing the armed goddess emerging from the head of the chief god.",
-      "importance": "These works demonstrate the transmission and adaptation of the myth beyond Greece. Etruscan artists retained the central Zeus-or-Jupiter and armed-goddess structure while incorporating local religious traditions.",
-      "image_reference": {
-        "research_article": "https://brewminate.com/etruscan-visual-representations-of-the-birth-of-athena-and-minerva-a-comparative-study/"
-      },
-      "source_references": [
-        "https://brewminate.com/etruscan-visual-representations-of-the-birth-of-athena-and-minerva-a-comparative-study/"
-      ]
-    },
-    {
-      "id": "10",
-      "title": "Later Artistic Tradition of Athena's Birth",
-      "artist_or_workshop": "Various Renaissance, Baroque, Neoclassical, and modern artists",
-      "date": "15th century CE to present",
-      "period": "European post-classical tradition",
-      "culture": "European and international",
-      "medium": "Painting, printmaking, sculpture, illustration, and digital reproductions",
-      "scene_description": "Later artists often present Athena or Minerva as an embodiment of wisdom, warfare, reason, state power, or artistic and intellectual achievement. Some works depict her literal birth, while others use the birth myth indirectly through her attributes.",
-      "importance": "The myth became a flexible symbol of knowledge emerging from the mind, often adapted for royal, civic, academic, and political contexts.",
-      "image_reference": {
-        "general_image_category": "https://commons.wikimedia.org/wiki/Category:Paintings_of_Athena",
-        "athena_art_overview": "https://en.wikipedia.org/wiki/Athena"
-      },
-      "source_references": [
-        "https://commons.wikimedia.org/wiki/Category:Paintings_of_Athena",
-        "https://en.wikipedia.org/wiki/Athena"
-      ],
-      "note": "This entry is contextual rather than a single artwork and should not be treated as a catalogue record."
-    },
+
+    
     {
       "id": "11",
       "title": "Birth of Athena Kylix",
@@ -667,7 +632,7 @@
     },
     {
       "id": "32",
-      "title": "Birth of Athena Amphora (Kunsthistorisches Museum)",
+      "title": "Birth of Athena Amphora (Kunsthistorisches Museum) - same as 02",
       "artist_or_workshop": "Unknown Attic black-figure vase painter",
       "date": "Third quarter of the 6th century BCE",
       "period": "Archaic Greek",
@@ -687,7 +652,7 @@
     },
     {
       "id": "33",
-      "title": "Birth of Athena Exaleiptron (Louvre CA616)",
+      "title": "Birth of Athena Exaleiptron (Louvre CA616) same as 01",
       "artist_or_workshop": "C Painter",
       "date": "Approximately 570–560 BCE",
       "period": "High Archaic Greek",
@@ -723,7 +688,7 @@
       "importance": "Represents the Group E workshop's contribution to the dissemination of the birth scene on export amphorae.",
       "image_reference": {
         "bmcr_review": "https://bmcr.brynmawr.edu/2017/2017.02.09/",
-        "yale_art_gallery": "https://artgallery.yale.edu/"
+        "yale_art_gallery": "https://artgallery.yale.edu/collections/objects/26132"
       },
       "source_references": [
         "https://bmcr.brynmawr.edu/2017/2017.02.09/"

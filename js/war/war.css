@@ -4,7 +4,7 @@
 
 /* arrows turned to stone, top left: the word small, the numeral carved */
 .war-tally{ position: absolute; left: calc(70 * var(--u)); top: calc(58 * var(--u)); pointer-events: none; }
-.war-tally .num{ font-family: "Cinzel", Georgia, serif; font-weight: 600; font-size: calc(64 * var(--u)); line-height: 1.1; margin-top: calc(6 * var(--u)); }
+.war-tally .num{ font-family: var(--font-label); font-weight: 700; font-size: calc(64 * var(--u)); line-height: 1.1; margin-top: calc(6 * var(--u)); }
 
 /* top right: a short line and a small picture of the gesture (a hand settling, then the gorgoneion) */
 .war-hint{

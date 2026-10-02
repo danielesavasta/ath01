@@ -1,4 +1,8 @@
-/* Egg section — gallery of artworks (content/egg.json) inside the egg stage (js/egg/egg.js) */
+/* Egg section — a masonry of scrolling "swimlanes" of artworks (content/egg.json), js/egg/egg.js.
+   Each row scrolls sideways on its own (CSS animation, alternating direction) and loops forever.
+   Hovering a tile grows it in front of everything — its row neighbours are pushed aside by normal
+   flex reflow, and every other row leans away (js/egg/egg.js), so the whole wall reacts as one grid
+   — and reveals its title/meta/description as a label. */
 .egg-stage{
     position: relative;
     width: 100%;
@@ -7,60 +11,106 @@
     font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
     color: #E3D8C3;
 }
-.egg-frame{
-    position: absolute;
-    left: 50%;
-    top: calc(60 * var(--u));
-    transform: translateX(-50%);
-    width: calc(1400 * var(--u));
-    height: calc(760 * var(--u));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: calc(28 * var(--u));
-}
-.egg-picture{
-    position: relative;
-    flex: 1 1 auto;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255,255,255,.04);
-    border: 1px solid rgba(255,255,255,.1);
-}
-.egg-img{ max-width: 100%; max-height: 100%; object-fit: contain; }
-.egg-noimg{
-    display: none;
-    padding: calc(40 * var(--u));
-    text-align: center;
-    font-size: calc(19 * var(--u));
-    letter-spacing: .08em;
-    color: #6C7078;
-}
-.egg-arrow{
-    flex: none;
-    width: calc(88 * var(--u));
-    height: calc(88 * var(--u));
-    border-radius: 50%;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #E3D8C3;
-    cursor: pointer;
-    background: rgba(255,255,255,.06);
-    transition: background .2s, transform .2s;
-}
-.egg-arrow svg{ width: calc(36 * var(--u)); height: calc(36 * var(--u)); }
-.egg-arrow.hover{ background: rgba(255,255,255,.16); transform: scale(1.06); }
-.egg-arrow-ring{
+.egg-lanes{
     position: absolute;
     inset: 0;
-    border-radius: 50%;
-    background: conic-gradient(#F0B429 calc(var(--p, 0) * 1turn), rgba(255,255,255,.3) 0);
-    -webkit-mask: radial-gradient(circle, transparent calc(39 * var(--u)), #000 calc(40 * var(--u)));
-    mask: radial-gradient(circle, transparent calc(39 * var(--u)), #000 calc(40 * var(--u)));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: calc(10 * var(--u));
+    overflow: hidden;
+}
+.egg-lane{
+    position: relative;
+    width: 100%;
+    height: calc(118 * var(--u));
+    overflow: visible;
+    transition: transform .35s ease;
+}
+.egg-track{
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    gap: calc(8 * var(--u));
+    will-change: transform;
+    animation: egg-scroll-left 150s linear infinite;
+}
+.egg-lane:nth-child(2) .egg-track{ animation-name: egg-scroll-right; animation-duration: 185s; }
+.egg-lane:nth-child(3) .egg-track{ animation-duration: 130s; }
+.egg-lane:nth-child(4) .egg-track{ animation-name: egg-scroll-right; animation-duration: 165s; }
+.egg-track.paused{ animation-play-state: paused; }
+@keyframes egg-scroll-left{ from{ transform: translateX(0); } to{ transform: translateX(-50%); } }
+@keyframes egg-scroll-right{ from{ transform: translateX(-50%); } to{ transform: translateX(0); } }
+
+.egg-tile{
+    position: relative;
+    flex: none;
+    width: calc(130 * var(--u));
+    height: 100%;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.1);
+    overflow: hidden;
+    transition: width .3s ease, height .3s ease, margin .3s ease, box-shadow .3s ease, border-color .3s ease;
+}
+.egg-tile.short{ height: 82%; align-self: center; }
+.egg-tile img{ width: 100%; height: 100%; object-fit: cover; display: block; }
+.egg-tile.hover{
+    width: calc(430 * var(--u));
+    height: 340%;
+    margin: 0 calc(10 * var(--u));
+    z-index: 5;
+    border-color: rgba(237,28,36,.65);
+    box-shadow: 0 calc(14 * var(--u)) calc(44 * var(--u)) rgba(0,0,0,.75);
+}
+.egg-noimg{
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: calc(6 * var(--u));
+    padding: calc(8 * var(--u));
+    text-align: center;
+    background: rgba(255,255,255,.03);
+}
+.egg-noimg-title{
+    font-size: calc(14 * var(--u));
+    letter-spacing: .02em;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.egg-noimg-text{ font-size: calc(10 * var(--u)); letter-spacing: .04em; color: #6C7078; }
+.egg-tile-label{
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: calc(16 * var(--u)) calc(16 * var(--u)) calc(14 * var(--u));
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,.92) 55%);
+    opacity: 0;
+    transform: translateY(calc(8 * var(--u)));
+    transition: opacity .3s ease, transform .3s ease;
+    pointer-events: none;
+}
+.egg-tile.hover .egg-tile-label{ opacity: 1; transform: translateY(0); }
+.egg-tile-title{ font-size: calc(21 * var(--u)); letter-spacing: .03em; margin-bottom: calc(4 * var(--u)); }
+.egg-tile-meta{ font-size: calc(14 * var(--u)); color: #B9AE99; margin-bottom: calc(6 * var(--u)); }
+.egg-tile-desc{
+    font-size: calc(13 * var(--u));
+    line-height: 1.4;
+    color: #cfc7b4;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 .egg-hint{
     position: absolute;
@@ -72,42 +122,6 @@
     color: #B9AE99;
     text-align: right;
     white-space: pre-line;
+    z-index: 6;
 }
-.egg-info{
-    position: absolute;
-    left: 50%;
-    top: calc(850 * var(--u));
-    transform: translateX(-50%);
-    width: calc(1200 * var(--u));
-    text-align: center;
-}
-.egg-count{ font-size: calc(18 * var(--u)); letter-spacing: .18em; margin-bottom: calc(6 * var(--u)); }
-.egg-title{ font-size: calc(32 * var(--u)); letter-spacing: .05em; margin-bottom: calc(8 * var(--u)); }
-.egg-meta{ font-size: calc(17 * var(--u)); color: #B9AE99; margin-bottom: calc(10 * var(--u)); }
-.egg-desc{ font-size: calc(16 * var(--u)); line-height: 1.5; color: #cfc7b4; max-height: calc(120 * var(--u)); overflow: hidden; }
-.egg-dots{
-    position: absolute;
-    left: 50%;
-    bottom: calc(36 * var(--u));
-    transform: translateX(-50%);
-    display: flex;
-    gap: calc(12 * var(--u));
-}
-.egg-dot{
-    width: calc(16 * var(--u));
-    height: calc(16 * var(--u));
-    border-radius: 50%;
-    position: relative;
-    background: rgba(255,255,255,.22);
-    cursor: pointer;
-}
-.egg-dot::after{
-    content: "";
-    position: absolute;
-    inset: calc(-6 * var(--u));
-    border-radius: 50%;
-    background: conic-gradient(#F0B429 calc(var(--p, 0) * 1turn), transparent 0);
-    -webkit-mask: radial-gradient(circle, transparent calc(8 * var(--u)), #000 calc(9 * var(--u)));
-    mask: radial-gradient(circle, transparent calc(8 * var(--u)), #000 calc(9 * var(--u)));
-}
-.egg-dot.on{ background: #F0B429; }
+

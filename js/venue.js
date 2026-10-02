@@ -366,7 +366,7 @@
         g.fillStyle = 'rgba(0,0,0,.55)';
         g.fillRect(ox, oy, W, ry - oy); g.fillRect(ox, ry + crop.h * s, W, oy + H - ry - crop.h * s);
         g.fillRect(ox, ry, rx - ox, crop.h * s); g.fillRect(rx + crop.w * s, ry, ox + W - rx - crop.w * s, crop.h * s);
-        g.strokeStyle = '#F0B429'; g.lineWidth = 2; g.strokeRect(rx, ry, crop.w * s, crop.h * s);
+        g.strokeStyle = '#F04438'; g.lineWidth = 2; g.strokeRect(rx, ry, crop.w * s, crop.h * s);
         // hands found in depth, where the bridge sees them
         for (const p of cam.points || []) {
             g.beginPath(); g.arc(ox + (1 - p.x) * W, oy + p.y * H, 12, 0, Math.PI * 2);

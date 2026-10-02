@@ -1,14 +1,10 @@
 /* Sections layered on top of the letter menu (see js/sections.js) */
 
-/* Cinzel: capitals after Roman inscriptions (SIL Open Font License, assets/fonts/Cinzel-OFL.txt) */
-@font-face{ font-family:"Cinzel"; font-weight:400; font-display:block; src:url("../assets/fonts/cinzel-latin-400-normal.woff2") format("woff2");
-  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
-@font-face{ font-family:"Cinzel"; font-weight:400; font-display:block; src:url("../assets/fonts/cinzel-latin-ext-400-normal.woff2") format("woff2");
-  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
-@font-face{ font-family:"Cinzel"; font-weight:600; font-display:block; src:url("../assets/fonts/cinzel-latin-600-normal.woff2") format("woff2");
-  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
-@font-face{ font-family:"Cinzel"; font-weight:600; font-display:block; src:url("../assets/fonts/cinzel-latin-ext-600-normal.woff2") format("woff2");
-  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+/* Roboto Condensed: replaces Cinzel for every carved/label word (SIL/Apache-licensed, Google Fonts).
+   These two files aren't vendored yet — add them to assets/fonts/ under these exact names for offline
+   use at the venue; until then this falls back to the OS's own Roboto Condensed or a narrow sans-serif. */
+@font-face{ font-family:"Roboto Condensed"; font-weight:400; font-style:normal; font-display:block; src:url("../assets/fonts/roboto-condensed-400.woff2") format("woff2"); }
+@font-face{ font-family:"Roboto Condensed"; font-weight:700; font-style:normal; font-display:block; src:url("../assets/fonts/roboto-condensed-700.woff2") format("woff2"); }
 
 /* Source Serif 4: the text face for everything a visitor reads (SIL Open Font License, assets/fonts/SourceSerif4-OFL.txt) */
 @font-face{ font-family:"Source Serif 4"; font-weight:400; font-style:normal; font-display:block; src:url("../assets/fonts/source-serif-4-latin-400-normal.woff2") format("woff2");
@@ -30,39 +26,31 @@
 @font-face{ font-family:"Source Serif 4"; font-weight:400; font-style:italic; font-display:block; src:url("../assets/fonts/source-serif-4-greek-400-italic.woff2") format("woff2");
   unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF,U+1F00-1FFF; }
 
-/* The type system, shared by every section: Cinzel only for carved words (names, numerals, counters),
-   Source Serif 4 for reading, in three sizes, always left aligned on a fixed edge. */
+/* The type system, shared by every section: Roboto Condensed only for carved/label words (names,
+   numerals, counters), Source Serif 4 for reading, in three sizes, always left aligned on a fixed edge. */
 :root{
     --font-text: "Source Serif 4", Georgia, serif;
+    --font-label: "Roboto Condensed", "Arial Narrow", Arial, sans-serif;
     --ink: #E9E1D0;
     --muted: #8F877A;
-    --amber: #F0B429;
+    --amber: #ED1C24;   /* kept the old name to limit churn; every "amber" accent is now a red */
     --size-sentence: calc(40 * var(--u));
     --size-body: calc(23 * var(--u));
     --size-hint: calc(20 * var(--u));
     --size-label: calc(17 * var(--u));
 }
-.t-label{ font-family: "Cinzel", Georgia, serif; font-size: var(--size-label); letter-spacing: .32em; color: var(--muted); }
+.t-label{ font-family: var(--font-label); font-size: var(--size-label); letter-spacing: .2em; color: var(--muted); }
 .t-rule{ width: calc(36 * var(--u)); height: 1px; background: rgba(233,225,208,.45); margin: calc(18 * var(--u)) 0; }
 .t-sentence{ font-family: var(--font-text); font-size: var(--size-sentence); line-height: 1.28; color: var(--ink); }
 .t-body{ font-family: var(--font-text); font-size: var(--size-body); line-height: 1.45; color: var(--ink); }
 .t-hint{ font-family: var(--font-text); font-size: var(--size-hint); line-height: 1.4; color: var(--muted); }
-.t-title{ font-family: "Cinzel", Georgia, serif; font-weight: 600; font-size: calc(46 * var(--u)); letter-spacing: .06em; line-height: 1; }
+.t-title{ font-family: var(--font-label); font-weight: 700; font-size: calc(46 * var(--u)); letter-spacing: .02em; line-height: 1; }
 .t-greek{ font-family: var(--font-text); font-style: italic; font-size: var(--size-hint); color: var(--muted); }
 /* the older sections take the same text face */
 .coin-hint, .egg-stage{ font-family: var(--font-text); }
 
-/* words cut from the statue's marble (same look as the coin's tally, js/coin/coin.css) */
-.stone-text{
-    font-family: "Cinzel", "Trajan Pro", Georgia, serif;
-    background-image: linear-gradient(180deg, rgba(255,248,232,.22), rgba(0,0,0,0) 45%, rgba(0,0,0,.28)), url("../assets/stone.jpg");
-    background-size: 100% 100%, calc(360 * var(--u)) auto;
-    background-position: center;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    filter: drop-shadow(0 calc(-1 * var(--u)) 0 rgba(255,246,226,.28)) drop-shadow(0 calc(2 * var(--u)) calc(2 * var(--u)) rgba(0,0,0,.9));
-}
+/* names, numerals and titles: flat red, no carved/marble effect */
+.stone-text{ font-family: var(--font-label); font-weight: 700; color: #ED1C24; }
 
 /* the hand icons are drawn at screen resolution (js/scripts.js), so the canvas must not be rescaled */
 #drawing{ object-fit: fill; }
@@ -184,12 +172,13 @@ body.in-section #langSwitch{ opacity: 0; visibility: hidden; transition: opacity
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    background: conic-gradient(#F0B429 calc(var(--p, 0) * 1turn), rgba(255,255,255,.3) 0);
+    background: none;
+    /*background: conic-gradient(#F0B429 calc(var(--p, 0) * 1turn), rgba(255,255,255,.3) 0);
     -webkit-mask: radial-gradient(circle, transparent calc(53 * var(--u)), #000 calc(54 * var(--u)));
-    mask: radial-gradient(circle, transparent calc(53 * var(--u)), #000 calc(54 * var(--u)));
+    mask: radial-gradient(circle, transparent calc(53 * var(--u)), #000 calc(54 * var(--u)));*/
 }
-#langSwitch .lang.on .lang-ring{ background: rgba(227,216,195,.75); }
-
+/*#langSwitch .lang.on .lang-ring{ background: rgba(227,216,195,.75); }
+*/
 /* a letter rolling back from its icon moves up (the icon came in moving down) */
 .letter-slot.roll-up .letter-incoming{ transform: translateY(100%); }
 .letter-slot.roll-up .letter-exiting{ transform: translateY(-100%); }
@@ -225,7 +214,7 @@ body.in-section #backBtn.hover{ opacity: 1; background: rgba(255,255,255,.14); t
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    background: conic-gradient(#F0B429 calc(var(--p, 0) * 1turn), rgba(255,255,255,.35) 0);
+    background: conic-gradient(var(--amber) calc(var(--p, 0) * 1turn), rgba(255,255,255,.35) 0);
     -webkit-mask: radial-gradient(circle, transparent calc(80 * var(--u)), #000 calc(81 * var(--u)));
     mask: radial-gradient(circle, transparent calc(80 * var(--u)), #000 calc(81 * var(--u)));
 }
@@ -245,7 +234,7 @@ body.in-section #backBtn.hover{ opacity: 1; background: rgba(255,255,255,.14); t
     z-index: 5;
     opacity: 0;
     transition: opacity .2s;
-    background: conic-gradient(#F0B429 calc(var(--p, 0) * 1turn), rgba(255,255,255,.12) 0);
+    background: conic-gradient(var(--amber) calc(var(--p, 0) * 1turn), rgba(255,255,255,.12) 0);
     -webkit-mask: radial-gradient(circle, transparent calc(158 * var(--u)), #000 calc(159 * var(--u)));
     mask: radial-gradient(circle, transparent calc(158 * var(--u)), #000 calc(159 * var(--u)));
 }

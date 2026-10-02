@@ -41,12 +41,12 @@
 #venueSetup .vs-body[hidden]{ display: none; }
 #venueSetup label{ display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
 #venueSetup label.vs-slider{ display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; }
-#venueSetup label.vs-slider input{ grid-column: 1 / -1; width: 100%; accent-color: #F0B429; }
+#venueSetup label.vs-slider input{ grid-column: 1 / -1; width: 100%; accent-color: #F04438; }
 #venueSetup .vs-light{ display: grid; gap: 9px; padding-left: 22px; }
 #venueSetup .vs-light[hidden]{ display: none; }
 #venueSetup label.vs-color{ align-items: center; justify-content: space-between; }
 #venueSetup input[type=color]{ width: 44px; height: 24px; border: 1px solid #34363A; background: none; padding: 0; cursor: pointer; }
-#venueSetup input[type=checkbox]{ accent-color: #F0B429; margin-top: 2px; }
+#venueSetup input[type=checkbox]{ accent-color: #F04438; margin-top: 2px; }
 #venueSetup .vs-foot{ display: flex; gap: 8px; flex-wrap: wrap; }
-#venueSetup .vs-note{ color: #F0B429; min-height: 1em; }
+#venueSetup .vs-note{ color: #F04438; min-height: 1em; }
 #venueSetup .vs-parts button.on{ background: #E3D8C3; color: #0B0B0C; }

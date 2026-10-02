@@ -204,7 +204,7 @@ export function createWar(opts){
   function draw(){
     g.clearRect(0, 0, W, H);
 
-    // hands: a white ring while the hand settles, filling amber; once still, the icon itself becomes the
+    // hands: a white ring while the hand settles, filling red; once still, the icon itself becomes the
     // gorgoneion (handSkin below). The mouse has no icon, so its gorgoneion is drawn here.
     for (const [key, h] of hands){
       const p = clamp01(h.still / (T.stillAfter + T.rise));
@@ -214,7 +214,7 @@ export function createWar(opts){
         g.strokeStyle = "rgba(255,255,255,.3)";
         g.beginPath(); g.arc(h.x, h.y, 60, 0, Math.PI * 2); g.stroke();
         if (p > 0){
-          g.strokeStyle = "#F0B429";
+          g.strokeStyle = "#ED1C24";
           g.beginPath(); g.arc(h.x, h.y, 60, -Math.PI / 2, -Math.PI / 2 + p * Math.PI * 2); g.stroke();
         }
         g.globalAlpha = 1;
