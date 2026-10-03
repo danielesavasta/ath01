@@ -103,6 +103,10 @@ function startCamera() {
     look();
     window.addEventListener('ath:kinect-lost', () => setTimeout(look, KINECT_RETRY));
 }
+function cameraMirrored() {
+    return ['kinect', 'depth', 'skeleton'].includes(window.athSource)
+        ? venue().camera.kinectMirror !== false : true;
+}
 
 function startWebcam() {
     if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
@@ -235,13 +239,15 @@ function onDepthHands(m) {
     const s = Math.max(map.w / width, map.h / height);
     const ox = map.x + (map.w - width * s) / 2, oy = map.y + (map.h - height * s) / 2;
     const found = [];
+    const mirror = cameraMirrored();
     for (const h of m.hands) {
-        const cx = h.x * m.w - c.x, cy = h.y * m.h - c.y;           // in the chosen part, not mirrored
+        const cx = h.x * m.w - c.x, cy = h.y * m.h - c.y;
         if (cx < 0 || cy < 0 || cx > width || cy > height) continue;
-        const mx = width - cx, body = width - (h.bx * m.w - c.x);   // mirrored, like the MediaPipe path
+        const mx = mirror ? width - cx : cx, bodyX = h.bx * m.w - c.x;
+        const body = mirror ? width - bodyX : bodyX;
         // the side: the skeleton knows it; otherwise which side of their body the hand is on
-        // (after mirroring, a right hand is to the right)
-        const vote = h.side ? (h.side === 'Right' ? 1 : -1) : (mx >= body ? 1 : -1);
+        // (in the mirrored view, a right hand is to the right)
+        const vote = h.side ? (h.side === 'Right' ? 1 : -1) : ((mirror ? mx >= body : mx <= body) ? 1 : -1);
         found.push({ open: true, z: h.z, grip: h.closed, vote, up: 0, dx: 0, dy: -1,
                      sx: ox + mx * s, sy: oy + cy * s, camX: mx / width, camY: cy / height });
     }
@@ -396,8 +402,8 @@ function onResults(results) {
     const handList = results.multiHandLandmarks || []; // undefined when no hand is in view
     for (let i = 0; i < handList.length; i++) {
         const hand = handList[i];
-        // If the video is mirrored, invert x coordinates of landmarks for correct spatial logic
-        const mirrorX = true; // same as flipHorizontal camera option
+        // Map landmarks into the active camera orientation.
+        const mirrorX = cameraMirrored();
         const xs = hand.map(l => (mirrorX ? width - l.x * width : l.x * width));
         const ys = hand.map(l => l.y * height);
 
