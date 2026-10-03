@@ -24,7 +24,7 @@ const T = {
   speed: [200, 280],         // px per second along the flight
   gravity: 90,               // px/s², a slight arc
   firstLine: 2,              // arrows turned to stone before the first sentence
-  perLine: 4,                // then one more sentence every this many
+  perLine: 2,                // then one more sentence every this many
   rest: 15000,               // ms of calm after the last sentence before the volley starts again
   petrify: 550,              // ms from terracotta to marble
   hold: 350,                 // ms it hangs there as stone
@@ -63,7 +63,7 @@ export function createWar(opts){
 
   const gorgon = new Image();
   gorgon.src = gorgonSrc;
-  const ICON = 90;                // the hand icon's size (js/scripts.js HAND_ICON), for the mouse's gorgoneion
+  const ICON = 140;                // the hand icon's size (js/scripts.js HAND_ICON), for the mouse's gorgoneion
   let stone = null;               // the statue's marble, for arrows turned to stone
   if (opts.stoneTexture){
     const img = new Image();
