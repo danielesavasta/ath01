@@ -133,6 +133,6 @@ canvas {
     transform: translate(-50%, -50%);
     display:grid;
     grid-template-columns: repeat(2, 1fr);
-    column-gap: calc(640 * var(--u));   /* the statue stands between the two columns */
+    column-gap: calc(320 * var(--u));   /* the statue stands between the two columns */
     row-gap: calc(40 * var(--u));
 }
