@@ -15,10 +15,10 @@
 // Keys while developing:  O open owl section · G open egg section · W war · C craft · M back to menu · D controls panel · K room setup (js/venue.js)
 //                          (inside the section) Space toss · I close-up · Esc leave close-up · F flip in hand
 
-import { createCoin } from "./coin/coin.js";
-import { createEgg } from "./egg/egg.js";
-import { createWar } from "./war/war.js";
-import { createCraft } from "./craft/craft.js";
+import { createCoin } from "./coin.js";
+import { createEgg } from "./egg.js";
+import { createWar } from "./war.js";
+import { createCraft } from "./craft.js";
 import TEXTS from "../content/texts.js";
 
 const stage = document.getElementById("coinStage");

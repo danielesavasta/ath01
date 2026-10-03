@@ -39,7 +39,7 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
 `js/scripts.js` (plain scripts) → `js/sections.js` (ES module, imports three.js via the importmap).
 
 - **Frame.** Everything is laid out on a 1920×1080 frame centred in the window; `--u` (css/main.css) is one
-  frame pixel. Position new elements with `calc(N * var(--u))` and the frame offsets used in `css/sections.css`.
+  frame pixel. Position new elements with `calc(N * var(--u))` and `--frame-left`/`--frame-top` (css/main.css).
 - **`tools/kinect/bridge.py`**: `/hands` (JSON hands from depth: empty-room background, then the part of each
   person ≥ `detect.depth.reach` mm nearer than their body), `/depth` (picture for the setup screen), `/rgb`.
 - **`js/scripts.js`** (Daniele's base, extended): hand source (depth JSON or MediaPipe), sends only the venue's camera crop to MediaPipe,
@@ -83,9 +83,9 @@ setup screen 60000.
 ## Visual language (keep new sections consistent)
 
 Black background (black = no light on the wall). No carved/marble/antique look: flat red for anything
-carved (`.stone-text` in css/sections.css). Type system (css/sections.css, agreed with Ege): Roboto
+carved (`.stone-text` in css/main.css). Type system (css/main.css, agreed with Ege): Roboto
 Condensed only for carved/label words (names, numerals, counters like "II / IV", not yet vendored — see
-the comment above its `@font-face` in `css/sections.css`); Source Serif 4 (`--font-text`, vendored) for
+the comment above its `@font-face` in `css/main.css`); Source Serif 4 (`--font-text`, vendored) for
 everything read, in the classes `.t-sentence` 40 · `.t-body` 23 · `.t-hint` 20 · `.t-label` 17 (frame px),
 `.t-title`, `.t-greek`, `.t-rule`. Left aligned on a fixed edge, one sentence at a time. Owl and egg only
 take the font so far, not the layout. White rings for "rest your hand here", red (`var(--amber)`, still

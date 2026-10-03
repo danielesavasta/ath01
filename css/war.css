@@ -1,15 +1,12 @@
-/* War section: arrows on one canvas (js/war/war.js), texts on top. Type: the shared system in css/sections.css. */
-.war-stage{ position: relative; width: 100%; height: 100%; overflow: hidden; }
+/* War section: arrows on one canvas (js/war/war.js), texts on top. Stage, hint, tally and type are shared in main.css. */
 .war-canvas{ position: absolute; inset: 0; width: 100%; height: 100%; }
 
 /* arrows turned to stone, top left: the word small, the numeral carved */
-.war-tally{ position: absolute; left: calc(70 * var(--u)); top: calc(58 * var(--u)); pointer-events: none; }
 .war-tally .num{ font-family: var(--font-label); font-weight: 700; font-size: calc(64 * var(--u)); line-height: 1.1; margin-top: calc(6 * var(--u)); }
 
 /* top right: a short line and a small picture of the gesture (a hand settling, then the gorgoneion) */
 .war-hint{
-    position: absolute; right: calc(70 * var(--u)); top: calc(62 * var(--u));
-    display: flex; align-items: center; gap: calc(20 * var(--u)); pointer-events: none;
+    display: flex; align-items: center; gap: calc(20 * var(--u));
 }
 .war-hint .text{ text-align: right; white-space: pre-line; }
 @property --demo{ syntax: "<number>"; inherits: false; initial-value: 0; }

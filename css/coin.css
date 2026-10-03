@@ -1,11 +1,11 @@
 /* Tetradrachm section — layers inside the coin stage */
 .coin-stage{
-  --coin-stone:#E3D8C3; --coin-accent:#ED1C24; --coin-accent2:#8B1E1E; --coin-muted:#6C7078;
+  --coin-stone:#E3D8C3; --coin-accent:var(--amber); --coin-accent2:#8B1E1E; --coin-muted:#6C7078;
   --coin-display:"Archivo Black","Arial Black",system-ui,sans-serif;
   --coin-body:"Archivo","Helvetica Neue",Arial,sans-serif;
   --coin-classic:"EB Garamond",Georgia,serif;
   --coin-carved:"Roboto Condensed","Arial Narrow",Arial,sans-serif;
-  position:relative; overflow:hidden; touch-action:none; cursor:grab;
+  touch-action:none; cursor:grab;
   font-family:var(--coin-body); color:var(--coin-stone);
 }
 .coin-stage.holding{cursor:grabbing}
@@ -23,9 +23,7 @@
 
 /* Tally, top left: the words and Roman numerals look cut from the statue's marble.
    --coin-stone-tex is the marble texture (set by coin.js from opts.stoneTexture). */
-.coin-tally{position:absolute;left:calc(70 * var(--cu,1px));top:calc(54 * var(--cu,1px));display:grid;
-  grid-template-columns:auto auto;column-gap:calc(34 * var(--cu,1px));row-gap:calc(6 * var(--cu,1px));align-items:baseline;
-  pointer-events:none;z-index:5}
+.coin-tally{display:grid;grid-template-columns:auto auto;column-gap:calc(34 * var(--cu,1px));row-gap:calc(6 * var(--cu,1px));align-items:baseline}
 .coin-count{display:contents}
 .coin-count .name,.coin-count .num{font-family:var(--coin-carved);font-weight:700;line-height:1.1;color:var(--coin-accent)}
 .coin-count .name{font-size:calc(30 * var(--cu,1px));font-weight:700;letter-spacing:.1em}
@@ -36,17 +34,15 @@
   100%{color:var(--coin-accent);text-shadow:none}
 }
 
-/* what to do, top right */
-.coin-hint{position:absolute;right:calc(70 * var(--cu,1px));top:calc(62 * var(--cu,1px));max-width:calc(560 * var(--cu,1px));
-  font-size:calc(21 * var(--cu,1px));line-height:1.5;color:#B9AE99;text-align:right;white-space:pre-line;
-  pointer-events:none;z-index:5;transition:opacity .4s}
+/* hint: shared in main.css */
+.coin-hint{transition:opacity .4s}
 .coin-loading{position:absolute;right:calc(70 * var(--cu,1px));bottom:calc(60 * var(--cu,1px));font-size:calc(18 * var(--cu,1px));
   letter-spacing:.12em;color:var(--coin-muted);pointer-events:none;z-index:5}
 
 /* 3D-anchored info cards (positioned from JS, relative to their ring) */
 .coin-hs{width:0;height:0;position:relative}
 .coin-hs .card{position:absolute;left:0;top:0;width:calc(430 * var(--cu,1px));
-  background:rgba(11,11,12,.92);border:1px solid #3a3c40;border-left:calc(3 * var(--cu,1px)) solid var(--coin-accent);
+  background:var(--panel-bg);border:1px solid var(--line);border-left:calc(3 * var(--cu,1px)) solid var(--coin-accent);
   padding:calc(16 * var(--cu,1px)) calc(20 * var(--cu,1px));opacity:0;transition:opacity .35s ease}
 .coin-hs.owl .card{border-left-color:var(--coin-accent2)}
 .coin-hs.open .card{opacity:1}

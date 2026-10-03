@@ -3,14 +3,6 @@
    Hovering a tile grows it in front of everything — its row neighbours are pushed aside by normal
    flex reflow, and every other row leans away (js/egg/egg.js), so the whole wall reacts as one grid
    — and reveals its title/meta/description as a label. */
-.egg-stage{
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
-    color: #E3D8C3;
-}
 .egg-lanes{
     position: absolute;
     inset: 0;
@@ -57,12 +49,12 @@
 .egg-tile.short{ height: 82%; align-self: center; }
 .egg-tile img{ width: 100%; height: 100%; object-fit: cover; display: block; }
 .egg-tile.hover{
-    width: calc(430 * var(--u));
-    height: 340%;
+    width: calc(500 * var(--u));
+    height: calc(500 * var(--u));
     margin: 0 calc(10 * var(--u));
-    z-index: 5;
-    border-color: rgba(237,28,36,.65);
+    /*border-color: color-mix(in srgb, var(--amber) 65%, transparent);*/
     box-shadow: 0 calc(14 * var(--u)) calc(44 * var(--u)) rgba(0,0,0,.75);
+    z-index: 500;
 }
 .egg-noimg{
     position: absolute;
@@ -111,17 +103,5 @@
     line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-}
-.egg-hint{
-    position: absolute;
-    right: calc(70 * var(--u));
-    top: calc(62 * var(--u));
-    max-width: calc(480 * var(--u));
-    font-size: calc(19 * var(--u));
-    line-height: 1.5;
-    color: #B9AE99;
-    text-align: right;
-    white-space: pre-line;
-    z-index: 6;
 }
 

@@ -1,8 +1,5 @@
 /* Craft section: the panel beside the statue (js/craft/craft.js). The light on the statue is two canvases
-   on the body (#craftDim, #craftLight), see css/sections.css. Type: the shared system in css/sections.css. */
-.craft-stage{ position: relative; width: 100%; height: 100%; overflow: hidden; }
-
-.craft-hint{ position: absolute; right: calc(70 * var(--u)); top: calc(62 * var(--u)); max-width: calc(480 * var(--u)); text-align: right; white-space: pre-line; }
+   on the body (#craftDim, #craftLight), see css/sections.css. Stage, hint and type are shared in main.css. */
 
 /* the chosen part: counter, name, Greek word, a few lines, a photo; left or right of the statue,
    whichever the part is nearer to, and above the back button */

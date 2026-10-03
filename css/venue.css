@@ -3,10 +3,6 @@
 /* over everything, the hand icons included: nothing is projected onto the statue */
 #venueMask{
     position: absolute;
-    left: calc(50vw - 960 * var(--u));
-    top: calc(50vh - 540 * var(--u));
-    width: calc(1920 * var(--u));
-    height: calc(1080 * var(--u));
     z-index: 45000;
     pointer-events: none;
     overflow: visible;
@@ -25,7 +21,7 @@
 #venueSetup .vs-handles circle{ fill: #fff; stroke: #F04438; stroke-width: 3; cursor: grab; vector-effect: non-scaling-stroke; }
 #venueSetup .vs-panel{
     position: absolute; right: 16px; bottom: 16px; width: 360px; max-width: calc(100vw - 32px);
-    background: rgba(11,11,12,.95); border: 1px solid #34363A; padding: 14px 16px; font-size: 12.5px; line-height: 1.45;
+    border: 1px solid var(--line); background: var(--panel-bg); padding: 14px 16px; font-size: 12.5px; line-height: 1.45;
     display: grid; gap: 10px;
 }
 #venueSetup .vs-head{ display: flex; justify-content: space-between; align-items: baseline; }

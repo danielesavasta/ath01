@@ -2,7 +2,107 @@
    1 frame pixel = var(--u). js/scripts.js uses the same frame to place the hands. */
 :root {
     --u: min(calc(100vw / 1920), calc(100vh / 1080));
+    --frame-left: calc(50vw - 960 * var(--u));
+    --frame-top: calc(50vh - 540 * var(--u));
+
+    /* type system shared by every section */
+    --font-text: "Roboto Condensed", "Arial Narrow", Arial, sans-serif;   /* Source Serif 4 is vendored if we go back to it */
+    --font-label: "Roboto Condensed", "Arial Narrow", Arial, sans-serif;
+    --ink: #E9E1D0;
+    --muted: #8F877A;
+    --amber: #ED1C24;   /* old name kept to limit churn; every "amber" accent is a red */
+    --line: #34363A;    /* borders of dev panels and cards */
+    --panel-bg: rgba(11,11,12,.94);
+    --size-sentence: calc(40 * var(--u));
+    --size-body: calc(23 * var(--u));
+    --size-hint: calc(30 * var(--u));
+    --size-label: calc(17 * var(--u));
+
+    --margin-x: calc(70 * var(--u));   /* left/right edge of tally and hint */
+    --fade: .6s;
 }
+
+/* Roboto Condensed: carved/label words. Not vendored yet; add these two files to assets/fonts/ for offline use
+   at the venue, until then the OS's own Roboto Condensed or a narrow sans-serif is used. */
+@font-face{ font-family:"Roboto Condensed"; font-weight:400; font-style:normal; font-display:block; src:url("../assets/fonts/roboto-condensed-400.woff2") format("woff2"); }
+@font-face{ font-family:"Roboto Condensed"; font-weight:700; font-style:normal; font-display:block; src:url("../assets/fonts/roboto-condensed-700.woff2") format("woff2"); }
+
+@font-face{ font-family:"Cinzel"; font-weight:600; font-style:normal; font-display:block; src:url("../assets/fonts/cinzel-latin-600-normal.woff2") format("woff2"); }
+
+/* Source Serif 4 (SIL Open Font License, assets/fonts/SourceSerif4-OFL.txt) */
+@font-face{ font-family:"Source Serif 4"; font-weight:400; font-style:normal; font-display:block; src:url("../assets/fonts/source-serif-4-latin-400-normal.woff2") format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face{ font-family:"Source Serif 4"; font-weight:500; font-style:normal; font-display:block; src:url("../assets/fonts/source-serif-4-latin-500-normal.woff2") format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face{ font-family:"Source Serif 4"; font-weight:400; font-style:italic; font-display:block; src:url("../assets/fonts/source-serif-4-latin-400-italic.woff2") format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face{ font-family:"Source Serif 4"; font-weight:400; font-style:normal; font-display:block; src:url("../assets/fonts/source-serif-4-latin-ext-400-normal.woff2") format("woff2");
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face{ font-family:"Source Serif 4"; font-weight:500; font-style:normal; font-display:block; src:url("../assets/fonts/source-serif-4-latin-ext-500-normal.woff2") format("woff2");
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face{ font-family:"Source Serif 4"; font-weight:400; font-style:italic; font-display:block; src:url("../assets/fonts/source-serif-4-latin-ext-400-italic.woff2") format("woff2");
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face{ font-family:"Source Serif 4"; font-weight:400; font-style:normal; font-display:block; src:url("../assets/fonts/source-serif-4-greek-400-normal.woff2") format("woff2");
+  unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF,U+1F00-1FFF; }
+@font-face{ font-family:"Source Serif 4"; font-weight:500; font-style:normal; font-display:block; src:url("../assets/fonts/source-serif-4-greek-500-normal.woff2") format("woff2");
+  unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF,U+1F00-1FFF; }
+@font-face{ font-family:"Source Serif 4"; font-weight:400; font-style:italic; font-display:block; src:url("../assets/fonts/source-serif-4-greek-400-italic.woff2") format("woff2");
+  unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF,U+1F00-1FFF; }
+
+/* Roboto Condensed only for carved/label words, the text face for reading, always left aligned on a fixed edge. */
+.t-label{ font-family: var(--font-label); font-size: var(--size-label); letter-spacing: .2em; color: var(--muted); }
+.t-rule{ width: calc(36 * var(--u)); height: 1px; background: rgba(233,225,208,.45); margin: calc(18 * var(--u)) 0; }
+.t-sentence{ font-family: var(--font-text); font-size: var(--size-sentence); line-height: 1.28; color: var(--ink); }
+.t-body{ font-family: var(--font-text); font-size: var(--size-body); line-height: 1.45; color: var(--ink); }
+.t-hint, .coin-hint, .egg-hint{ font-family: var(--font-text); font-size: var(--size-hint); line-height: 1.4; color: var(--ink); }
+.t-title{ font-family: var(--font-label); font-weight: 700; font-size: calc(46 * var(--u)); letter-spacing: .02em; line-height: 1; }
+.t-greek{ font-family: var(--font-text); font-style: italic; font-size: var(--size-hint); color: var(--muted); }
+
+/* names, numerals and titles: flat red, no carved/marble effect */
+.stone-text{ font-family: var(--font-label); font-weight: 700; color: var(--amber); }
+
+/* the 1920×1080 frame: the statue photo, the venue mask, every section stage and the craft light */
+#athenaStatue, #venueMask, #coinStage, #eggStage, #warStage, #craftStage, #craftLight{
+    left: var(--frame-left);
+    top: var(--frame-top);
+    width: calc(1920 * var(--u));
+    height: calc(1080 * var(--u));
+}
+
+/* section stages sit under the hand icons (#drawing) and the statue, and fade in with body.section-<id> */
+#coinStage, #eggStage, #warStage, #craftStage{
+    position: absolute;
+    z-index: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--fade) ease, visibility 0s linear var(--fade);
+}
+body.section-owl #coinStage,
+body.section-egg #eggStage,
+body.section-war #warStage,
+body.section-craft #craftStage{
+    opacity: 1;
+    visibility: visible;
+    transition: opacity var(--fade) ease;
+}
+
+/* the element inside a stage fills it */
+.coin-stage, .egg-stage, .war-stage, .craft-stage{ position: relative; overflow: hidden; }
+.egg-stage, .war-stage, .craft-stage{ width: 100%; height: 100%; }
+.egg-stage{ color: var(--ink); }
+
+/* hint, top right */
+.coin-hint, .egg-hint, .war-hint, .craft-hint{
+    position: absolute;
+    right: var(--margin-x);
+    top: calc(62 * var(--u));
+    z-index: 5;
+    pointer-events: none;
+}
+.coin-hint, .egg-hint, .craft-hint{ max-width: calc(480 * var(--u)); text-align: right; white-space: pre-line; }
+
+/* tally, top left */
+.coin-tally, .war-tally{ position: absolute; left: var(--margin-x); top: calc(58 * var(--u)); pointer-events: none; z-index: 5; }
 
 body {
     margin: 0;
@@ -31,10 +131,6 @@ canvas {
 }
 #athenaStatue{
     position: absolute;
-    left: calc(50vw - 960 * var(--u));
-    top: calc(50vh - 540 * var(--u));
-    width: calc(1920 * var(--u));
-    height: calc(1080 * var(--u));
     object-fit: cover;          /* the 1920×1920 image, cropped to the frame from the top */
     object-position: top;
     z-index: 40000;
@@ -54,6 +150,7 @@ canvas {
     width: 100vw;
     height: 100vh;
     z-index: 1;
+    object-fit: fill;   /* drawn at screen resolution (js/scripts.js), must not be rescaled */
 }
 
 #updatenote {
@@ -120,10 +217,6 @@ canvas {
 
 .letterN {
     background-image: url('../assets/N.svg');
-}
-
-.letterA {
-    background-image: url('../assets/A.svg');
 }
 
 .container{

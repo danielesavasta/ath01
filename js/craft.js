@@ -68,7 +68,7 @@ export function createCraft(opts){
   photoImg.onload = () => photo.classList.remove("none");
   photoImg.onerror = () => photo.classList.add("none");
 
-  // the light canvas sits on the body, above the venue mask (css/sections.css)
+  // the light canvas sits on the body, above the venue mask (css/main.css)
   const lightCv = document.createElement("canvas");
   lightCv.id = "craftLight"; lightCv.width = W; lightCv.height = H;
   document.body.appendChild(lightCv);

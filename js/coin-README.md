@@ -26,5 +26,5 @@ three.js for rendering, cannon-es for physics, both vendored in `lib/` so the in
 ## Credits
 
 Model: "An Athenian tetradrachm" by Classics and Ancient History at Warwick, CC BY 4.0 (`assets/coin/LICENSE.txt`). This credit must appear in the exhibition.
-Lettering: Roboto Condensed (not yet vendored, see `css/sections.css`); the tally numerals are flat red, no marble texture.
+Lettering: Roboto Condensed (not yet vendored, see `css/main.css`); the tally numerals are flat red, no marble texture.
 Info texts: CoinWeek, "The Tetradrachms of Athens (and Athena)"; Cleveland Museum of Art 1941.296. To be checked by the museum before opening.
