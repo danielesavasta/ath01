@@ -38,6 +38,7 @@ canvas {
     object-fit: cover;          /* the 1920×1920 image, cropped to the frame from the top */
     object-position: top;
     z-index: 40000;
+    display: none;
 }
 
 /* Video prediction canvas – behind drawings */

@@ -15,7 +15,7 @@ closeImg.src = 'assets/closeHand.svg'; // adjust path if needed
 
 let isVideoRunning = false;
 let handAnimationTriggered = false;
-
+/*
 const letterAssets = {
     '🦉': 'owl.svg',
     '🥚': 'egg.svg',
@@ -24,7 +24,7 @@ const letterAssets = {
     '🦥': 'sloth.svg',
     '🦫': 'beaver.svg',
 };
-
+*/
 // MediaPipe Hands configuration
 const hands = new Hands({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
