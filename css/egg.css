@@ -1,64 +1,39 @@
-/* Egg section — a masonry of scrolling "swimlanes" of artworks (content/egg.json), js/egg/egg.js.
-   Each row scrolls sideways on its own (CSS animation, alternating direction) and loops forever.
-   Hovering a tile grows it in front of everything — its row neighbours are pushed aside by normal
-   flex reflow, and every other row leans away (js/egg/egg.js), so the whole wall reacts as one grid
-   — and reveals its title/meta/description as a label. */
-.egg-lanes{
+/* Egg section — a mosaic of artworks (content/egg.json), js/egg.js.
+   Tiles share one row height and grow to fill their row; the hovered one opens in .egg-panel on its own half. */
+.egg-mosaic{
     position: absolute;
-    inset: 0;
+    inset: calc(110 * var(--u)) calc(60 * var(--u));
     display: flex;
-    flex-direction: column;
-    justify-content: center;
+    flex-wrap: wrap;
+    align-content: center;
     gap: calc(10 * var(--u));
-    overflow: hidden;
 }
-.egg-lane{
-    position: relative;
-    width: 100%;
-    height: calc(118 * var(--u));
-    overflow: visible;
-    transition: transform .35s ease;
+.egg-tile{
+    --h: calc(150 * var(--u));
+    flex: calc(var(--ratio) * 100) 1 calc(var(--ratio) * var(--h));
+    height: var(--h);
+    background: rgba(255,255,255,.04) center / cover no-repeat;
+    border: 1px solid rgba(255,255,255,.1);
+    transition: opacity .3s ease;
 }
-.egg-track{
+.egg-tile.hover{ opacity: .35; }
+.egg-panel{
     position: absolute;
     top: 0;
-    left: 0;
-    display: flex;
-    align-items: center;
-    gap: calc(8 * var(--u));
-    will-change: transform;
-    animation: egg-scroll-left 150s linear infinite;
-}
-.egg-lane:nth-child(2) .egg-track{ animation-name: egg-scroll-right; animation-duration: 185s; }
-.egg-lane:nth-child(3) .egg-track{ animation-duration: 130s; }
-.egg-lane:nth-child(4) .egg-track{ animation-name: egg-scroll-right; animation-duration: 165s; }
-.egg-track.paused{ animation-play-state: paused; }
-@keyframes egg-scroll-left{ from{ transform: translateX(0); } to{ transform: translateX(-50%); } }
-@keyframes egg-scroll-right{ from{ transform: translateX(-50%); } to{ transform: translateX(0); } }
-
-.egg-tile{
-    position: relative;
-    flex: none;
-    width: calc(130 * var(--u));
-    height: 100%;
-    background: rgba(255,255,255,.04);
-    border: 1px solid rgba(255,255,255,.1);
-    overflow: hidden;
-    transition: width .3s ease, height .3s ease, margin .3s ease, box-shadow .3s ease, border-color .3s ease;
-}
-.egg-tile.short{ height: 82%; align-self: center; }
-.egg-tile img{ width: 100%; height: 100%; object-fit: cover; display: block; }
-.egg-tile.hover{
-    width: calc(500 * var(--u));
-    height: calc(500 * var(--u));
-    margin: 0 calc(10 * var(--u));
-    /*border-color: color-mix(in srgb, var(--amber) 65%, transparent);*/
-    box-shadow: 0 calc(14 * var(--u)) calc(44 * var(--u)) rgba(0,0,0,.75);
+    bottom: 0;
+    width: 50%;
     z-index: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s ease;
+    background: #000;
 }
+.egg-panel.left{ left: 0; }
+.egg-panel.right{ right: 0; }
+.egg-panel.open{ opacity: 1; }
+.egg-panel-img{ position: absolute; inset: 0; background: center / contain no-repeat; }
+.egg-panel .egg-tile-label{ opacity: 1; transform: none; }
 .egg-noimg{
-    position: absolute;
-    inset: 0;
     display: flex;
     flex-direction: column;
     align-items: center;

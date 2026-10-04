@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="x-ua-compatible" content="ie=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title></title>
-    <link rel="stylesheet" href="css/main.css" />
-    <link rel="stylesheet" href="css/sections.css" />
-    <link rel="stylesheet" href="css/coin.css" />
-    <link rel="stylesheet" href="css/egg.css" />
-    <link rel="stylesheet" href="css/war.css" />
-    <link rel="stylesheet" href="css/craft.css" />
-    <link rel="stylesheet" href="css/venue.css" />
-    <!-- three.js + cannon-es, vendored in lib/ so the installation runs offline -->
-    <script type="importmap">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Epithets of Athena</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/sections.css" />
+  <link rel="stylesheet" href="css/coin.css" />
+  <link rel="stylesheet" href="css/egg.css" />
+  <link rel="stylesheet" href="css/war.css" />
+  <link rel="stylesheet" href="css/craft.css" />
+  <link rel="stylesheet" href="css/venue.css" />
+  <!-- three.js + cannon-es, vendored in lib/ so the installation runs offline -->
+  <script type="importmap">
     {
       "imports": {
         "three": "./lib/three/build/three.module.min.js",
@@ -23,24 +24,26 @@
       }
     }
     </script>
-    <link rel="icon" href="images/favicon.png" />
+  <link rel="icon" href="images/favicon.png" />
 
-  </head>
+</head>
 
-  <body>
-    <div class="container">
-  <div class="letter letterA"></div>
-  <div class="letter letterT"></div>
-  <div class="letter letterH"></div>
-  <div class="letter letterE"></div>
-  <div class="letter letterN"></div>
-  <div class="letter letterA"></div>
-</div>
+<body>
+  <div class="container">
+    <div class="letter letterA"></div>
+    <div class="letter letterE"></div>
+    <div class="letter letterT"></div>
+    <div class="letter letterN"></div>
+    <div class="letter letterH"></div>
+    <div class="letter letterA"></div>
+    <h1>Epithets of Athena</h1>
+    <h2>An interactive experience exploring the various epithets of the goddess Athena.</h2>
+  </div>
 
-    <div id="updatenote" class="updatenote mt10"> loading model ..</div>
+  <div id="updatenote" class="updatenote mt10"> loading model ..</div>
 
   <video class="videobox canvasbox" autoplay="autoplay" id="myvideo"></video>
-  <canvas id="canvas" class="border canvasbox"></canvas>
+<!--  <canvas id="canvas" class="border canvasbox"></canvas>-->
   <div id="coinStage"></div>
   <div id="eggStage"></div>
   <div id="warStage"></div>
@@ -50,12 +53,13 @@
   <img id="athenaStatue" src="assets/athenaStatue.png" />
   <div id="selectRing"></div>
   <div id="coinPanel"></div>
-      <!-- MediaPipe Hands Library -->
-      <script src="lib/hands.js"></script>
-      <script src="lib/camera_utils.js"></script>
-    <script src="content/venue.js"></script>
-    <script src="js/venue.js"></script>
-    <script src="js/scripts.js"></script>
-    <script type="module" src="js/sections.js"></script>
-  </body>
+  <!-- MediaPipe Hands Library -->
+  <script src="lib/hands.js"></script>
+  <script src="lib/camera_utils.js"></script>
+  <script src="content/venue.js"></script>
+  <script src="js/venue.js"></script>
+  <script src="js/scripts.js"></script>
+  <script type="module" src="js/sections.js"></script>
+</body>
+
 </html>

@@ -28,7 +28,7 @@ const ring = document.getElementById("selectRing");
 const container = document.querySelector(".container");
 
 const T = {
-  dwell: 1600,        // ms a hand stays on an icon (or on the back button) to choose it
+  dwell: 2000,        // ms a hand stays on an icon (or on the back button) to choose it
   rollBack: 1200,     // ms after the hand leaves before an icon rolls back to its letter
   idleReturn: 20000,  // ms with no hands, no mouse and no coin held before a section closes itself
   countdown: 5000,    // the back button's ring shows the last part of that wait
