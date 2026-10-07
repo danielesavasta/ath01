@@ -46,6 +46,47 @@ function roman(n){
   return s;
 }
 
+// The snakes of the gorgoneion move: a loop of frames of assets/gorgon.svg in which everything outside the face
+// (the snakes) sways around it, each snake on its own rhythm and more towards its tip, the wave running along it.
+const SNAKES = {
+  frames: 16,      // in the loop
+  ms: 75,          // per frame (the loop takes 1.2 s)
+  size: 256,       // px of each frame
+  face: 0.6,       // the face's radius, as a share of the picture's half width: it stays still
+  sway: 0.19,      // radians a snake's tip swings to each side
+  count: 12        // snakes around the head
+};
+function snakeFrames(img){
+  const N = SNAKES.size, half = N / 2;
+  const src = document.createElement("canvas"); src.width = src.height = N;
+  const sc = src.getContext("2d");
+  sc.drawImage(img, 0, 0, N, N);
+  const sd = sc.getImageData(0, 0, N, N).data;
+  const frames = [];
+  for (let f = 0; f < SNAKES.frames; f++){
+    const ph = f / SNAKES.frames * Math.PI * 2;
+    const c = document.createElement("canvas"); c.width = c.height = N;
+    const cx = c.getContext("2d"), out = cx.createImageData(N, N), d = out.data;
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++){
+      const dx = x - half, dy = y - half, r = Math.hypot(dx, dy) / half, a = Math.atan2(dy, dx);
+      let sx = x, sy = y;
+      if (r > SNAKES.face){
+        const k = Math.min(1, (r - SNAKES.face) / (1 - SNAKES.face));      // 0 at the face … 1 at the tips
+        const seed = Math.round(a / (Math.PI * 2) * SNAKES.count) * 2.1;    // each snake its own rhythm
+        const sa = a - SNAKES.sway * k * k * Math.sin(ph - k * 3.2 + seed);
+        sx = Math.round(half + Math.cos(sa) * r * half); sy = Math.round(half + Math.sin(sa) * r * half);
+      }
+      if (sx < 0 || sy < 0 || sx >= N || sy >= N) continue;
+      const i = (y * N + x) * 4, j = (sy * N + sx) * 4;
+      d[i] = sd[j]; d[i + 1] = sd[j + 1]; d[i + 2] = sd[j + 2]; d[i + 3] = sd[j + 3];
+    }
+    cx.putImageData(out, 0, 0);
+    c.complete = true;            // js/scripts.js checks .complete before drawing a hand's picture
+    frames.push(c);
+  }
+  return frames;
+}
+
 export function createWar(opts){
   const stage = opts.stage;
   stage.classList.add("war-stage");
@@ -64,7 +105,11 @@ export function createWar(opts){
   const lineCount = lineEl.querySelector(".count"), lineText = lineEl.querySelector(".text");
 
   const gorgon = new Image();
+  gorgon.onload = () => { try { snakes = snakeFrames(gorgon); } catch (e) { snakes = null; } };
   gorgon.src = gorgonSrc;
+  let snakes = null;
+  // the gorgoneion as it is now: its snakes moving (a loop of frames), or the still picture until they are made
+  const gorgonNow = () => snakes ? snakes[Math.floor(performance.now() / SNAKES.ms) % snakes.length] : gorgon;
   const ICON = 140;                // the hand icon's size (js/scripts.js HAND_ICON), for the mouse's gorgoneion
   let stone = null;               // the statue's marble, for arrows turned to stone
   if (opts.stoneTexture){
@@ -229,7 +274,7 @@ export function createWar(opts){
       }
       if (key === "mouse" && h.g > 0 && gorgon.complete){
         g.globalAlpha = h.g;
-        g.drawImage(gorgon, h.x - ICON / 2, h.y - ICON / 2, ICON, ICON);
+        g.drawImage(gorgonNow(), h.x - ICON / 2, h.y - ICON / 2, ICON, ICON);
         g.globalAlpha = 1;
       }
     }
@@ -278,7 +323,7 @@ export function createWar(opts){
     frame,
     relayout,
     // js/scripts.js asks for each hand's icon: a still hand blends into the gorgoneion
-    handSkin(id){ const h = hands.get(id); return h && h.g > 0 ? { img: gorgon, mix: h.g } : null; },
+    handSkin(id){ const h = hands.get(id); return h && h.g > 0 ? { img: gorgonNow(), mix: h.g } : null; },
     get running(){ return running; },
     get count(){ return count; },
     get hands(){ return [...hands.values()]; },

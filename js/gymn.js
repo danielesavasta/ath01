@@ -25,7 +25,8 @@ const T = {
   tilt: 3600,         // ms for the camera to tilt from above to its view
   find: 900,          // ms a place must be lit to be found
   reach: 46,          // plan px around a place that counts as lighting it
-  idleTorch: 5000,    // ms without hands before a torch wanders by itself
+  idleTorch: 4000,    // ms without hands before a torch wanders by itself
+  autoGap: 4000,      // ms between two places found by the wandering torch
   torchSpeed: 90,     // plan px per second, the wandering torch
   memory: 0.5,        // how brightly a lit spot keeps glowing afterwards (0..1)
   endAfter: 2600,     // ms after the last place is found before the ending
@@ -283,6 +284,7 @@ export function createGymn(opts){
   }
 
   // ───────────── per frame ─────────────
+  let lastFound = 0;
   let ready = false, running = false, t = 0, found = [], finding = new Map(), idle = 0, endAt = 0, done = false, rumbled = false;
   const auto = { x: 650, y: 560, on: 0 };   // the wandering torch, from the entrance
 
@@ -315,7 +317,10 @@ export function createGymn(opts){
     auto.on += ((!intro && !endAt && idle > T.idleTorch && next ? 1 : 0) - auto.on) * Math.min(1, dt / 600);
     if (next){
       const dx = next.x - auto.x, dy = next.y - auto.y, d = Math.hypot(dx, dy), step = T.torchSpeed * dt / 1000;
-      if (auto.on > 0.05 && d > 4){ auto.x += dx / d * Math.min(step, d); auto.y += dy / d * Math.min(step, d); }
+      // it lingers on the place it found and sets off in time to find the next one T.autoGap after it
+      const travel = d / T.torchSpeed * 1000 + T.find;
+      const go = !lastFound || t - lastFound >= T.autoGap - travel;
+      if (auto.on > 0.05 && d > 4 && go){ auto.x += dx / d * Math.min(step, d); auto.y += dy / d * Math.min(step, d); }
     }
     const sources = hands.map((h) => ({ x: h.x, y: h.y, k: 1 }));
     if (auto.on > 0.01) sources.push({ x: auto.x, y: auto.y, k: auto.on });
@@ -357,6 +362,7 @@ export function createGymn(opts){
       p.el.classList.toggle("found", found.includes(p.id) && !endAt);
       if (f >= T.find && !found.includes(p.id) && !endAt){
         found.push(p.id);
+        lastFound = t;
         sfx("choose", { x: s.x });
         showLine(p.id);
         if (found.length === PLACES.length) endAt = t + T.endAfter;
@@ -376,7 +382,7 @@ export function createGymn(opts){
   }
 
   function reset(){
-    t = 0; found = []; finding = new Map(); idle = 0; endAt = 0; done = false; rumbled = false;
+    t = 0; lastFound = 0; found = []; finding = new Map(); idle = 0; endAt = 0; done = false; rumbled = false;
     auto.x = 650; auto.y = 560; auto.on = 0;
     torches.forEach((tc) => { tc.on = 0; tc.light.intensity = 0; });
     mem.globalCompositeOperation = "source-over"; mem.fillStyle = "#000"; mem.fillRect(0, 0, MEM, MEM); memTex.needsUpdate = true;
