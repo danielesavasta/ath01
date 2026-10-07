@@ -48,7 +48,8 @@
   transform-origin:0 50%;transition:opacity .35s ease}
 .coin-hs.owl .lead{background:var(--coin-accent2)}
 .coin-hs.open .lead{opacity:.3}
-.coin-hs .k{font-family:var(--coin-body);font-weight:700;font-size:calc(32 * var(--cu,1px));letter-spacing:.1em;color:var(--coin-accent);margin-bottom:.4em}
+.coin-hs .k{font-family:var(--coin-body);font-weight:700;font-size:calc(24 * var(--cu,1px));color:var(--coin-accent);margin-bottom:.2em; line-height:1.05}
+}
 .coin-hs.owl .k{color:var(--coin-accent2)}
 .coin-hs .t{font-family:var(--coin-carved);font-size:calc(32 * var(--cu,1px));line-height:1.42;color:var(--coin-stone)}
 
