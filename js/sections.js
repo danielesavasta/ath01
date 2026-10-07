@@ -166,6 +166,7 @@ const mind = createMind({
   stage: document.getElementById("mindStage"),
   texts: textsFor(FIRST).mind,
   statueBand,
+  settings: () => (window.VENUE ? window.VENUE.get().mind : null),
   imagesDir: "assets/mind/"
 });
 

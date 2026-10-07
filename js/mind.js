@@ -29,6 +29,7 @@ const T = {
   particles: 30000,  // points that draw the olive; K → Mind overrides
   dot: 2,          // px, each point's size
   morph: 2800,     // ms the points take to flow into the next drawing; K → Mind overrides
+  flowShare: 0.8,  // a flow takes at most this share of the time until the next drawing
   stagger: 0.4,    // share of the flow over which the points set off one after another
   swirl: 70,       // px the flow's paths curve aside
   shimmer: 0.6     // px the points tremble at rest
@@ -86,8 +87,8 @@ export function createMind(opts){
     for (const s of steps){
       const gap = line / s.of;
       s.at = s.chapter * line + s.index * gap;
-      // the flow into this drawing: as set, but never so long that it lags far behind the next ones
-      s.morph = s.index === 0 && s.chapter === TREE ? morph * 1.4 : Math.min(morph, gap * 1.8);
+      // the flow into this drawing: as set, but over before the next drawing starts, so each one forms and rests
+      s.morph = Math.min(s.index === 0 && s.chapter === TREE ? morph * 1.4 : morph, gap * T.flowShare);
     }
     storyEnd = CHAPTERS.length * line + T.hold;
     const want = m.particles || T.particles;
@@ -214,7 +215,7 @@ export function createMind(opts){
     const s = steps[to];
     // at the very end everything fades out
     const out = 1 - clamp01((t - (storyEnd - T.out)) / T.out);
-    const life = (t - morphAt) / morphMs, travel = 1 - T.stagger;
+    const life = (t - morphAt) / morphMs, travel = 1 - T.stagger - 0.08;   // the last point to leave still lands by the end of the flow
     buf32.fill(0xff000000);
     const BW = box.w, BH = box.h, D = T.dot, now = t * 0.003;
     for (let i = 0; i < P; i++){
