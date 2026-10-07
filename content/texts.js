@@ -70,6 +70,18 @@ export default {
         himation: { title: "HİMATİON", greek: "ἱμάτιον", text: "Omuzdan aşağı dökülen kalın örtü. Kıvrımları kitonunkilerden daha derin ve ağır." },
         roll:     { title: "KIVRIM",   greek: "",        text: "Örtünün kalçadan geçen, sarılmış kenarı." }
       }
+    },
+
+    // DRAFT: one sentence after another while the olive grows (js/mind.js); the drawings follow the sentences
+    mind: {
+      species: "Olea europaea",
+      lines: [
+        "Athena'nın gücü kaba kuvvet değil, mētis'tir: kurnaz ve pratik akıl.",
+        "Poseidon Atina'ya tuzlu bir su kaynağı verdi, Athena bir zeytin ağacı. Kazanan zeytin oldu.",
+        "Odysseus'un yirmi yıl boyunca yanında oldu. İkisi de zekâyla kazanır.",
+        "Odysseus, Kyklops'u zeytin ağacından bir kazıkla kör etti.",
+        "Yatağını canlı bir zeytin ağacının gövdesine kurdu. Eve döndüğünde Penelope onu bu yataktan tanıdı."
+      ]
     }
   },
 
@@ -123,6 +135,17 @@ export default {
         himation: { title: "HIMATION", greek: "ἱμάτιον", text: "The heavy mantle falling from the shoulder. Its folds are deeper and heavier than the chiton's." },
         roll:     { title: "THE ROLL", greek: "",        text: "The rolled edge of the mantle, drawn across the hips." }
       }
+    },
+
+    mind: {
+      species: "Olea europaea",
+      lines: [
+        "Athena's power is not force. It is mētis: cunning, practical intelligence.",
+        "Poseidon gave Athens a spring of salt water. Athena gave it an olive tree, and the olive won.",
+        "She stood by Odysseus for twenty years. Both of them win by thinking.",
+        "He blinded the Cyclops with a stake of olive wood.",
+        "He built his bed around a living olive tree. When he came home, that bed was how Penelope knew him."
+      ]
     }
   }
 };
