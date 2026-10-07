@@ -12,7 +12,7 @@
 //           section closes because nobody was there, or after T.langReset ms with no hands in the menu.
 // The mouse works like a hand, for development; a click on an icon or a button acts at once.
 //
-// Keys while developing:  O open owl section · G open egg section · W war · C craft · N mind · M back to menu · D controls panel · K room setup (js/venue.js)
+// Keys while developing:  O open owl section · G open egg section · W war · C craft · N mind · Y gymnasion · M back to menu · D controls panel · K room setup (js/venue.js)
 //                          (inside the section) Space toss · I close-up · Esc leave close-up · F flip in hand
 
 import { createCoin } from "./coin.js";
@@ -20,6 +20,7 @@ import { createEgg } from "./egg.js";
 import { createWar } from "./war.js";
 import { createCraft } from "./craft.js";
 import { createMind } from "./mind.js";
+import { createGymn } from "./gymn.js";
 import { sfx } from "./sound.js";
 import TEXTS from "../content/texts.js";
 
@@ -168,10 +169,17 @@ const mind = createMind({
   imagesDir: "assets/mind/"
 });
 
-// every section, by its SLOTS name; each exposes start/stop/reset/setTexts, and most also setHands or frame
-const SECTIONS = { owl: coin, egg, war, craft, mind };
+const gymn = createGymn({
+  stage: document.getElementById("gymnStage"),
+  texts: textsFor(FIRST).gymn,
+  statueBand,
+  statue: () => (window.VENUE ? window.VENUE.get().mask.points : null)
+});
 
-if (window.VENUE) window.VENUE.onChange(() => { coin.relayout(); war.relayout(); craft.relayout(); mind.relayout(); egg.relayout(); });
+// every section, by its SLOTS name; each exposes start/stop/reset/setTexts, and most also setHands or frame
+const SECTIONS = { owl: coin, egg, war, craft, mind, gymn };
+
+if (window.VENUE) window.VENUE.onChange(() => { coin.relayout(); war.relayout(); craft.relayout(); mind.relayout(); egg.relayout(); gymn.relayout(); });
 
 // js/scripts.js asks, for every hand icon it draws, whether the open section wants it hidden (false)
 // or blended into another image ({ img, mix }); null keeps the hand
@@ -259,6 +267,7 @@ function setLang(code){
   war.setTexts(t.war);
   craft.setTexts(t.craft);
   mind.setTexts(t.mind);
+  gymn.setTexts(t.gymn);
   back.querySelector("span").textContent = t.menu.back;
   const intro = t.menu.intro || {}, titleEl = document.getElementById("title");
   if (titleEl){
@@ -447,6 +456,7 @@ window.addEventListener("keydown", (e) => {
   if (e.code === "KeyW") openSection("war");
   if (e.code === "KeyC") openSection("craft");
   if (e.code === "KeyN") openSection("mind");
+  if (e.code === "KeyY") openSection("gymn");
   if (e.code === "KeyM") closeSection();
   if (e.code === "KeyD") document.body.classList.toggle("show-panel");
   activeAt = performance.now();
@@ -454,7 +464,7 @@ window.addEventListener("keydown", (e) => {
 
 // handy from the console while developing (openOwl / closeOwl kept for older notes)
 window.ath = {
-  coin, egg, war, craft, mind, sections: SECTIONS, openSection, closeSection, athenaWave, setLang, slots: SLOTS, timing: T,
+  coin, egg, war, craft, mind, gymn, sections: SECTIONS, openSection, closeSection, athenaWave, setLang, slots: SLOTS, timing: T,
   get lang(){ return lang; },
   openOwl: () => openSection("owl"), closeOwl: closeSection,
   get section(){ return section; }

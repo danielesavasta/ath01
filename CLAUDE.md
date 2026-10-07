@@ -30,7 +30,7 @@ Background research and the section texts: `docs/athena-six-aspects.md` (read it
   `?source=skeleton|kinect|webcam|depth` forces one. `depth` (Mac bridge, hands found in depth, push towards
   the wall to grab) is only an option: Ege found reach-and-push awkward. See both READMEs.
 - `?lite` skips the 5 MB coin model. The mouse works like a hand (press = closed hand).
-- Keys: `O` owl · `G` egg · `W` war · `C` craft · `N` mind · `M` menu · `K` room setup · `D` coin physics panel · `S` sound on/off ·
+- Keys: `O` owl · `G` egg · `W` war · `C` craft · `N` mind · `Y` gymnasion · `M` menu · `K` room setup · `D` coin physics panel · `S` sound on/off ·
   in the owl section `Space` toss, `I` close-up, `Esc` leave close-up, `F` flip in hand.
 - Headless check without a camera: `tools/test/smoke.mjs` (Playwright; stubs MediaPipe, feeds fake hands).
 
@@ -88,6 +88,12 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
   sections call `sfx(name, { x, v })` (x in frame px pans it, v is strength). Recipes and volume in that file; `?mute`.
 - **Mind** (`js/mind.js`): no gesture; five sentences while Daniele's olive plate grows (frames cut by
   `tools/olive/slice.py`), then back to the menu by itself (`done`).
+- **Gymnasion** (`js/gymn.js`, id `gymn`): the Vedius Gymnasion as a dark 3D ruin (three.js) left of the statue, walls
+  traced from the ground plan in `refs/` by `tools/gymn/trace.py` into `assets/gymn/plan.json`. Opening: the plan draws
+  itself in red, the walls rise, the camera tilts. Raised hands are torches (spotlights with shadows; lit places keep a
+  glow). Four places (`PLACES`, plan px) hold a sentence each (`texts.gymn.places`), shown right of the statue when lit
+  `T.find`; with no hands a torch wanders to the next one. After all four, a niche is drawn around the real statue
+  (from the mask) with `texts.gymn.end`, then back to the menu (`done`). Tuning in `T`; `debug` getter for checks.
 
 Layers (z-index): section stages 0 · back and language buttons 0 (after the stages) · hand icons `#drawing` 1 ·
 letters 3 · selection ring 5 · statue photo 40000 · venue mask 45000 (covers everything) · craft light 45100 ·
@@ -117,7 +123,7 @@ Order agreed with Ege: left column top to bottom Birth, War, Mind; right column 
 | H (left, middle) | `war` | War | built, stillness under test; icon pending (uses `owl.svg`) |
 | E (right, middle) | `craft` | Craft | built with 4 draft parts; parts, texts, photos to decide; needs `assets/craft.svg` |
 | N (left, bottom) | `mind` | Mind | built: the olive and the mētis story (Athena and Poseidon, Odysseus), no gesture; texts DRAFT |
-| A (right, bottom) | `gymnasion` | Gymnasion | to build; needs `assets/gymnasion.svg` |
+| A (right, bottom) | `gymn` | Gymnasion | built: 3D ruin explored with hand torches, sentences found in four places, niche ending; texts DRAFT; icon still `bee.svg` |
 
 Gymnasion is last (bottom right) because its last sentence, about the rough back made to stand against a
 wall, closes the piece. Icons: SVG in `assets/` (white line drawing, like `owl.svg`); a slot without its file

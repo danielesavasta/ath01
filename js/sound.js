@@ -156,10 +156,18 @@ const SOUNDS = {
   tile(o, t){ hiss(o, t, { f: 1400, to: 700, q: 0.8, a: 0.02, peak: 0.05, d: 0.22 }); tone(o, t, { f: 523.3, peak: 0.02, a: 0.03, d: 0.4 }); },
 
   // mind: the olive growing
-  grow(o, t){ hiss(o, t, { f: 2600, to: 1500, q: 0.6, a: 0.15, peak: 0.045, d: 0.5 }); }
+  grow(o, t){ hiss(o, t, { f: 2600, to: 1500, q: 0.6, a: 0.15, peak: 0.045, d: 0.5 }); },
+
+  // gymnasion: the ruin
+  rise(o, t){                                  // walls rising out of the ground: a long low rumble and some dust
+    hiss(o, t, { f: 180, to: 90, q: 0.7, type: "lowpass", a: 0.6, peak: 0.12, d: 1.8 });
+    tone(o, t, { f: 49, a: 0.5, peak: 0.07, d: 1.9 });
+    for (let i = 0; i < 10; i++) hiss(o, t + 0.3 + Math.random() * 1.6, { f: rnd(1500, 4000), q: rnd(2, 5), peak: rnd(0.01, 0.03), d: rnd(0.02, 0.05) });
+  },
+  torch(o, t){ hiss(o, t, { f: 400, to: 1400, q: 0.6, a: 0.05, peak: 0.06, d: 0.35 }); tone(o, t, { f: 110, a: 0.04, peak: 0.03, d: 0.4 }); }
 };
 // the least time between two of the same sound (ms), so bursts stay readable
-const GAP = { clink: 45, arrow: 250, crumble: 120, hover: 120, tick: 200, light: 200, grow: 300 };
+const GAP = { clink: 45, arrow: 250, crumble: 120, hover: 120, tick: 200, light: 200, grow: 300, torch: 400 };
 
 export function sfx(name, opts = {}){
   const recipe = SOUNDS[name];

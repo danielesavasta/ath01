@@ -31,7 +31,8 @@ export default {
         owl:   { title: "BAYKUŞ", epithet: "Sikke ve ticaret" },
         war:   { title: "SAVAŞ",  epithet: "Promachos" },
         craft: { title: "ZANAAT", epithet: "Ergane" },
-        mind:  { title: "AKIL",   epithet: "mētis" }
+        mind:  { title: "AKIL",   epithet: "mētis" },
+        gymn:  { title: "GYMNASION", epithet: "Vedius Gymnasionu" }
       }
     },
 
@@ -87,7 +88,20 @@ export default {
       }
     },
 
+    // DRAFT: the ruin explored with hands as torches (js/gymn.js); each place holds one sentence, "end" comes last
+    gymn: {
+      hint: "Elini kaldır: ışığın olsun.\nYapıda dolaş, saklı yerleri bul.",
+      places: {
+        entrance:  { name: "Giriş",       line: "Bu heykel Ephesos'taki Vedius Gymnasionu'nda bulundu." },
+        marble:    { name: "Mermer salon", line: "Publius Vedius Antoninus ve eşi Flavia Papiane yapıyı MS 147–149'da Artemis'e, imparatora ve kente adadı." },
+        baths:     { name: "Hamam",       line: "Roma hamamıyla Yunan gymnasionu aynı çatı altındaydı." },
+        palaestra: { name: "Palaestra",   line: "Gençler burada bedenlerini ve akıllarını birlikte eğitirdi; beceri ve bilginin tanrıçası Athena da burada yerini almıştı." }
+      },
+      end: "Arkası kabaca işlenmiştir, çünkü bir duvarın önünde durmak üzere yapılmıştı."
+    },
+
     // DRAFT: one sentence after another while the olive grows (js/mind.js); the drawings follow the sentences
+
     mind: {
       species: "Olea europaea",
       lines: [
@@ -113,7 +127,8 @@ export default {
         owl:   { title: "THE OWL", epithet: "Coin and trade" },
         war:   { title: "WAR",     epithet: "Promachos" },
         craft: { title: "CRAFT",   epithet: "Ergane" },
-        mind:  { title: "MIND",    epithet: "mētis" }
+        mind:  { title: "MIND",    epithet: "mētis" },
+        gymn:  { title: "GYMNASION", epithet: "The Vedius Gymnasion" }
       }
     },
 
@@ -163,6 +178,17 @@ export default {
         roll:     { title: "THE ROLL", greek: "",        text: "The rolled edge of the mantle, drawn across the hips." },
         helmet:   { title: "HELMET",   greek: "κόρυς",   text: "A Corinthian helmet, pushed back on her head instead of lowered over the face. Its eye-holes look at the sky: Athena is not fighting, she is keeping watch." }
       }
+    },
+
+    gymn: {
+      hint: "Raise your hand: it is your light.\nWander the building, find its hidden places.",
+      places: {
+        entrance:  { name: "Entrance",    line: "This statue was found in the Vedius Gymnasion in Ephesus." },
+        marble:    { name: "Marble hall", line: "Publius Vedius Antoninus and his wife Flavia Papiane dedicated it in 147–149 CE to Artemis, the emperor and the city." },
+        baths:     { name: "Baths",       line: "Roman baths and a Greek gymnasion under one roof." },
+        palaestra: { name: "Palaestra",   line: "Here young men trained body and mind together; Athena, goddess of skill and learning, had her place here too." }
+      },
+      end: "Its back is left rough, because it was made to stand against a wall."
     },
 
     mind: {
