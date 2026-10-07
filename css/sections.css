@@ -54,9 +54,9 @@ body.in-section #langSwitch{ opacity: 0; visibility: hidden; transition: opacity
 #backBtn{
     position: absolute;
     left: 1%;
-    top: 50%; /* calc(var(--frame-top) + 1080 * var(--u) - 70 * var(--u) - 170 * var(--u));*/
-    width: calc(170 * var(--u));
-    height: calc(170 * var(--u));
+    top: 20%; /* calc(var(--frame-top) + 1080 * var(--u) - 70 * var(--u) - 170 * var(--u));*/
+    width: calc(140 * var(--u));
+    height: calc(140 * var(--u));
     border-radius: 50%;
     z-index: 0;
     color: #fff;
@@ -65,7 +65,7 @@ body.in-section #langSwitch{ opacity: 0; visibility: hidden; transition: opacity
     align-items: center;
     justify-content: center;
     gap: calc(6 * var(--u));
-    font-size: calc(19 * var(--u));
+    font-size: calc(17 * var(--u));
     font-weight: 600;
     letter-spacing: .12em;
     background: rgba(255,255,255,.06);
