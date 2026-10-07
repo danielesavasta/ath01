@@ -1,0 +1,36 @@
+/* Mind section: the olive on one canvas (js/mind.js), the sentences on top. Type is shared in main.css.
+   The stage rules main.css has for the other sections are repeated here for #mindStage. */
+#mindStage{
+    position: absolute;
+    left: var(--frame-left);
+    top: var(--frame-top);
+    width: calc(1920 * var(--u));
+    height: calc(1080 * var(--u));
+    z-index: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--fade) ease, visibility 0s linear var(--fade);
+}
+body.section-mind #mindStage{
+    opacity: 1;
+    visibility: visible;
+    transition: opacity var(--fade) ease;
+}
+.mind-stage{ position: relative; overflow: hidden; width: 100%; height: 100%; }
+.mind-canvas{ position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* the plant's name under it, like the caption of a plate */
+.mind-species{
+    position: absolute; left: calc((var(--olive-x, 350) - 200) * var(--u)); width: calc(400 * var(--u));
+    top: calc(958 * var(--u)); text-align: center; font-style: italic; letter-spacing: .08em;
+    pointer-events: none; transition: opacity .3s linear;
+}
+
+/* one sentence at a time, right of the statue, left aligned */
+.mind-line{
+    position: absolute; left: calc(var(--line-x, 1320) * var(--u)); top: calc(420 * var(--u));
+    width: calc(min(var(--line-w, 520), 560) * var(--u));
+    pointer-events: none; opacity: 0; transform: translateY(calc(10 * var(--u)));
+    transition: opacity .6s ease, transform .6s ease;
+}
+.mind-line.in{ opacity: 1; transform: none; transition-duration: 1.1s; }
