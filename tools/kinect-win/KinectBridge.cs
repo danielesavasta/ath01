@@ -80,12 +80,13 @@ namespace Athena
         ushort[] depth;
         readonly double raise;
         DateTime lastPicture = DateTime.MinValue;
-        DateTime lastActivity = DateTime.MinValue;
         bool waitingSaid;
 
         public Tracker(double raise) { this.raise = raise; }
-        // IsAvailable only turns true some time after Open(), so judge by frames: restart only after 6 s of silence
-        public bool Running { get { return sensor != null && sensor.IsOpen && (DateTime.Now - lastActivity).TotalSeconds < 6; } }
+        // Opened once and left open. The Kinect v2 runtime reconnects by itself when the sensor drops out
+        // (IsAvailable goes false, then true again), so the bridge never closes it: closing and reopening
+        // switches the sensor off and on, and a slow start or a short USB stall would turn into a loop.
+        public bool Running { get { return sensor != null && sensor.IsOpen; } }
 
         public void TryStart()
         {
@@ -107,7 +108,7 @@ namespace Athena
                 depthReader = sensor.DepthFrameSource.OpenReader();
                 bodyReader.FrameArrived += OnBodyFrame;
                 depthReader.FrameArrived += OnDepthFrame;
-                lastActivity = DateTime.Now;
+                sensor.IsAvailableChanged += OnAvailable;
                 sensor.Open();
                 Console.WriteLine("Kinect One started.");
             }
@@ -134,14 +135,21 @@ namespace Athena
             }
             if (sensor != null)
             {
+                sensor.IsAvailableChanged -= OnAvailable;
                 try { sensor.Close(); } catch { }
                 sensor = null;
             }
         }
 
+        // printed with the time, so a sensor that keeps dropping out (USB 3.0 controller, power adapter) shows here
+        void OnAvailable(object sender, IsAvailableChangedEventArgs e)
+        {
+            Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ") +
+                (e.IsAvailable ? "Kinect One connected." : "Kinect One lost (USB 3.0 port, cable or power adapter?). Waiting for it..."));
+        }
+
         void OnBodyFrame(object sender, BodyFrameArrivedEventArgs e)
         {
-            lastActivity = DateTime.Now;
             using (var frame = e.FrameReference.AcquireFrame())
             {
                 if (frame == null) return;
@@ -188,7 +196,6 @@ namespace Athena
 
         void OnDepthFrame(object sender, DepthFrameArrivedEventArgs e)
         {
-            lastActivity = DateTime.Now;
             int minDepth, maxDepth;
             using (var frame = e.FrameReference.AcquireFrame())
             {
