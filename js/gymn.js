@@ -108,10 +108,23 @@ export function createGymn(opts){
   async function build(){
     plan = await fetch(opts.planUrl || "assets/gymn/plan.json").then((r) => r.json());
     PW = plan.w; PH = plan.h;
-    // the floor
-    const fg = new THREE.PlaneGeometry(PW + 80, PH + 80, 1, 1);
+    // the floor: much larger than the building and fading softly into the black, so it has no edge to see
+    const FW = PW * 2.4, FH = PH * 2.4;
+    const fg = new THREE.PlaneGeometry(FW, FH, 1, 1);
     fg.rotateX(-Math.PI / 2);
-    planUV(fg);
+    planUV(fg);                                   // uv: the glow, in plan space
+    const fp = fg.attributes.position, uv1 = new Float32Array(fp.count * 2);
+    for (let i = 0; i < fp.count; i++){ uv1[i * 2] = fp.getX(i) / FW + 0.5; uv1[i * 2 + 1] = 0.5 - fp.getZ(i) / FH; }
+    fg.setAttribute("uv1", new THREE.BufferAttribute(uv1, 2));
+    const fade = document.createElement("canvas"); fade.width = fade.height = 256;
+    const fc = fade.getContext("2d");
+    fc.fillStyle = "#000"; fc.fillRect(0, 0, 256, 256);
+    fc.filter = "blur(16px)"; fc.fillStyle = "#fff";
+    const mx = (PW + 60) / FW * 256, my = (PH + 60) / FH * 256;
+    fc.fillRect(128 - mx / 2, 128 - my / 2, mx, my);
+    const fadeTex = new THREE.CanvasTexture(fade);
+    fadeTex.channel = 1;                          // uv1: across the whole floor
+    floorMat.map = fadeTex; floorMat.color.set(0x8a8070); floorMat.needsUpdate = true;
     const floor = new THREE.Mesh(fg, floorMat);
     floor.receiveShadow = true;
     group.add(floor);
@@ -127,7 +140,7 @@ export function createGymn(opts){
       m.castShadow = m.receiveShadow = true;
       const cx = poly[0].reduce((s, p) => s + p[0], 0) / poly[0].length;
       m.userData.delay = (1 - cx / PW) * 0.55;      // from the palaestra (east, right) to the baths (west)
-      m.scale.y = 0.001;
+      m.scale.y = 0.001; m.visible = false;
       walls.push(m); group.add(m);
       for (const ring of poly) ring.forEach((p, i) => { const q = ring[(i + 1) % ring.length]; linePts.push(wx(p[0]), 0.4, wz(p[1]), wx(q[0]), 0.4, wz(q[1])); });
     }
@@ -142,7 +155,7 @@ export function createGymn(opts){
       const m = new THREE.Mesh(g, stone);
       m.castShadow = true;
       m.userData.delay = (1 - x / PW) * 0.55 + 0.1;
-      m.scale.y = 0.001;
+      m.scale.y = 0.001; m.visible = false;
       cols.push(m); group.add(m);
     }
     // the drawing on the floor: every outline, in red, drawn bit by bit
@@ -288,6 +301,7 @@ export function createGymn(opts){
     for (const m of walls.concat(cols)){
       const k = clamp01((riseK - m.userData.delay) / 0.45);
       m.scale.y = Math.max(0.001, ease(k));
+      m.visible = k > 0;                  // not there at all until it starts to rise (no flat shapes on the floor)
     }
 
     // hands -> torches on the floor
@@ -324,7 +338,9 @@ export function createGymn(opts){
         const grd = mem.createRadialGradient(gx, gy, 0, gx, gy, gr);
         grd.addColorStop(0, `rgb(${v},${v},${v})`); grd.addColorStop(1, "rgb(0,0,0)");
         mem.globalCompositeOperation = "lighten";      // keeps the brightest, never piles up into rings
-        mem.fillStyle = grd; mem.fillRect(gx - gr, gy - gr, gr * 2, gr * 2);
+        mem.save(); mem.beginPath(); mem.rect(3, 3, MEM - 6, MEM - 6); mem.clip();   // never on the texture's edge,
+        mem.fillStyle = grd; mem.fillRect(gx - gr, gy - gr, gr * 2, gr * 2);        // which is stretched over the floor beyond
+        mem.restore();
         memTex.needsUpdate = true;
       }
     });
@@ -364,7 +380,7 @@ export function createGymn(opts){
     auto.x = 650; auto.y = 560; auto.on = 0;
     torches.forEach((tc) => { tc.on = 0; tc.light.intensity = 0; });
     mem.globalCompositeOperation = "source-over"; mem.fillStyle = "#000"; mem.fillRect(0, 0, MEM, MEM); memTex.needsUpdate = true;
-    for (const m of walls.concat(cols)) m.scale.y = 0.001;
+    for (const m of walls.concat(cols)){ m.scale.y = 0.001; m.visible = false; }
     canvas.style.opacity = 1; labelsEl.style.opacity = 1;
     nicheEl.classList.remove("in"); nicheEl.innerHTML = ""; stage.classList.remove("ended");
     shownLine = null; clearTimeout(swap); renderLine();

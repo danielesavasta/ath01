@@ -208,7 +208,7 @@ topicCard.id = "topicCard";
 topicCard.innerHTML = `<div class="t-title stone-text"></div><div class="t-greek"></div>`;
 document.body.appendChild(topicCard);
 const TR = { name: 950, open: 1150, close: 850 };   // ms: the topic's name alone on black, the opening, the closing
-let busy = false;
+let busy = false, veilOff = 0;
 const easeInOut = (k) => k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
 function slotCentre(name){
   const sl = SLOTS.find((x) => x.section === name);
@@ -286,6 +286,7 @@ function openSection(name){
   const s = SECTIONS[name];
   if (section !== "menu" || !s || busy) return;
   busy = true;
+  clearTimeout(veilOff);
   section = name; activeAt = performance.now();
   ring.style.opacity = 0;
   const [x, y] = slotCentre(name);
@@ -325,7 +326,9 @@ function closeSection(why = "back"){
     if (why === "idle") setLang(FIRST);
     s.stop();
     for (const sl of SLOTS){ sl.over = false; sl.dwell = 0; }
-    veil.classList.remove("on"); veilRing.classList.remove("on");
+    veilRing.classList.remove("on");
+    // the wall stays black until the topic has faded out underneath (its stage fades for --fade, .6 s)
+    veilOff = setTimeout(() => veil.classList.remove("on"), 700);
     busy = false;
     athenaWave(150);
   });
