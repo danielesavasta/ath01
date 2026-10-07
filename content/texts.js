@@ -19,6 +19,12 @@ export default {
   tr: {
     menu: {
       back: "ANA SAYFA",
+      // the text beside the letters on the main page
+      intro: {
+        title: "Athena'nın Sıfatları",
+        sub: "Tanrıça Athena'nın farklı sıfatlarını keşfeden etkileşimli bir deneyim.",
+        object: "Athena, Ephesos (Vedius Gymnasionu), Roma Dönemi, mermer"
+      },
       // shown for a moment when a topic opens
       topics: {
         egg:   { title: "DOĞUŞ",  epithet: "Metis" },
@@ -97,6 +103,11 @@ export default {
   en: {
     menu: {
       back: "HOME",
+      intro: {
+        title: "Epithets of Athena",
+        sub: "An interactive experience exploring the various epithets of the goddess Athena.",
+        object: "Athena, Ephesus (Vedius Gymnasion), Roman Period, marble"
+      },
       topics: {
         egg:   { title: "BIRTH",   epithet: "Metis" },
         owl:   { title: "THE OWL", epithet: "Coin and trade" },

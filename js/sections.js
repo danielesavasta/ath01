@@ -199,7 +199,7 @@ const topicCard = document.createElement("div");
 topicCard.id = "topicCard";
 topicCard.innerHTML = `<div class="t-title stone-text"></div><div class="t-greek"></div>`;
 document.body.appendChild(topicCard);
-const TR = { open: 1300, close: 850, title: 1700 };   // ms
+const TR = { name: 950, open: 1150, close: 850 };   // ms: the topic's name alone on black, the opening, the closing
 let busy = false;
 const easeInOut = (k) => k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
 function slotCentre(name){
@@ -231,8 +231,6 @@ function showTopic(name, x, y){
   topicCard.style.left = x + "px"; topicCard.style.top = y + "px";
   topicCard.classList.toggle("from-right", x > innerWidth / 2);
   topicCard.classList.remove("on"); void topicCard.offsetWidth; topicCard.classList.add("on");
-  clearTimeout(topicCard._t);
-  topicCard._t = setTimeout(() => topicCard.classList.remove("on"), TR.title);
 }
 
 // language buttons: bottom left of the menu
@@ -262,6 +260,12 @@ function setLang(code){
   craft.setTexts(t.craft);
   mind.setTexts(t.mind);
   back.querySelector("span").textContent = t.menu.back;
+  const intro = t.menu.intro || {}, titleEl = document.getElementById("title");
+  if (titleEl){
+    titleEl.querySelector("h1").textContent = intro.title || "";
+    titleEl.querySelector("h2").textContent = intro.sub || "";
+    titleEl.querySelector("p").textContent = intro.object || "";
+  }
   document.documentElement.lang = code;
   for (const l of LANGS){ l.el.classList.toggle("on", l.code === code); l.dwell = 0; l.el.style.setProperty("--p", 0); }
 }
@@ -282,16 +286,18 @@ function openSection(name){
   sfx("open");
   veil.style.setProperty("--vr", "0px");
   iris(x, y, 0, 0, 1);           // black everywhere for a moment, under the letters
+  setTimeout(() => showTopic(name, x, y), 200);   // the topic's name on black, where its letter was
   setTimeout(() => {
+    // the name leaves as the topic opens, so it never sits over the topic's own texts
+    topicCard.classList.remove("on");
     document.body.classList.add("in-section", "section-" + name);
     s.start();
-    showTopic(name, x, y);
     iris(x, y, 0, -1, TR.open, () => {
       veil.classList.remove("on"); veilRing.classList.remove("on");
       document.body.classList.remove("opening");
       busy = false;
     });
-  }, 260);
+  }, 200 + TR.name);
 }
 // why: "back" (the button, or M) keeps the language; "idle" means the visitor has gone
 function closeSection(why = "back"){
