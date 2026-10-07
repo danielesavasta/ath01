@@ -41,7 +41,7 @@ body {
 .t-body{ font-family: var(--font-text); font-size: var(--size-body); line-height: 1.45; color: var(--ink); }
 .t-hint, .coin-hint, .egg-hint{ font-family: var(--font-text); font-size: var(--size-hint); line-height: 1.4; color: var(--ink); }
 .t-title{ font-family: var(--font-label); font-weight: 700; font-size: calc(46 * var(--u)); letter-spacing: .02em; line-height: 1; }
-.t-greek{ font-family: var(--font-text); font-style: italic; font-size: var(--size-hint); color: var(--muted); }
+.t-greek{ font-family: var(--font-text); font-size: var(--size-hint); color: var(--muted); }
 
 /* names, numerals and titles: flat red, no carved/marble effect */
 .stone-text{ font-family: var(--font-label); font-weight: 700; color: var(--amber); text-align: center; }
