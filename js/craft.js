@@ -136,12 +136,25 @@ export function createCraft(opts){
     return best;
   }
 
+  // a hand or the mouse over one of the three photos makes it grow (classes hover-1..3, css/craft.css)
+  function hoverPhoto(pts){
+    let hit = 0;
+    if (chosen && panel.classList.contains("in")){
+      photoImgs.forEach((im, k) => {
+        const b = im.getBoundingClientRect();
+        if (!hit && im.style.visibility !== "hidden" && pts.some((p) => p.px >= b.left && p.px <= b.right && p.py >= b.top && p.py <= b.bottom)) hit = k + 1;
+      });
+    }
+    for (let k = 1; k <= 3; k++) photo.classList.toggle("hover-" + k, hit === k);
+  }
+
   function frame(pts, dt){
     if (!running) return;
     clock += dt;
     const r = stage.getBoundingClientRect();
     const over = new Set();
     onPart.clear();
+    hoverPhoto(pts);
     pts.forEach((pt, i) => {
       const p = partAt((pt.px - r.left) / r.width * W, (pt.py - r.top) / r.height * H);
       if (!p) return;
@@ -219,6 +232,7 @@ export function createCraft(opts){
     for (const p of parts){ p.dwell = 0; p.level = 0; p.warm = 1; p.introLit = false; }
     chosen = null; idle = 0; clock = 0; intro = 0; clearTimeout(swap);
     panel.classList.remove("in", "was");
+    photo.classList.remove("hover-1", "hover-2", "hover-3");
     onPart.clear();
     draw(true);
   }

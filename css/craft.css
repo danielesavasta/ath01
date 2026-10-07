@@ -42,6 +42,6 @@
 }
 
 /* Hovered image grows; the others shrink but keep a visible share */
-.craft-photo:has(img:nth-child(1):hover) { --row1: 2.5fr; --row2: 1fr; }
-.craft-photo:has(img:nth-child(2):hover) { --col1: 2.5fr; --col2: 1fr; --row1: 1fr; --row2: 2.5fr; }
-.craft-photo:has(img:nth-child(3):hover) { --col1: 1fr; --col2: 2.5fr; --row1: 1fr; --row2: 2.5fr; }
+.craft-photo.hover-1 { --row1: 2.5fr; --row2: 1fr; }
+.craft-photo.hover-2 { --col1: 2.5fr; --col2: 1fr; --row1: 1fr; --row2: 2.5fr; }
+.craft-photo.hover-3 { --col1: 1fr; --col2: 2.5fr; --row1: 1fr; --row2: 2.5fr; }
