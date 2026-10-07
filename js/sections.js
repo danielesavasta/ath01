@@ -388,7 +388,7 @@ function closeSection(why = "back"){
     for (const sl of SLOTS){ sl.over = false; sl.dwell = 0; sl.want = sl.letter; sl.leftAt = 0; }
     veilRing.classList.remove("on");
     // the wall stays black until the topic has faded out underneath (its stage fades for --fade, .6 s)
-    veilOff = setTimeout(() => veil.classList.remove("on"), 700);
+    veilOff = setTimeout(() => veil.classList.remove("on"), 0);
     // the letters spin back to ATHENA; the text and the language buttons come once they have stopped
     document.body.classList.add("returning");
     spinToAthena(() => {

@@ -746,7 +746,7 @@ export async function createCoin(opts){
       if (h.open) placeCard(h, p);
     }
   }
-  // Cards sit outside the coin, in the free zone (never over the statue), joined to their ring by a line.
+  // Cards sit below the coin, in the free zone (never over the statue), joined to their ring by a line.
   function placeCard(h, p){
     const r = stageRect();
     const px = (v) => { const q = v.clone().project(camera); return [(q.x + 1) / 2 * r.width, (1 - q.y) / 2 * r.height]; };
@@ -764,16 +764,13 @@ export async function createCoin(opts){
     const card = h.el.querySelector(".card"), lead = h.el.querySelector(".lead");
     const cw = card.offsetWidth || 240, ch = card.offsetHeight || 110, gap = 18;
     const roomR = z1 - (cx + rad), roomL = (cx - rad) - z0;
-    let left, top;
-    if (hx >= cx && roomR >= cw + gap + 8){ left = cx + rad + gap; top = hy - 14; }
-    else if (hx < cx && roomL >= cw + gap + 8){ left = cx - rad - gap - cw; top = hy - 14; }
-    else if (roomR >= cw + gap + 8){ left = cx + rad + gap; top = hy - 14; }
-    else if (roomL >= cw + gap + 8){ left = cx - rad - gap - cw; top = hy - 14; }
-    else {
-      left = clamp(cx - cw / 2, z0 + 8, Math.max(z0 + 8, z1 - cw - 8));
-      top = (r.height - (cy + rad) >= ch + gap) || hy >= cy ? cy + rad + gap : cy - rad - gap - ch;
-    }
-    top = clamp(top, 8, r.height - ch - 8);
+    let left;
+    if (hx >= cx && roomR >= cw + gap + 8) left = cx + rad + gap;
+    else if (hx < cx && roomL >= cw + gap + 8) left = cx - rad - gap - cw;
+    else if (roomR >= cw + gap + 8) left = cx + rad + gap;
+    else if (roomL >= cw + gap + 8) left = cx - rad - gap - cw;
+    else left = clamp(cx - cw / 2, z0 + 8, Math.max(z0 + 8, z1 - cw - 8));
+    const top = cy + rad + gap;
     card.style.left = (left - hx) + "px"; card.style.top = (top - hy) + "px"; card.style.right = "auto";
     // leader: from the ring to the nearest point on the card
     const tx = clamp(hx, left, left + cw) - hx, ty = clamp(hy, top, top + ch) - hy;

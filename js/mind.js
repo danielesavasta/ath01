@@ -70,10 +70,10 @@ export function createMind(opts){
   stage.classList.add("mind-stage");
   stage.innerHTML = `
     <canvas class="mind-canvas" width="${W}" height="${H}"></canvas>
-    <div class="mind-species t-label"></div>
+    <!--<div class="mind-species t-label"></div>-->
     <div class="mind-line"><div class="t-label count"></div><div class="t-rule"></div><div class="t-sentence text"></div></div>`;
   const cv = stage.querySelector(".mind-canvas"), g = cv.getContext("2d");
-  const speciesEl = stage.querySelector(".mind-species");
+  //const speciesEl = stage.querySelector(".mind-species");
   const lineEl = stage.querySelector(".mind-line");
   const lineCount = lineEl.querySelector(".count"), lineText = lineEl.querySelector(".text");
 
@@ -138,7 +138,7 @@ export function createMind(opts){
     lineEl.classList.toggle("in", shown > 0);
   }
   function applyTexts(){
-    speciesEl.textContent = TX.species || "";
+    //speciesEl.textContent = TX.species || "";
     renderLine();
   }
   // the old sentence fades out, then the new one fades in
@@ -298,7 +298,7 @@ export function createMind(opts){
       for (let dy = 0; dy < D; dy++){ const row = (y + dy) * BW + x; for (let dx = 0; dx < D; dx++) buf32[row + dx] = c; }
     }
     g.putImageData(buf, box.x, box.y);
-    speciesEl.style.opacity = out;
+    //speciesEl.style.opacity = out;
   }
 
   function frame(pts, dt){

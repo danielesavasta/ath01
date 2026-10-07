@@ -40,8 +40,8 @@ const T = {
 // the four places that hold a sentence (plan px of the drawing), and the order an idle torch visits them
 const PLACES = [
   { id: "entrance", x: 650, y: 494 },
-  { id: "marble",   x: 478, y: 292 },
-  { id: "baths",    x: 393, y: 285 },
+  { id: "marble",   x: 478, y: 300 },
+  { id: "baths",    x: 370, y: 270 },
   { id: "palaestra",x: 650, y: 292 }
 ];
 

@@ -1,10 +1,8 @@
 /* Tetradrachm section — layers inside the coin stage */
 .coin-stage{
   --coin-stone:#E3D8C3; --coin-accent:var(--amber); --coin-accent2:#8B1E1E; --coin-muted:#6C7078;
-  --coin-display:"Archivo Black","Arial Black",system-ui,sans-serif;
-  --coin-body:"Archivo","Helvetica Neue",Arial,sans-serif;
-  --coin-classic:"EB Garamond",Georgia,serif;
-  --coin-carved:"Roboto Condensed","Arial Narrow",Arial,sans-serif;
+  --coin-body:var(--font-text);
+  --coin-carved:var(--font-label);
   touch-action:none; cursor:grab;
   font-family:var(--coin-body); color:var(--coin-stone);
 }
@@ -50,16 +48,16 @@
   transform-origin:0 50%;transition:opacity .35s ease}
 .coin-hs.owl .lead{background:var(--coin-accent2)}
 .coin-hs.open .lead{opacity:.3}
-.coin-hs .k{font-family:var(--coin-carved);font-weight:700;font-size:calc(19 * var(--cu,1px));letter-spacing:.1em;color:var(--coin-accent);margin-bottom:.4em}
+.coin-hs .k{font-family:var(--coin-body);font-weight:700;font-size:calc(32 * var(--cu,1px));letter-spacing:.1em;color:var(--coin-accent);margin-bottom:.4em}
 .coin-hs.owl .k{color:var(--coin-accent2)}
-.coin-hs .t{font-size:calc(21 * var(--cu,1px));line-height:1.42;color:var(--coin-stone)}
+.coin-hs .t{font-family:var(--coin-carved);font-size:calc(32 * var(--cu,1px));line-height:1.42;color:var(--coin-stone)}
 
 /* controls panel */
 .coin-panel{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  font-family:"Archivo","Helvetica Neue",Arial,sans-serif;color:#E3D8C3;font-size:13px}
+  font-family:var(--font-text);color:#E3D8C3;font-size:26px}
 .coin-panel fieldset{border:0;margin:0;padding:0;display:grid;gap:8px;min-width:0;align-content:start}
-.coin-panel legend{font-size:10px;letter-spacing:.2em;color:#6C7078;padding:0;margin-bottom:2px}
-.coin-btn{background:none;border:1px solid #34363A;color:#E3D8C3;font-family:inherit;font-size:12.5px;padding:8px 13px;cursor:pointer;text-align:left}
+.coin-panel legend{font-size:26px;letter-spacing:.2em;color:#6C7078;padding:0;margin-bottom:2px}
+.coin-btn{background:none;border:1px solid #34363A;color:#E3D8C3;font-family:inherit;font-size:26px;padding:8px 13px;cursor:pointer;text-align:left}
 .coin-btn:hover{border-color:#E3D8C3}
 .coin-btn.primary{background:#ED1C24;border-color:#ED1C24;color:#fff;font-weight:600}
 .coin-btn:focus-visible,.coin-seg button:focus-visible{outline:2px solid #ED1C24;outline-offset:2px}
@@ -68,8 +66,8 @@
 .coin-seg button:last-child{border-right:0}
 .coin-seg button[aria-pressed="true"]{background:#E3D8C3;color:#0B0B0C;font-weight:600}
 .coin-slider{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px}
-.coin-slider .lab{font-size:11px;color:#8A8D93;grid-column:1/-1}
-.coin-slider output{font-variant-numeric:tabular-nums;font-size:12px}
+.coin-slider .lab{font-size:26px;color:#8A8D93;grid-column:1/-1}
+.coin-slider output{font-variant-numeric:tabular-nums;font-size:26px}
 .coin-panel input[type=range]{width:100%;accent-color:#ED1C24;margin:0}
-.coin-check{display:flex;align-items:center;gap:8px;font-size:12px;color:#8A8D93;cursor:pointer}
+.coin-check{display:flex;align-items:center;gap:8px;font-size:26px;color:#8A8D93;cursor:pointer}
 .coin-panel input[type=checkbox]{accent-color:#ED1C24;width:15px;height:15px}
