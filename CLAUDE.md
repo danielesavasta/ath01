@@ -101,6 +101,7 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
   (from the mask) with `texts.gymn.end`, then back to the menu (`done`). Tuning in `T`; `debug` getter for checks.
 
 Layers (z-index): section stages 0 · back and language buttons 0 (after the stages) · hand icons `#drawing` 1 ·
+credit `#credit` 2 (bottom right on every page, `texts.menu.credit`) ·
 letters 3 · selection ring 5 · statue photo 40000 · venue mask 45000 (covers everything) · craft light 45100 ·
 setup screen 60000.
 

@@ -333,6 +333,8 @@ function setLang(code){
     titleEl.querySelector("h2").textContent = intro.sub || "";
     titleEl.querySelector("p").textContent = intro.object || "";
   }
+  const credit = document.getElementById("credit");
+  if (credit) credit.textContent = t.menu.credit || "";
   document.documentElement.lang = code;
   for (const l of LANGS){ l.el.classList.toggle("on", l.code === code); l.dwell = 0; l.el.style.setProperty("--p", 0); }
 }
