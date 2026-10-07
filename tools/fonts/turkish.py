@@ -76,7 +76,8 @@ dotl = accent_of("zdotaccent", "z"); dotl_dx = centre("z")
 
 def add(name, uni, base, draw_accent):
     w = hmtx[base][0]
-    pen = T2CharStringPen(w, gs)
+    # the CFF charstring stores its width relative to nominalWidthX; Safari (CoreText) reads that one, not hmtx
+    pen = T2CharStringPen(w - getattr(top.Private, "nominalWidthX", 0), gs)
     replay(contours(base), pen)
     draw_accent(pen, centre(base))
     charstring = pen.getCharString(private=top.Private, globalSubrs=cff.GlobalSubrs)

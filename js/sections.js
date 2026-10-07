@@ -156,6 +156,7 @@ const craft = createCraft({
   parts: () => (window.VENUE ? window.VENUE.get().parts : []),
   statue: () => (window.VENUE ? window.VENUE.get().mask.points : null),
   photo: () => (window.VENUE ? window.VENUE.get().statueImage : true),
+  feather: () => (window.VENUE ? window.VENUE.get().mask.feather || 0 : 0),
   imagesDir: "assets/craft/"
 });
 
