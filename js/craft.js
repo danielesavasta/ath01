@@ -2,7 +2,7 @@
 // (content/venue.js `parts`, redrawn at the venue with the setup screen, K). A hand in front of a part
 // lights that whole part; the hand icon is hidden there, the lit part is the cursor. Resting on it, the
 // light grows brighter and turns from warm to pure white; when full the part is chosen and its panel
-// (content/texts.js craft.parts, photo assets/craft/<id>.jpg) opens on the side of the statue nearer to it.
+// (content/texts.js craft.parts, photos assets/craft/<id>1.webp, <id>2.webp, <id>3.webp) opens on the side of the statue nearer to it.
 // With nobody around, the parts light up one after another to show where they are.
 //
 //   import { createCraft } from "./craft/craft.js";
@@ -64,13 +64,17 @@ export function createCraft(opts){
       <div class="t-title stone-text title"></div>
       <div class="t-greek greek"></div>
       <div class="t-body text"></div>
-      <div class="craft-photo"><img alt=""></div>
+      <div class="craft-photo"><img alt=""><img alt=""><img alt=""></div>
     </div>`;
   const hintEl = stage.querySelector(".craft-hint"), panel = stage.querySelector(".craft-panel");
   const q$ = (s) => panel.querySelector(s);
-  const photo = q$(".craft-photo"), photoImg = photo.querySelector("img");
-  photoImg.onload = () => photo.classList.remove("none");
-  photoImg.onerror = () => photo.classList.add("none");
+  const photo = q$(".craft-photo"), photoImgs = [...photo.querySelectorAll("img")];
+  // three photos per part: <id>1.webp, <id>2.webp, <id>3.webp; a missing one is hidden, none at all hides the block
+  const syncPhoto = () => photo.classList.toggle("none", !photoImgs.some((im) => im.complete && im.naturalWidth > 0));
+  photoImgs.forEach((im) => {
+    im.onload = () => { im.style.visibility = ""; syncPhoto(); };
+    im.onerror = () => { im.style.visibility = "hidden"; syncPhoto(); };
+  });
 
   // the light canvas sits on the body, above the venue mask (css/main.css)
   const lightCv = document.createElement("canvas");
@@ -99,7 +103,10 @@ export function createCraft(opts){
     q$(".title").textContent = t.title || chosen;
     q$(".greek").textContent = t.greek || "";
     q$(".text").textContent = t.text || "";
-    if (!photoImg.src.endsWith(`/${chosen}.jpg`)){ photo.classList.add("none"); photoImg.src = `${imagesDir}${chosen}.jpg`; }
+    photoImgs.forEach((im, k) => {
+      const src = `${imagesDir}${chosen}${k + 1}.webp`;
+      if (!im.src.endsWith(`/${chosen}${k + 1}.webp`)){ im.style.visibility = "hidden"; im.src = src; }
+    });
     panel.classList.toggle("right", side === "right");
     panel.classList.add("in");
   }

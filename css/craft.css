@@ -13,6 +13,35 @@
 .craft-panel .title{ text-align: left; }   /* .stone-text centres, for the buttons */
 .craft-panel .greek{ margin-top: calc(10 * var(--u)); }
 .craft-panel .text{ margin-top: calc(22 * var(--u)); }
-.craft-photo{ margin-top: calc(26 * var(--u)); width: calc(440 * var(--u)); height: calc(260 * var(--u)); overflow: hidden; }
+.craft-photo{ margin-top: calc(26 * var(--u)); width: calc(440 * var(--u)); height: calc(440 * var(--u)); overflow: hidden; }
 .craft-photo.none{ display: none; }
-.craft-photo img{ width: 100%; height: 100%; object-fit: cover; display: block; }
+
+
+.craft-photo {
+    --col1: 1fr;
+    --col2: 1fr;
+    --row1: 1fr;
+    --row2: 1fr;
+
+    display: grid;
+    grid-template-columns: var(--col1) var(--col2);
+    grid-template-rows: var(--row1) var(--row2);
+    gap: 10px;
+    transition: grid-template-columns 0.4s ease, grid-template-rows 0.4s ease;
+}
+.craft-photo img {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    object-fit: cover;
+    display: block;
+}
+.craft-photo img:first-child {
+    grid-column: 1 / -1;
+}
+
+/* Hovered image grows; the others shrink but keep a visible share */
+.craft-photo:has(img:nth-child(1):hover) { --row1: 2.5fr; --row2: 1fr; }
+.craft-photo:has(img:nth-child(2):hover) { --col1: 2.5fr; --col2: 1fr; --row1: 1fr; --row2: 2.5fr; }
+.craft-photo:has(img:nth-child(3):hover) { --col1: 1fr; --col2: 2.5fr; --row1: 1fr; --row2: 2.5fr; }
