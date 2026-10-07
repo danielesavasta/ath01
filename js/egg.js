@@ -3,11 +3,12 @@
 // Pictures: assets/gallery/small/<id>.webp while floating, assets/gallery/large/<id>.webp when brought forward,
 // made from the originals in assets/gallery/ by tools/gallery/resize.py.
 //
-// The works float in a dark space on both sides of the statue (never behind it, where the mask hides it),
-// each at its own depth: near ones large and bright, far ones small and dim, all drifting slowly. A hand
-// resting on a work for a moment (T.settle) brings it to the front of its side, large, with its name, place
-// and story in the visitor's language; the others on that side sink back. Moving off it, it goes back to its
-// place after T.linger. The other side stays free, so a second visitor can bring one forward there.
+// The works float in one dark space across the whole wall, the statue standing in front of it: each at its own
+// depth and drifting slowly nearer and further, seen in perspective (far ones small, dim and gathered towards the
+// middle, behind the statue, where the mask hides them; near ones large, bright and spread out). A hand resting
+// on a work for a moment (T.settle) brings it to the front on its side of the statue, large, with its name,
+// place and story in the visitor's language; the others on that side sink back. Moving off it, it goes back
+// after T.linger. Each side brings one work forward on its own, so two visitors can read at once.
 //
 //   import { createEgg } from "./egg.js";
 //   const egg = await createEgg({ stage, texts, dataUrl: "content/egg.json", imagesDir: "assets/gallery/", statueBand });
@@ -20,10 +21,11 @@ const T = {
   settle: 500,       // ms a hand rests on a work before it comes forward
   linger: 2200,      // ms the work stays forward after the hand leaves it
   fly: 0.0032,       // how fast a work comes forward / goes back (per ms, eased)
-  near: 240,         // px: the height of a work at the front of the space (depth 0)
-  far: 0.34,         // a work at the back is this much the size of one at the front
+  near: 250,         // px: the height of a work at the front of the space (depth 0)
+  far: 0.3,          // a work at the back is this much the size of one at the front
   dimFar: 0.28,      // and this bright
-  drift: 18,         // px a work wanders around its place
+  wander: 14,        // px/s: how fast a work wanders through the space (on the front plane)
+  wanderZ: 0.012,    // per s: how fast it drifts nearer or further (depth 0..1)
   invite: 3200,      // ms between works drifting forward by themselves while nobody is there
   inviteAfter: 4000, // ms without hands before that starts
   top: 210,          // px: the space starts below the hint
@@ -105,10 +107,10 @@ export async function createEgg(opts){
     space.appendChild(el);
     return {
       a, el, img, pic: el.querySelector(".egg-pic"), text: el.querySelector(".egg-text"),
-      side: i % 2 ? "right" : "left", ratio: a.image ? a.image.ratio : 1,
-      home: null, phase: Math.random() * Math.PI * 2, speed: 0.6 + Math.random() * 0.6,
+      side: "left", ratio: a.image ? a.image.ratio : 1,   // side: where it comes forward, set when it does
+      home: null, vel: { x: (Math.random() - 0.5) * 16, y: (Math.random() - 0.5) * 10, z: (Math.random() - 0.5) * 0.02 },
       f: 0,                 // 0 floating at its place … 1 at the front of its side
-      rest: 0, box: null, large: false, fwd: null
+      rest: 0, box: null, large: false, fwd: {}
     };
   });
 
@@ -123,7 +125,7 @@ export async function createEgg(opts){
     works.forEach(fillTexts);
   }
 
-  // ───────────── the space: two sides of the statue ─────────────
+  // ───────────── the space: the whole wall, in perspective around its centre ─────────────
   let band = [700, 1240], zone = {};
   function relayout(){
     const b = opts.statueBand && opts.statueBand();
@@ -134,40 +136,46 @@ export async function createEgg(opts){
     };
     let seed = 7;
     const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    for (const side of ["left", "right"]){
-      const list = works.filter((w) => w.side === side), z = zone[side];
-      // places are for the works' centres, kept far enough in that a near (large) work still fits
-      const inner = { x: z.x + T.near * 0.45, y: z.y + T.near * 0.5, w: Math.max(10, z.w - T.near * 0.9), h: Math.max(10, z.h - T.near) };
-      scatter(list.length, inner, rand).forEach((p, i) => { list[i].home = p; });
-      // each work is laid out once at its forward size and only moved and scaled after that (cheap to animate)
-      for (const w of list){
-        const maxH = z.h - T.textH, bw = Math.min(z.w, maxH * w.ratio), bh = bw / w.ratio;
-        w.fwd = { x: z.x + (z.w - bw) / 2, y: z.y, w: bw, h: bh };
-        w.el.style.setProperty("--bw", bw.toFixed(1));
-        w.el.style.setProperty("--bh", bh.toFixed(1));
-        w.el.style.setProperty("--zw", z.w.toFixed(1));
-        w.el.style.setProperty("--tx", ((z.w - bw) / 2).toFixed(1));
+    // places on the front plane, wider than the wall: seen from further back they gather towards the middle
+    scatter(works.length, { x: -180, y: 120, w: W + 360, h: H - 160 }, rand).forEach((p, i) => { works[i].home = p; });
+    for (const w of works){
+      for (const side of ["left", "right"]){   // its size and place when it comes forward on either side
+        const z = zone[side], maxH = z.h - T.textH, bw = Math.min(z.w, maxH * w.ratio), bh = bw / w.ratio;
+        w.fwd[side] = { x: z.x + (z.w - bw) / 2, y: z.y, w: bw, h: bh, zw: z.w };
       }
+      setSide(w, w.side);
     }
+  }
+  // each work is laid out once at its forward size (for the side it comes forward on) and only moved and
+  // scaled after that, which is cheap to animate
+  function setSide(w, side){
+    w.side = side;
+    const f = w.fwd[side];
+    w.el.style.setProperty("--bw", f.w.toFixed(1));
+    w.el.style.setProperty("--bh", f.h.toFixed(1));
+    w.el.style.setProperty("--zw", f.zw.toFixed(1));
+    w.el.style.setProperty("--tx", ((f.zw - f.w) / 2).toFixed(1));
   }
 
   // where a work is now: floating at its place, or brought to the front of its side
   function place(w, t){
-    const h = w.home, z = zone[w.side];
+    const h = w.home;
     const k = ease(w.f);
-    // floating: its depth sets its size and brightness; it wanders slowly around its place
-    const depth = h.z + (opened[w.side] && opened[w.side] !== w ? 0.35 * openK[w.side] : 0);   // the others sink back
-    const s = lerp(1, T.far, clamp01(depth));
-    const fh = Math.min(T.near, z.w * 0.55 / w.ratio) * s, fw = fh * w.ratio;   // wide works (pediments) a little lower
-    // it wanders around its place but never out of its side (never behind the statue)
-    const fx = Math.max(z.x, Math.min(z.x + z.w - fw, h.x + Math.sin(t * 0.00021 * w.speed + w.phase) * T.drift - fw / 2));
-    const fy = Math.max(z.y, Math.min(z.y + z.h - fh, h.y + Math.cos(t * 0.00017 * w.speed + w.phase * 1.3) * T.drift * 0.7 - fh / 2));
-    // while another work of its side is forward, it sinks back and almost out of sight
-    const behind = opened[w.side] && opened[w.side] !== w ? openK[w.side] : 0;
-    // forward: as large as fits the side above its texts
-    const { x: bx, y: by, w: bw, h: bh } = w.fwd;
+    // which side of the statue it is on now
+    const side = w.box && w.box.cx > (band[0] + band[1]) / 2 ? "right" : "left";
+    // while another work is forward on its side, it sinks back and almost out of sight
+    const behind = opened[side] && opened[side] !== w ? openK[side] : 0;
+    // floating: its depth (which wanders, see frame) sets its size and brightness
+    const depth = clamp01(h.z + 0.35 * behind);
+    const s = lerp(1, T.far, depth);
+    const fh = Math.min(T.near, 620 / w.ratio) * s, fw = fh * w.ratio;   // wide works (pediments) a little lower
+    // its place on the front plane, seen in perspective from the middle of the wall
+    const cx = W / 2 + (h.x - W / 2) * s, cy = H / 2 + (h.y - H / 2) * s;
+    const fx = cx - fw / 2, fy = cy - fh / 2;
+    // forward: as large as fits its side above its texts
+    const { x: bx, y: by, w: bw, h: bh } = w.fwd[w.side];
     return {
-      x: lerp(fx, bx, k), y: lerp(fy, by, k), w: lerp(fw, bw, k), h: lerp(fh, bh, k),
+      x: lerp(fx, bx, k), y: lerp(fy, by, k), w: lerp(fw, bw, k), h: lerp(fh, bh, k), cx: lerp(cx, bx + bw / 2, k), behindStatue: cx > band[0] && cx < band[1],
       bright: lerp(lerp(1, T.dimFar, clamp01(depth)) * (1 - 0.88 * behind), 1, k),
       depth: lerp(depth, -1, k)
     };
@@ -178,7 +186,8 @@ export async function createEgg(opts){
   let running = false, idle = 0, inviteT = 0, invited = null, linger = { left: 0, right: 0 };
 
   function bringForward(w){
-    const side = w.side;
+    const side = w.box && w.box.cx > (band[0] + band[1]) / 2 ? "right" : "left";
+    if (opened[side] !== w && w.f < 0.05) setSide(w, side);
     if (opened[side] === w) return;
     opened[side] = w;
     linger[side] = 0;
@@ -204,8 +213,9 @@ export async function createEgg(opts){
     for (const p of hands){
       let best = null;
       for (const w of works){
-        if (!w.box || !inside(w.box, p.x, p.y)) continue;
-        if (opened[w.side] && opened[w.side] !== w) continue;   // the side's forward work covers the rest
+        if (!w.box || w.box.behindStatue || !inside(w.box, p.x, p.y)) continue;
+        const side = w.box.cx > (band[0] + band[1]) / 2 ? "right" : "left";
+        if (opened[side] && opened[side] !== w) continue;   // the side's forward work covers the rest
         if (!best || w.box.depth < best.box.depth) best = w;
       }
       if (best) under.add(best);
@@ -228,6 +238,22 @@ export async function createEgg(opts){
     if (idle > T.inviteAfter && inviteT > T.invite){ inviteT = 0; invited = works[Math.floor(Math.random() * works.length)]; }
     if (idle <= T.inviteAfter) invited = null;
 
+    // every work wanders very slowly through the space: a velocity that turns a little at random, turning back
+    // at the edges of the space (front plane wider than the wall, depth 0.05..1)
+    const sec = dt / 1000;
+    for (const w of works){
+      const h = w.home, v = w.vel;
+      v.x += (Math.random() - 0.5) * T.wander * 0.6 * sec; v.y += (Math.random() - 0.5) * T.wander * 0.6 * sec;
+      v.z += (Math.random() - 0.5) * T.wanderZ * 0.6 * sec;
+      const sp = Math.hypot(v.x, v.y);
+      if (sp > T.wander){ v.x *= T.wander / sp; v.y *= T.wander / sp; }
+      v.z = Math.max(-T.wanderZ, Math.min(T.wanderZ, v.z));
+      h.x += v.x * sec; h.y += v.y * sec; h.z += v.z * sec;
+      if (h.x < -180 && v.x < 0 || h.x > W + 180 && v.x > 0) v.x *= -1;
+      if (h.y < 140 && v.y < 0 || h.y > H - 60 && v.y > 0) v.y *= -1;
+      if (h.z < 0.05 && v.z < 0 || h.z > 1 && v.z > 0) v.z *= -1;
+    }
+
     // move everything
     for (const side of ["left", "right"]) openK[side] += ((opened[side] ? 1 : 0) - openK[side]) * Math.min(1, dt * T.fly);
     for (const w of works){
@@ -238,7 +264,7 @@ export async function createEgg(opts){
       const st = w.el.style;
       st.setProperty("--x", b.x.toFixed(1));
       st.setProperty("--y", b.y.toFixed(1));
-      st.setProperty("--s", (b.w / w.fwd.w).toFixed(4));
+      st.setProperty("--s", (b.w / w.fwd[w.side].w).toFixed(4));
       st.setProperty("--shade", (1 - b.bright).toFixed(3));
       w.el.style.setProperty("--settle", clamp01(w.rest / T.settle).toFixed(3));
       w.el.style.zIndex = String(1000 - Math.round(b.depth * 500));

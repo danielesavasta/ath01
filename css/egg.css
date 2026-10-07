@@ -35,3 +35,6 @@
 .egg-meta{ margin-top: calc(10 * var(--u)); letter-spacing: .05em; line-height: 1.5; }
 .egg-text .t-rule{ margin: calc(14 * var(--u)) 0; }
 .egg-desc{ display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6; line-clamp: 6; overflow: hidden; }
+
+/* the hint stays above the floating works */
+.egg-stage .egg-hint{ z-index: 3000; text-shadow: 0 0 calc(14 * var(--u)) #000, 0 0 calc(28 * var(--u)) #000; }

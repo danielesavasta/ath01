@@ -76,8 +76,9 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
   icon is hidden; resting there it brightens and goes from warm to pure white (no ring); when full, the part is
   chosen and its panel (texts `craft.parts.<id>`, photo `assets/craft/<id>.jpg`) opens on the nearer side.
   No leader line (statue and wall are at different depths). Light drawn on `#craftLight` above the mask.
-- **Egg / Birth** (`js/egg.js`, Daniele's gallery, reworked): the works of `content/egg.json` float in the dark on both
-  sides of the statue, each at its own depth (near = large and bright, far = small and dim), drifting slowly. A hand
+- **Egg / Birth** (`js/egg.js`, Daniele's gallery, reworked): the works of `content/egg.json` float in one dark space
+  across the whole wall, behind the statue too, in perspective (near = large, bright, spread out; far = small, dim,
+  gathered towards the middle), each wandering very slowly in x, y and depth (`T.wander`, `T.wanderZ`). A hand
   resting `T.settle` on a work brings it to the front of its side with its texts in the visitor's language (Turkish in
   each work's `tr` field); the others of that side sink back; it returns `T.linger` after the hand leaves. Each side
   works on its own. Tiles use `assets/gallery/small/`, forward works `assets/gallery/large/` (made by
