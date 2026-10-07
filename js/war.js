@@ -10,6 +10,8 @@
 //
 // Drawn on one 2D canvas the size of the 1920×1080 frame; everything below is in frame pixels.
 
+import { sfx } from "./sound.js";
+
 const W = 1920, H = 1080;
 
 // tuning: most of the feel is here
@@ -97,6 +99,7 @@ export function createWar(opts){
   function showLine(){
     const lines = TX.lines || [];
     shown++;
+    sfx("line");
     if (shown >= lines.length){ phase = "calm"; calm = 0; }
     lineEl.classList.remove("in");
     clearTimeout(swap);
@@ -111,10 +114,12 @@ export function createWar(opts){
     const t = Math.abs(tx - x) / rand(T.speed[0], T.speed[1]);
     arrows.push({ x, y, vx: (tx - x) / t, vy: (ty - y - 0.5 * T.gravity * t * t) / t, tx, left,
                   state: "fly", t: 0, a: 0, len: rand(105, 130), alpha: 1 });
+    sfx("arrow", { x: left ? 150 : W - 150 });
   }
 
   function turnToStone(ar){
     ar.state = "stone"; ar.t = 0;
+    sfx("stone", { x: ar.x });
     count++;
     tallyNum.textContent = roman(count);
     const lines = TX.lines || [];
@@ -122,6 +127,7 @@ export function createWar(opts){
   }
 
   function crumble(ar){
+    sfx("crumble", { x: ar.x });
     const ca = Math.cos(ar.a), sa = Math.sin(ar.a);
     for (let i = 0; i < 18; i++){
       const k = Math.random() * ar.len;
@@ -143,7 +149,9 @@ export function createWar(opts){
       h.x += (x - h.x) * 0.45; h.y += (y - h.y) * 0.45;          // smooth out the jitter a little
       if (Math.hypot(h.x - h.ax, h.y - h.ay) > T.stillTol){ h.ax = h.x; h.ay = h.y; h.still = 0; }
       else h.still += dt;
+      const was = h.g;
       h.g = h.still > T.stillAfter ? Math.min(1, h.g + dt / T.rise) : Math.max(0, h.g - dt / T.fall);
+      if (was === 0 && h.g > 0) sfx("gorgon", { x: h.x });   // the gorgoneion begins to rise
       seen.add(key);
     });
     for (const k of hands.keys()) if (!seen.has(k)) hands.delete(k);

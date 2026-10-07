@@ -10,6 +10,8 @@
 //
 // Drawn on one 2D canvas the size of the 1920×1080 frame; everything below is in frame pixels.
 
+import { sfx } from "./sound.js";
+
 const W = 1920, H = 1080;
 
 const T = {
@@ -72,7 +74,7 @@ export function createMind(opts){
 
   let TX = opts.texts || {};
   let band = [700, 1240];
-  let t = 0, shown = 0, done = false, running = false, swap = 0, scale = 0;
+  let t = 0, shown = 0, done = false, running = false, swap = 0, scale = 0, lastStep = -1;
 
   const oliveX = () => (T.left + band[0]) / 2;
 
@@ -104,6 +106,7 @@ export function createMind(opts){
   // the old sentence fades out, then the new one fades in
   function showLine(n){
     shown = n;
+    if (n > 0) sfx("line");
     lineEl.classList.remove("in");
     clearTimeout(swap);
     swap = setTimeout(renderLine, n > 1 ? 700 : 60);
@@ -123,6 +126,7 @@ export function createMind(opts){
     let cur = -1;
     for (let i = 0; i < steps.length; i++) if (steps[i].at <= t) cur = i;
     if (cur < 0) return;
+    if (cur !== lastStep){ lastStep = cur; if (cur > 0) sfx("grow", { x: oliveX() }); }   // a soft rustle as the olive grows
     const s = steps[cur], prev = steps[cur - 1];
     const k = ease(clamp01((t - s.at) / s.fade));
     // at the very end everything fades out before the story starts again
@@ -151,7 +155,7 @@ export function createMind(opts){
   }
 
   function reset(){
-    t = 0; shown = 0; done = false; clearTimeout(swap);
+    t = 0; shown = 0; done = false; lastStep = -1; clearTimeout(swap);
     applyTexts();
     g.clearRect(0, 0, W, H);
   }

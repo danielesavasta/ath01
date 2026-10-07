@@ -30,7 +30,7 @@ Background research and the section texts: `docs/athena-six-aspects.md` (read it
   `?source=skeleton|kinect|webcam|depth` forces one. `depth` (Mac bridge, hands found in depth, push towards
   the wall to grab) is only an option: Ege found reach-and-push awkward. See both READMEs.
 - `?lite` skips the 5 MB coin model. The mouse works like a hand (press = closed hand).
-- Keys: `O` owl · `G` egg · `W` war · `C` craft · `M` menu · `K` room setup · `D` coin physics panel ·
+- Keys: `O` owl · `G` egg · `W` war · `C` craft · `N` mind · `M` menu · `K` room setup · `D` coin physics panel · `S` sound on/off ·
   in the owl section `Space` toss, `I` close-up, `Esc` leave close-up, `F` flip in hand.
 - Headless check without a camera: `tools/test/smoke.mjs` (Playwright; stubs MediaPipe, feeds fake hands).
 
@@ -77,6 +77,11 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
   images in `assets/images/<id>.jpg|webp`. Rows auto-scroll, alternating direction; a hand (or the mouse)
   resting over a tile grows it in place, pushing row neighbours apart, and shows its title/meta/description.
 
+- **Sound** (`js/sound.js`): every sound is synthesized with Web Audio (no files), through a small room reverb;
+  sections call `sfx(name, { x, v })` (x in frame px pans it, v is strength). Recipes and volume in that file; `?mute`.
+- **Mind** (`js/mind.js`): no gesture; five sentences while Daniele's olive plate grows (frames cut by
+  `tools/olive/slice.py`), then back to the menu by itself (`done`).
+
 Layers (z-index): section stages 0 · back and language buttons 0 (after the stages) · hand icons `#drawing` 1 ·
 letters 3 · selection ring 5 · statue photo 40000 · venue mask 45000 (covers everything) · craft light 45100 ·
 setup screen 60000.
@@ -104,7 +109,7 @@ Order agreed with Ege: left column top to bottom Birth, War, Mind; right column 
 | T (right, top) | `owl` | The Owl (coin, trade) | done |
 | H (left, middle) | `war` | War | built, stillness under test; icon pending (uses `owl.svg`) |
 | E (right, middle) | `craft` | Craft | built with 4 draft parts; parts, texts, photos to decide; needs `assets/craft.svg` |
-| N (left, bottom) | `mind` | Mind | to build; needs `assets/mind.svg` |
+| N (left, bottom) | `mind` | Mind | built: the olive and the mētis story (Athena and Poseidon, Odysseus), no gesture; texts DRAFT |
 | A (right, bottom) | `gymnasion` | Gymnasion | to build; needs `assets/gymnasion.svg` |
 
 Gymnasion is last (bottom right) because its last sentence, about the rough back made to stand against a

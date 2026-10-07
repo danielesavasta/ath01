@@ -14,6 +14,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { CSS2DRenderer, CSS2DObject } from "three/addons/renderers/CSS2DRenderer.js";
 import * as CANNON from "cannon-es";
+import { sfx } from "./sound.js";
 
 const V3 = THREE.Vector3;
 const clamp = THREE.MathUtils.clamp;
@@ -376,6 +377,7 @@ export async function createCoin(opts){
     if (kind === "edge"){ onResult(kind, { ...counts }); return; }   // rare, not counted
     counts[kind]++;
     showTally();
+    sfx("result");
     const c = stage.querySelector(`.coin-count[data-t="${kind}"]`);
     c.classList.remove("hit"); void c.offsetWidth; c.classList.add("hit");
     onResult(kind, { ...counts });
@@ -388,6 +390,12 @@ export async function createCoin(opts){
     showResult(Math.abs(up) < 0.55 ? "edge" : FACE_NAME[visibleFace()]);
   }
   coinBody.addEventListener("sleep", evaluate);
+  // the coin rings on the table: as hard as it hits, panned to where it lands
+  const coinX = () => (worldToNdcX(coinBody.position.x) + 1) / 2 * 1920;
+  coinBody.addEventListener("collide", (e) => {
+    const v = Math.abs(e.contact.getImpactVelocityAlongNormal());
+    if (v > 0.35 && mode === "play") sfx("clink", { v: Math.min(1, v / 6), x: coinX() });
+  });
 
   // ───────────── modes ─────────────
   let mode = "play";                  // "play" | "inspect"
@@ -421,6 +429,7 @@ export async function createCoin(opts){
   function enterInspect(){
     if (mode === "inspect" || grabBy !== null) return;
     mode = "inspect";
+    sfx("zoom");
     coinBody.type = CANNON.Body.KINEMATIC;
     coinBody.velocity.setZero(); coinBody.angularVelocity.setZero();
     INS.face = visibleFace();
@@ -498,6 +507,7 @@ export async function createCoin(opts){
     }
     HOLD.on = true;
     HOLD.face = visibleFace();
+    sfx("grab", { x: coinX() });
     HOLD.hist.length = 0; HOLD.wheel = 0;
     coinBody.type = CANNON.Body.KINEMATIC;
     coinBody.velocity.setZero(); coinBody.angularVelocity.setZero();
@@ -608,6 +618,7 @@ export async function createCoin(opts){
     if (axis.lengthSq() < 1e-6) axis.set(Math.random() - 0.5, 0, Math.random() - 0.5);
     axis.normalize();
     const w = turns * Math.PI * 2 / flight * P.spin;
+    sfx("toss", { x: coinX() });
     coinBody.angularVelocity.set(axis.x * w, (Math.random() - 0.5) * 1.2, axis.z * w);
     coinBody.wakeUp();
     pending = true; lastTouch = performance.now();
@@ -626,6 +637,7 @@ export async function createCoin(opts){
     if (!HOLD.on || performance.now() < HOLD.flipAt) return;
     HOLD.face *= -1;
     HOLD.flipAt = performance.now() + 420;
+    sfx("hover");
   }
   function toss(){
     if (mode === "inspect") exitInspect();
@@ -720,6 +732,7 @@ export async function createCoin(opts){
         if (h.dwell >= P.dwell && !h.open){
           hotspots.forEach((o) => { if (o !== h){ o.open = false; o.el.classList.remove("open"); } });
           h.open = true; h.el.classList.add("open");
+          sfx("card");
         }
         h.closeAt = now + 2600;
       } else {

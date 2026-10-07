@@ -11,6 +11,8 @@
 //   egg.start();
 //   egg.frame(pts, dt);   // pts: [{ px, py, mouse? }], call once per animation frame while the section is open
 
+import { sfx } from "./sound.js";
+
 const EXTS = ["webp"];
 
 function findImage(dir, id){
@@ -116,6 +118,7 @@ export async function createEgg(opts){
 
   function focus(h, r, stageRect){
     hovered = h;
+    sfx("tile", { x: ((r.left + r.right) / 2 - stageRect.left) / stageRect.width * 1920 });
     const a = artworks[h];
     side = (r.left + r.right) / 2 < stageRect.left + stageRect.width / 2 ? "left" : "right";
     panelEl.classList.toggle("left", side === "left");

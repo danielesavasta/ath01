@@ -20,6 +20,7 @@ import { createEgg } from "./egg.js";
 import { createWar } from "./war.js";
 import { createCraft } from "./craft.js";
 import { createMind } from "./mind.js";
+import { sfx } from "./sound.js";
 import TEXTS from "../content/texts.js";
 
 const stage = document.getElementById("coinStage");
@@ -222,6 +223,7 @@ function openSection(name){
   section = name; activeAt = performance.now();
   ring.style.opacity = 0;
   s.reset();                     // a fresh start for every visit (the coin dropped on the table, the gallery at its first image)
+  sfx("open");
   document.body.classList.add("in-section", "section-" + name);
   s.start();
 }
@@ -232,6 +234,7 @@ function closeSection(why = "back"){
   document.body.classList.remove("in-section", "section-" + section);
   section = "menu";
   activeAt = performance.now();
+  sfx("close");
   if (why === "idle") setLang(FIRST);
   back.style.setProperty("--p", 0);
   s.stop();
@@ -266,12 +269,14 @@ window.addEventListener("pointerdown", (e) => {
     return;
   }
   const l = LANGS.find((l) => inside(l.el.getBoundingClientRect(), e.clientX, e.clientY, 0));
-  if (l){ setLang(l.code); return; }
+  if (l){ setLang(l.code); sfx("lang", { x: frameX(e.clientX) }); return; }
   const s = SLOTS.find((s) => inside(s.el.getBoundingClientRect(), e.clientX, e.clientY, 0));
   if (s && s.section) openSection(s.section);
 });
 window.addEventListener("wheel", () => { activeAt = performance.now(); }, { passive: true });
 
+// a viewport x in frame pixels (0..1920), to place a sound left or right
+function frameX(x){ const u = Math.min(innerWidth / 1920, innerHeight / 1080); return (x - (innerWidth - 1920 * u) / 2) / u; }
 function inside(r, x, y, pad){ return r.width > 0 && x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad; }
 function pointers(now){
   const list = now - handsAt < 300 ? hands.slice() : [];
@@ -300,7 +305,7 @@ function menuFrame(now, dt, pts){
     l.dwell = over ? l.dwell + dt : Math.max(0, l.dwell - dt * 2);
     l.el.classList.toggle("hover", over);
     l.el.style.setProperty("--p", Math.min(l.dwell / T.langDwell, 1));
-    if (l.dwell >= T.langDwell) setLang(l.code);
+    if (l.dwell >= T.langDwell){ setLang(l.code); sfx("lang", { x: frameX(r.left + r.width / 2) }); }
   }
 
   const pad = container.getBoundingClientRect().width * 0.02;
@@ -310,6 +315,7 @@ function menuFrame(now, dt, pts){
     const over = pts.some((p) => inside(r, p.px, p.py, pad));
     if (over){
       s.leftAt = 0;
+      if (s.hasIcon && !s.over && s.want !== s.icon) sfx("hover", { x: frameX(r.left + r.width / 2) });
       if (s.hasIcon) want(s, s.icon);
     } else if (s.over) s.leftAt = now;
     if (!over && s.leftAt && now - s.leftAt > T.rollBack){ s.leftAt = 0; want(s, s.letter); }

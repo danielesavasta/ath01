@@ -14,6 +14,8 @@
 // exactly what the projector shows. Over the statue photo (working without the statue) the light is held
 // back, so the carving stays visible. Redrawn only when the light changes (full-frame layers are costly).
 
+import { sfx } from "./sound.js";
+
 const W = 1920, H = 1080;
 
 const T = {
@@ -108,6 +110,7 @@ export function createCraft(opts){
   function choose(p){
     if (chosen === p.id) return;
     chosen = p.id;
+    sfx("choose", { x: centroid(p.points)[0] });
     const band = opts.statueBand ? opts.statueBand() : null;
     const mid = band ? ((band[0] + band[1]) / 2 + 1) / 2 * W : W / 2;
     const nextSide = centroid(p.points)[0] < mid ? "left" : "right";
@@ -145,6 +148,8 @@ export function createCraft(opts){
 
     for (const p of parts){
       const hovered = over.has(p);
+      if (hovered && !p.over && chosen !== p.id) sfx("light", { x: centroid(p.points)[0] });   // a hand comes onto it
+      p.over = hovered;
       p.dwell = hovered && chosen !== p.id ? p.dwell + dt : Math.max(0, p.dwell - dt * 3);
       if (p.dwell >= T.dwell){ p.dwell = 0; choose(p); }
       const k = Math.min(p.dwell / T.dwell, 1);
