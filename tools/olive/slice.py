@@ -29,6 +29,7 @@ diff = np.abs(rgb - paper).max(2)
 # An enclosed area whose mean difference from the paper is below this is paper (between leaves and branches).
 # White petals are as close to the paper as that, so on the flower rows nothing enclosed is taken out.
 FLOWERS = {"c3", "c4", "d2", "d3", "d4"}
+SOFT = (6, 34)   # distance from the paper colour at which a pixel starts to show, and is fully there
 def hole_limit(page, row): return 0 if f"{page}{row}" in FLOWERS else 30
 
 # captions sit in a band under each row; drawings end a few px above it (measured, 1696 px wide sheet)
@@ -98,10 +99,22 @@ for page in "abcd":
                 hy, hx = zip(*hole)
                 m = float(np.mean(box[hy, hx]))
                 if m < hole_limit(page, r + 1) and len(hole) > 25 * k * k: inside[hy, hx] = False
-            alpha = inside.astype(np.uint8) * 255
-            a = Image.fromarray(alpha).filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(0.7))
-            crop = im.crop((x0 + bx0, y0 + by0, x0 + bx1, y0 + by1)).convert("RGBA")
-            crop.putalpha(a)
+            # soft alpha: how far each pixel is from the paper, so the anti-aliased rim fades out instead of
+            # leaving a pale line, and the paper's tint is taken back out of the colour (un-premultiply)
+            paperc = np.median(edge, 0)
+            pix = rgb[y0 + by0:y0 + by1, x0 + bx0:x0 + bx1].astype(float)
+            dist = np.abs(pix - paperc).max(2)
+            soft = np.clip((dist - SOFT[0]) / (SOFT[1] - SOFT[0]), 0, 1)
+            region = np.asarray(Image.fromarray(inside.astype(np.uint8) * 255).filter(ImageFilter.MaxFilter(3))) > 0
+            core = np.asarray(Image.fromarray(inside.astype(np.uint8) * 255).filter(ImageFilter.MinFilter(5))) > 0
+            if f"{page}{r + 1}" in FLOWERS:
+                a = np.where(core, 1.0, soft) * region          # white petals: only the rim is soft
+            else:
+                a = soft * region                               # leaves: any paper showing between them goes
+            a = np.asarray(Image.fromarray((a * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.5))) / 255.0
+            av = np.maximum(a, 0.02)[..., None]
+            colour = np.clip((pix - (1 - av) * paperc) / av, 0, 255)
+            crop = Image.fromarray(np.dstack([colour, a * 255]).astype(np.uint8), "RGBA")
             name = f"{page}{r + 1}{c + 1}"
             crop.save(os.path.join(out, name + ".png"))
             frames.append((name, crop))

@@ -1,8 +1,8 @@
 // Mind section (mētis). No gesture for now: the story is told one sentence at a time (content/texts.js,
 // mind.lines) while an olive grows beside the statue, from the seed to a full tree, then a branch that buds
 // and flowers. The drawings come from Daniele's olive plate (refs/olive-plate.png), cut into single frames by
-// tools/olive/slice.py into assets/mind/<page><row><col>.png. After the last sentence the picture rests for
-// T.rest, fades out and the story starts again.
+// tools/olive/slice.py into assets/mind/<page><row><col>.png. After the last sentence the picture stays for
+// T.hold and fades out; then `done` turns true and js/sections.js goes back to the menu.
 //
 //   import { createMind } from "./mind.js";
 //   const mind = createMind({ stage, texts, statueBand });
@@ -13,11 +13,11 @@
 const W = 1920, H = 1080;
 
 const T = {
-  line: 8500,      // ms each sentence stays (its drawings are spread over this time)
-  fade: 1300,      // ms one drawing takes to cross-fade into the next
-  chapterFade: 2200,  // ms for the cut from the tree to the branch
-  rest: 12000,     // ms after the last sentence before the story starts again
-  out: 1500,       // ms the last picture takes to fade out before the start
+  line: 5500,      // ms each sentence stays (its drawings are spread over this time)
+  fade: 1100,      // ms one drawing dissolves into the next (at most; shorter when drawings come faster)
+  chapterFade: 1400,  // ms for the cut from the tree to the branch
+  hold: 4000,      // ms the last sentence and flower stay before the section closes
+  out: 1200,       // ms the picture and sentence take to fade out at the end
   height: 560,     // px the tallest drawing is drawn at (the plate's cells are ~250 px tall)
   left: 300,       // px: the olive is centred between this (right of the back button) and the statue
   ground: 930,     // px: the drawings stand on this line
@@ -64,15 +64,15 @@ export function createMind(opts){
     steps.push({
       img, chapter: c,
       at: c * T.line + i * T.line / names.length,
-      fade: i === 0 && c === TREE ? T.chapterFade : T.fade,
+      fade: i === 0 && c === TREE ? T.chapterFade : Math.min(T.fade, 0.95 * T.line / names.length),
       grow: c < TREE ? T.grow[0] + (T.grow[1] - T.grow[0]) * n / (treeCount - 1) : 1
     });
   }));
-  const storyEnd = CHAPTERS.length * T.line + T.rest;
+  const storyEnd = CHAPTERS.length * T.line + T.hold;
 
   let TX = opts.texts || {};
   let band = [700, 1240];
-  let t = 0, shown = 0, loops = 0, running = false, swap = 0, scale = 0;
+  let t = 0, shown = 0, done = false, running = false, swap = 0, scale = 0;
 
   const oliveX = () => (T.left + band[0]) / 2;
 
@@ -142,15 +142,16 @@ export function createMind(opts){
   function frame(pts, dt){
     if (!running) return;
     if (!scale) measure();
-    t += dt;
-    if (t >= storyEnd){ t = 0; loops++; showLine(0); }
+    t = Math.min(t + dt, storyEnd);
+    if (t >= storyEnd) done = true;
     const n = Math.min(CHAPTERS.length, Math.floor(t / T.line) + 1);
     if (n !== shown && t < CHAPTERS.length * T.line) showLine(n);
+    lineEl.classList.toggle("in", shown > 0 && t < storyEnd - T.out);
     draw();
   }
 
   function reset(){
-    t = 0; shown = 0; loops = 0; clearTimeout(swap);
+    t = 0; shown = 0; done = false; clearTimeout(swap);
     applyTexts();
     g.clearRect(0, 0, W, H);
   }
@@ -165,8 +166,10 @@ export function createMind(opts){
     setTexts(x){ TX = x || {}; applyTexts(); },
     frame,
     relayout,
-    // while the story is told for the first time the section stays open, even with nobody's hands up
-    get playing(){ return running && loops === 0 && t < CHAPTERS.length * T.line + 4000; },
+    // while the story is told the section stays open, even with nobody's hands up; when it has ended
+    // js/sections.js goes back to the menu
+    get playing(){ return running && !done; },
+    get done(){ return done; },
     get running(){ return running; },
     timing: T
   };

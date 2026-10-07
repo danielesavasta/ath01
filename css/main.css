@@ -30,10 +30,10 @@ body {
     color: #fff;
     font-family: var(--font-text);
 }
-/* Sporting Grotesque: carved/label words. Not vendored yet; add these two files to assets/fonts/ for offline use
-   at the venue, until then the OS's own Sporting Grotesque or a narrow sans-serif is used. */
-@font-face{ font-family:"Sporting Grotesque"; font-weight:400; font-style:normal; font-display:block; src:url("../assets/fonts/SportingGrotesque-Regular.otf") format("opentype"); }
-@font-face{ font-family:"Sporting Grotesque"; font-weight:700; font-style:normal; font-display:block; src:url("../assets/fonts/SportingGrotesque-Bold.otf") format("opentype"); }
+/* Sporting Grotesque, in the copy with the Turkish letters it lacks (ğ Ğ ş Ş İ, and ē for mētis) added:
+   AthenaGrotesque-*.otf, made from SportingGrotesque-*.otf by tools/fonts/turkish.py (SIL OFL). */
+@font-face{ font-family:"Sporting Grotesque"; font-weight:400; font-style:normal; font-display:block; src:url("../assets/fonts/AthenaGrotesque-Regular.otf") format("opentype"); }
+@font-face{ font-family:"Sporting Grotesque"; font-weight:700; font-style:normal; font-display:block; src:url("../assets/fonts/AthenaGrotesque-Bold.otf") format("opentype"); }
 
 .t-label{ font-family: var(--font-label); font-size: var(--size-label); letter-spacing: .2em; color: var(--muted); }
 .t-rule{ width: calc(36 * var(--u)); height: 1px; background: rgba(233,225,208,.45); margin: calc(18 * var(--u)) 0; }

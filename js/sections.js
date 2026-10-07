@@ -332,6 +332,7 @@ function menuFrame(now, dt, pts){
 function sectionFrame(now, dt, pts){
   const active = SECTIONS[section];
   active.frame?.(pts, dt);      // sections without hand physics of their own (the egg gallery) get dwell here
+  if (active.done){ closeSection("back"); return; }   // a section that tells a story once (mind) ends by itself
   const handsIn = pts.some((p) => !p.mouse);
   if (handsIn || active.holding || active.playing) activeAt = now;   // mind: stays open while its story is told
 
