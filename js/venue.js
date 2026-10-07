@@ -39,9 +39,9 @@ window.VENUE_FILE = {
         mask: { on: true, points: [[993, 90], [984, 127], [990, 157], [982, 195], [980, 222], [983, 264], [937, 282], [899, 307], [901, 340], [899, 368], [900, 391], [903, 418], [912, 440], [911, 463], [912, 487], [911, 510], [912, 533], [911, 554], [911, 576], [909, 656], [905, 630], [903, 598], [911, 682], [912, 707], [912, 729], [915, 749], [921, 764], [929, 784], [930, 814], [938, 846], [943, 880], [931, 927], [916, 959], [907, 990], [899, 1037], [920, 1068], [962, 1066], [1001, 1079], [1056, 1066], [1092, 1053], [1121, 1020], [1142, 986], [1146, 940], [1148, 890], [1154, 842], [1165, 807], [1174, 754], [1175, 695], [1179, 651], [1182, 611], [1183, 579], [1180, 536], [1194, 507], [1195, 474], [1186, 423], [1182, 378], [1173, 352], [1161, 315], [1121, 277], [1054, 259], [1023, 255], [1031, 232], [1071, 224], [1090, 191], [1099, 152], [1091, 115], [1083, 96], [1071, 64], [1051, 51], [1022, 55]],
                 light: { on: true, color: '#fff1dc', level: 0.55, soft: 12, slope: 0.3 }, feather: 6 },
         camera: { zoom: 1, cx: 0.5, cy: 0.5, kinectMirror: true },
-        // the Mind section's pace (K, Mind): seconds per sentence, seconds the points take to flow into the next
-        // drawing, and how many points draw the olive
-        mind: { line: 7.5, morph: 2.8, particles: 30000 },
+        // the Mind section's pace (K, Mind): seconds a sentence's drawings take, seconds the last one rests before
+        // the next sentence, seconds the points take to flow into the next drawing, and how many points draw the olive
+        mind: { line: 7.5, rest: 2, morph: 2.8, particles: 30000 },
         detect: { confidence: 0.6, upOnly: 70,
                   depth: { near: 500, far: 4000, reach: 180, margin: 120, push: 120 } },
         // cloth parts lit by the Craft section (js/craft/), drawn on the statue photo; redraw them at the venue (K)
@@ -168,7 +168,8 @@ window.VENUE_FILE = {
             </div>
             <div class="vs-body" data-for="mind">
               <p>The pace of the Mind section (the olive drawn by particles). Changes apply the next time Mind opens; press N to try.</p>
-              <label class="vs-slider">Time per sentence <output data-o="mindLine"></output><input type="range" min="4" max="15" step="0.5" data-k="mindLine"></label>
+              <label class="vs-slider">Growing time per sentence <output data-o="mindLine"></output><input type="range" min="4" max="15" step="0.5" data-k="mindLine"></label>
+              <label class="vs-slider">Rest between sentences <output data-o="mindRest"></output><input type="range" min="0" max="6" step="0.5" data-k="mindRest"></label>
               <label class="vs-slider">Flow between drawings <output data-o="mindMorph"></output><input type="range" min="0.8" max="6" step="0.1" data-k="mindMorph"></label>
               <label class="vs-slider">Particles <output data-o="mindParticles"></output><input type="range" min="5000" max="60000" step="1000" data-k="mindParticles"></label>
               <p>More particles show more detail but cost speed; if the movement stutters, lower them.</p>
@@ -215,6 +216,7 @@ window.VENUE_FILE = {
             else if (k === 'kinectMirror') S.camera.kinectMirror = v;
             else if (k === 'reach' || k === 'far' || k === 'push') S.detect.depth[k] = v;
             else if (k === 'mindLine') S.mind.line = v;
+            else if (k === 'mindRest') S.mind.rest = v;
             else if (k === 'mindMorph') S.mind.morph = v;
             else if (k === 'mindParticles') S.mind.particles = v;
             else S.detect[k] = v;
@@ -273,8 +275,9 @@ window.VENUE_FILE = {
         });
         set('kinectMirror', S.camera.kinectMirror); set('zoom', S.camera.zoom); set('confidence', S.detect.confidence); set('upOnly', S.detect.upOnly);
         set('reach', S.detect.depth.reach); set('far', S.detect.depth.far); set('push', S.detect.depth.push);
-        set('mindLine', S.mind.line); set('mindMorph', S.mind.morph); set('mindParticles', S.mind.particles);
+        set('mindLine', S.mind.line); set('mindRest', S.mind.rest); set('mindMorph', S.mind.morph); set('mindParticles', S.mind.particles);
         ui.querySelector('[data-o="mindLine"]').textContent = S.mind.line.toFixed(1) + ' s';
+        ui.querySelector('[data-o="mindRest"]').textContent = S.mind.rest.toFixed(1) + ' s';
         ui.querySelector('[data-o="mindMorph"]').textContent = S.mind.morph.toFixed(1) + ' s';
         ui.querySelector('[data-o="mindParticles"]').textContent = S.mind.particles.toLocaleString('en');
         ui.querySelector('[data-o="reach"]').textContent = S.detect.depth.reach + ' mm';
@@ -449,7 +452,7 @@ window.VENUE_FILE = {
     light: { on: ${S.mask.light.on}, color: '${S.mask.light.color}', level: ${S.mask.light.level}, soft: ${S.mask.light.soft}, slope: ${S.mask.light.slope} }
   },
     camera: { zoom: ${+S.camera.zoom.toFixed(3)}, cx: ${+S.camera.cx.toFixed(4)}, cy: ${+S.camera.cy.toFixed(4)}, kinectMirror: ${S.camera.kinectMirror} },
-  mind: { line: ${S.mind.line}, morph: ${S.mind.morph}, particles: ${S.mind.particles} },
+  mind: { line: ${S.mind.line}, rest: ${S.mind.rest}, morph: ${S.mind.morph}, particles: ${S.mind.particles} },
   detect: { confidence: ${S.detect.confidence}, upOnly: ${S.detect.upOnly},
             depth: { near: ${S.detect.depth.near}, far: ${S.detect.depth.far}, reach: ${S.detect.depth.reach}, margin: ${S.detect.depth.margin}, push: ${S.detect.depth.push} } },
   parts: [

@@ -112,6 +112,8 @@ const SOUNDS = {
   },
   close(o, t){ [440, 329.6, 246.9].forEach((f, i) => tone(o, t + i * 0.09, { f, type: "triangle", a: 0.01, peak: 0.06, d: 0.9 })); },
   lang(o, t){ tone(o, t, { f: 1250, type: "triangle", peak: 0.08, d: 0.07 }); hiss(o, t, { f: 3000, q: 2, peak: 0.05, d: 0.04 }); },
+  spin(o, t){ hiss(o, t, { f: 2200, to: 900, q: 0.9, a: 0.3, peak: 0.035, d: 1.4 }); },   // the letters' reels start
+  clack(o, t){ hiss(o, t, { f: 2600, q: 1.6, peak: 0.06, d: 0.05 }); tone(o, t, { f: 196, type: "triangle", peak: 0.05, d: 0.16 }); },   // one stops
   tick(o, t){ tone(o, t, { f: 1600, peak: 0.03, d: 0.05 }); },
   line(o, t){ bell(o, t, 659.3, { peak: 0.05, d: 2, bright: 0.5 }); tone(o, t, { f: 329.6, peak: 0.03, a: 0.08, d: 1.4 }); },
 
@@ -156,6 +158,7 @@ const SOUNDS = {
   tile(o, t){ hiss(o, t, { f: 1400, to: 700, q: 0.8, a: 0.02, peak: 0.05, d: 0.22 }); tone(o, t, { f: 523.3, peak: 0.02, a: 0.03, d: 0.4 }); },
 
   // mind: the olive growing
+  stir(o, t, v){ hiss(o, t, { f: 3400, to: 1900, q: 0.7, a: 0.06, peak: 0.02 + 0.035 * v, d: 0.4 }); },   // a hand through the olive's leaves
   grow(o, t){ hiss(o, t, { f: 2600, to: 1500, q: 0.6, a: 0.15, peak: 0.045, d: 0.5 }); },
 
   // gymnasion: the ruin
@@ -167,7 +170,7 @@ const SOUNDS = {
   torch(o, t){ hiss(o, t, { f: 400, to: 1400, q: 0.6, a: 0.05, peak: 0.06, d: 0.35 }); tone(o, t, { f: 110, a: 0.04, peak: 0.03, d: 0.4 }); }
 };
 // the least time between two of the same sound (ms), so bursts stay readable
-const GAP = { clink: 45, arrow: 250, crumble: 120, hover: 120, tick: 200, light: 200, grow: 300, torch: 400 };
+const GAP = { clink: 45, arrow: 250, crumble: 120, hover: 120, tick: 200, light: 200, grow: 300, torch: 400, stir: 350 };
 
 export function sfx(name, opts = {}){
   const recipe = SOUNDS[name];
