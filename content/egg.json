@@ -48,7 +48,12 @@
       "source_references": [
         "https://collections.louvre.fr/en/ark:/53355/cl010262975",
         "http://www.perseus.tufts.edu/hopper/artifact?name=Louvre+CA+616&object=Vase"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu",
+        "meta": "C Ressamı · Yaklaşık MÖ 570–560 · Louvre Müzesi, Paris",
+        "text": "Athena, Zeus'un başından miğferi, mızrağı ve kalkanıyla çıkar. Zeus simgeleriyle oturmaktadır; Hephaistos, Eileithyia ve diğer tanrılar doğuma katılır ya da tanıklık eder."
+      }
     },
     {
       "id": "02",
@@ -68,7 +73,12 @@
       "source_references": [
         "https://www.khm.at/en/artworks/geburt-der-athena-56568-1",
         "https://artsandculture.google.com/asset/geburt-der-athena/HQHUH2NOByrpXw?hl=de"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu, amphora",
+        "meta": "Bilinmeyen Attika siyah figür vazo ressamı · MÖ 6. yüzyılın üçüncü çeyreği · Kunsthistorisches Museum, Viyana",
+        "text": "Hephaistos baltayla Zeus'un kafatasını yarınca Athena tahtında oturan Zeus'un başından fırlar. Eileithyia Zeus'a yardım eder; Ares, Apollon ve Hermes tanıklık eden tanrılar arasındadır."
+      }
     },
     {
       "id": "03",
@@ -89,7 +99,12 @@
       "source_references": [
         "https://www.britishmuseum.org/collection/term/BIOG59970",
         "https://www.bmimages.com/results.asp?txtkeys1=painter%20of%20the%20birth%20of%20athena"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu, amphora",
+        "meta": "Athena'nın Doğuşu Ressamı · Yaklaşık MÖ 550 · British Museum, Londra",
+        "text": "Sahnenin merkezinde Athena'nın doğuşu vardır: Zeus, Athena ve onlara eşlik eden tanrılar bu mucizevi doğumun çevresine dizilmiştir."
+      }
     },
     {
       "id": "04",
@@ -118,9 +133,13 @@
         "https://www.theacropolismuseum.gr/en/exhibit-halls/parthenon-gallery",
         "https://www.culture.gov.gr/en/parthenonas/SitePages/view.aspx?iID=7",
         "https://museum.classics.cam.ac.uk/collections/casts/parthenon-east-pediment"
-      ]
+      ],
+      "tr": {
+        "title": "Parthenon, doğu alınlığı",
+        "meta": "Geleneksel olarak Pheidias'a bağlanan atölye · Yaklaşık MÖ 437–432 · Akropolis Müzesi, Atina; British Museum, Londra; diğer parçalar Avrupa koleksiyonlarında",
+        "text": "Doğu alınlığı, toplanmış Olymposlu tanrıların önünde Athena'nın Zeus'un başından doğuşunu gösteriyordu. Yükselen Helios'un ve batan Selene'nin ya da Nyks'in arabaları sahneyi çerçeveliyor, doğumun şafakta gerçekleştiğini düşündürüyordu."
+      }
     },
-    
     {
       "id": "06",
       "title": "The Birth of Pallas Athene",
@@ -141,7 +160,12 @@
       "source_references": [
         "https://commons.wikimedia.org/wiki/File:Constantin_Hansen_-_The_Birth_of_Pallas_Athene_-_KMS4062_-_Statens_Museum_for_Kunst.jpg",
         "https://www.sdu.dk/en/om-sdu/institutter-centre/iks/forskning/forskningsprojekter/hidden-cultural-heritage"
-      ]
+      ],
+      "tr": {
+        "title": "Pallas Athena'nın Doğuşu",
+        "meta": "Constantin Hansen · 1850 · Statens Museum for Kunst, Kopenhag",
+        "text": "Athena, Zeus'un alnından tam silahlı bir tanrıça olarak çıkar. Zeus tahtından tepki verir; Hephaistos ve Eileithyia olaya tanıklık eder."
+      }
     },
     {
       "id": "08",
@@ -161,7 +185,12 @@
       "source_references": [
         "https://brewminate.com/etruscan-visual-representations-of-the-birth-of-athena-and-minerva-a-comparative-study/"
       ],
-      "note": "The museum image and catalogue information should be verified directly through the Palace of Versailles collection before publication or commercial use."
+      "note": "The museum image and catalogue information should be verified directly through the Palace of Versailles collection before publication or commercial use.",
+      "tr": {
+        "title": "Minerva'nın Doğuşu",
+        "meta": "René-Antoine Houasse · Yaklaşık 1706 · Versay Sarayı, Fransa",
+        "text": "Athena'nın Roma'daki karşılığı Minerva, tanrısal hizmetkârlar ve göksel figürler arasında Jüpiter'in başından çıkar."
+      }
     },
     {
       "id": "11",
@@ -186,7 +215,12 @@
       "source_references": [
         "https://www.metmuseum.org/art/collection/search/247515",
         "https://www.theoi.com/Gallery/K8.12.html"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu, kyliks",
+        "meta": "Lefkoşa Olpesi Ressamı · Yaklaşık MÖ 550 · Metropolitan Sanat Müzesi, New York",
+        "text": "Athena, Zeus'un alnından doğduktan sonra onun kucağında durur. Zeus bir taburede asasıyla oturur. Çocuk olarak gösterilen Athena mızrak sallar; kalkanı ve sivri miğferi vardır. İkisinin yanında, kollarını kaldırmış ebeler gibi ikiz doğum tanrıçaları Eileithyialar durur."
+      }
     },
     {
       "id": "12",
@@ -205,7 +239,12 @@
       },
       "source_references": [
         "https://www.theoi.com/Gallery/K8.14.html"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu, amphora",
+        "meta": "Kyllenios Ressamı · Yaklaşık MÖ 570–560 · Antikensammlung, Berlin",
+        "text": "Athena Zeus'un başından doğar. Zeus, arkalığı turna biçimli bir sandalyede elinde yıldırımla oturur. Yanında ebe gibi kollarını kaldıran Eileithyia ve Demeter vardır. Solda sarmaşık taçlı Dionysos, baltasıyla Hephaistos ve haberci asasıyla Hermes durur."
+      }
     },
     {
       "id": "13",
@@ -225,7 +264,12 @@
       },
       "source_references": [
         "https://www.theoi.com/Gallery/K8.10.html"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu, kyliks",
+        "meta": "Phrynos Ressamı · Yaklaşık MÖ 555–550 · British Museum, Londra",
+        "text": "Hephaistos, Zeus'un kafatasına indirdiği bir balta darbesiyle Athena'yı doğurtur. Zeus kuğu başıyla süslü bir tahtta yıldırım sallayarak oturur. Athena kalkanıyla fırlar. Hephaistos bir Eileithyia'yı taklit edercesine elini kaldırır ve çift ağızlı baltasını tutar."
+      }
     },
     {
       "id": "14",
@@ -244,7 +288,12 @@
       },
       "source_references": [
         "https://www.theoi.com/Gallery/K8.11.html"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu, amphora",
+        "meta": "E Grubu Ressamı · Yaklaşık MÖ 545–535 · Virginia Güzel Sanatlar Müzesi, Richmond",
+        "text": "Zeus oturur, Athena silahlı olarak başından çıkar; Eileithyia ve diğer tanrılar tanıklık eder. Tanrıların adlandırıldığı ya da tanınabildiği tipik bir Arkaik kompozisyon."
+      }
     },
     {
       "id": "15",
@@ -264,7 +313,12 @@
       },
       "source_references": [
         "https://www.hellenicaworld.com/Greece/Mythology/en/AthenaGallery1.html"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu, amphora",
+        "meta": "Bilinmeyen Attika siyah figür vazo ressamı · Yaklaşık MÖ 550–525 · Louvre Müzesi, Paris",
+        "text": "Siyah figürlü bu amphora, Eileithyia'nın eşliğinde Zeus'un başından çıkan Athena'yı gösterir. Zeus sağdaki Eileithyia'nın giysisini kavrar."
+      }
     },
     {
       "id": "16",
@@ -284,7 +338,12 @@
       },
       "source_references": [
         "http://www.goddess-athena.org/Museum/Vases/Archaic/Archaic.htm"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu, oinokhoe",
+        "meta": "Lysippides Ressamı · Yaklaşık MÖ 530–520 · British Museum, Londra",
+        "text": "Bir yüzde Athena'nın doğuşu; öteki yüzde belki Herakles ve Erymanthos yaban domuzu. Athena, çevresindeki tanrılarla birlikte Zeus'un başından silahlı olarak çıkar."
+      }
     },
     {
       "id": "17",
@@ -303,7 +362,12 @@
       },
       "source_references": [
         "http://www.perseus.tufts.edu/hopper/artifact?name=Philadelphia+MS3441&object=Vase"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu, amphora",
+        "meta": "Bilinmeyen Attika siyah figür ressamı · Yaklaşık MÖ 560–550 · Pennsylvania Üniversitesi Müzesi, Philadelphia",
+        "text": "A yüzü: Athena'nın doğuşu. Henüz tam boyuna ulaşmamış Athena Zeus'un kucağında durur, çevresinde beş tanrı toplanmıştır. B yüzü: tanrılar meclisi; belki Herakles'in Olympos'a tanıtılması."
+      }
     },
     {
       "id": "18",
@@ -323,7 +387,12 @@
       },
       "source_references": [
         "https://www.theoi.com/Gallery/K19.1.html"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu, kyliks",
+        "meta": "Bilinmeyen Attika siyah figür ressamı · Yaklaşık MÖ 550 · Metropolitan Sanat Müzesi, New York",
+        "text": "Athena'nın doğuşunu gösteren bir resimden Eileithyia ayrıntısı. Eileithyia doğumda ebelik eder."
+      }
     },
     {
       "id": "19",
@@ -343,7 +412,12 @@
       },
       "source_references": [
         "https://ancientrome.ru/art/artworken/img.htm?id=8606"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu, pelike",
+        "meta": "Athena'nın Doğuşu Ressamı · Yaklaşık MÖ 460–450 · British Museum, Londra",
+        "text": "Athena'nın Zeus'un başından doğuşu. Kırmızı figür tekniği giysileri ve bedenleri daha doğal çizmeye izin verir. Zeus oturur, Athena silahlı çıkar, Hephaistos baltasıyla durur, diğer tanrılar izler."
+      }
     },
     {
       "id": "20",
@@ -364,7 +438,12 @@
       },
       "source_references": [
         "https://www.carc.ox.ac.uk/record/E1BDF611-4F4E-47B7-ACC5-F37BBBC0388F"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu, amphora (Louvre E852)",
+        "meta": "Bilinmeyen Attika siyah figür ressamı · Yaklaşık MÖ 560–550 · Louvre Müzesi, Paris",
+        "text": "Athena'nın doğuşu: yıldırımıyla sandalyede oturan Zeus, Eileithyia, Poseidon, Dionysos, Leto, Ares, Hermes, Hephaistos ve bir tanrıça. Yanlarına yazılmış adlar tanrıları tanıtır."
+      }
     },
     {
       "id": "21",
@@ -387,7 +466,12 @@
       "source_references": [
         "https://www.theacropolismuseum.gr/",
         "https://www.culture.gov.gr/"
-      ]
+      ],
+      "tr": {
+        "title": "Eski Athena Tapınağı alınlığı (Akropolis)",
+        "meta": "Bilinmeyen Arkaik heykeltıraş(lar) · Yaklaşık MÖ 570–560 · Akropolis Müzesi, Atina",
+        "text": "Alınlık heykelleri başka mitolojik sahnelerin yanında Athena'nın doğuşunu da içeriyordu. Ortadaki doğum grubu parçalı olsa da kalan parçalardan ve antik tanıklıklardan tanınabilir."
+      }
     },
     {
       "id": "22",
@@ -407,7 +491,12 @@
       },
       "source_references": [
         "https://www.academia.edu/45438538/"
-      ]
+      ],
+      "tr": {
+        "title": "Aphaia Tapınağı, doğu alınlığı",
+        "meta": "Bilinmeyen Erken Klasik heykeltıraş(lar) · Yaklaşık MÖ 500–490 · Glyptothek, Münih",
+        "text": "Ana konu tartışmalı olsa da bazı yeniden kurgular, Athena'nın ortada baskın bir figür olduğu alınlık programında onun doğuşunu ya da görünüşünü önerir."
+      }
     },
     {
       "id": "26",
@@ -427,7 +516,12 @@
       },
       "source_references": [
         "https://collections.louvre.fr/ark:/53355/cl010060385"
-      ]
+      ],
+      "tr": {
+        "title": "Minerva'nın Doğuşu",
+        "meta": "Genç Louis de Boullogne · Yaklaşık 1681–1682 · Louvre Müzesi, Paris",
+        "text": "Minerva (Athena), sanatları temsil eden alegorik figürlerin arasında Jüpiter'in başından çıkar. Aslında Minerva'nın koruduğu sanatları yücelten bir tavan süslemesinin parçası olarak tasarlanmıştı."
+      }
     },
     {
       "id": "27",
@@ -451,7 +545,12 @@
       },
       "source_references": [
         "https://commons.wikimedia.org/wiki/File:Ren%C3%A9-Antoine_Houasse_-_Minerva.jpg"
-      ]
+      ],
+      "tr": {
+        "title": "Jüpiter'in Beyninden Tam Silahlı Doğan Minerva",
+        "meta": "René-Antoine Houasse · 1688'den önce · Versay Sarayı, Fransa",
+        "text": "Minerva, tanrısal hizmetkârlar ve göksel figürler arasında Jüpiter'in beyninden tam silahlı çıkar. Hareketli, teatral bir Barok kompozisyon."
+      }
     },
     {
       "id": "28",
@@ -471,7 +570,12 @@
       },
       "source_references": [
         "https://collection.smk.dk/#/en/detail/KMS4062"
-      ]
+      ],
+      "tr": {
+        "title": "Pallas Athena'nın Doğuşu",
+        "meta": "Constantin Hansen · 1850 · Statens Museum for Kunst, Kopenhag",
+        "text": "Athena, Zeus'un alnından tam silahlı bir tanrıça olarak çıkar. Zeus tahtından tepki verir; Hephaistos ve Eileithyia olaya tanıklık eder."
+      }
     },
     {
       "id": "30",
@@ -490,7 +594,12 @@
       },
       "source_references": [
         "https://www.nationalgallery.gr/en/artwork/the-birth-of-athena-model-for-the-pediment-of-the-athens-academy/"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu (Atina Akademisi alınlığı)",
+        "meta": "Leonidas Drosis · Yaklaşık 1860 · Atina Akademisi, Yunanistan",
+        "text": "Ortadaki alınlık Athena'nın doğuşunu gösterir. Oturan Zeus merkezdedir; Athena ve Hephaistos onu çerçeveler, Hera izler, İris doğumu duyurmaya hazırlanır."
+      }
     },
     {
       "id": "34",
@@ -509,7 +618,12 @@
       },
       "source_references": [
         "https://bmcr.brynmawr.edu/2017/2017.02.09/"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu (Yale, E Grubu amphorası)",
+        "meta": "E Grubu'na atfedilir · Yaklaşık MÖ 540–530 · Yale Üniversitesi Sanat Galerisi, New Haven",
+        "text": "Gövde amphorası: oturan Zeus, silahlı çıkan Athena ve eşlik eden tanrılarla Athena'nın doğuşu. Ek renkleri ve kazıma ayrıntılarıyla tipik E Grubu üslubu."
+      }
     },
     {
       "id": "35",
@@ -529,7 +643,12 @@
       },
       "source_references": [
         "https://www.carc.ox.ac.uk/record/BB606866-31C5-4DA7-B39F-C1E75F9835CD"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu (British Museum B218)",
+        "meta": "Bilinmeyen Attika siyah figür ressamı · Yaklaşık MÖ 560–550 · British Museum, Londra",
+        "text": "Athena'nın doğuşu: Eileithyialar arasında asasıyla sandalyede oturan Zeus (altında geyik postlu kanatlı bir genç), baltasıyla Hephaistos. İkiz doğum tanrıçalarıyla alışılmış Arkaik kompozisyon."
+      }
     },
     {
       "id": "37",
@@ -548,7 +667,12 @@
       },
       "source_references": [
         "https://museum.classics.cam.ac.uk/collections/casts/parthenon-east-pediment"
-      ]
+      ],
+      "tr": {
+        "title": "Parthenon, doğu alınlığı (yeniden kurgu)",
+        "meta": "Pheidias atölyesi · Yaklaşık MÖ 437–432 · Klasik Arkeoloji Müzesi, Cambridge (alçı kopya); asılları Akropolis Müzesi ve British Museum'da",
+        "text": "Doğu alınlığı, toplanmış Olymposlu tanrıların önünde Athena'nın Zeus'un başından doğuşunu gösteriyordu. Yükselen Helios'un ve batan Selene'nin arabaları sahneyi çerçeveliyordu. Ortadaki figürler (Zeus, Athena, Hephaistos) kayıptır; çizimlerden ve yazılı kaynaklardan yeniden kurgulanmıştır."
+      }
     },
     {
       "id": "38",
@@ -568,7 +692,12 @@
       },
       "source_references": [
         "https://www.britishmuseum.org/collection/object/G_1816-0610-93"
-      ]
+      ],
+      "tr": {
+        "title": "Parthenon doğu alınlığı, D figürü (Dionysos)",
+        "meta": "Pheidias atölyesi · Yaklaşık MÖ 437–432 · British Museum, Londra",
+        "text": "Doğu alınlığından, Athena'nın doğuşuna tanıklık eden uzanmış Dionysos figürü. Alınlık heykelleri arasında başı sağlam kalan tek figürdür; doğumu izleyen tanrılar topluluğunun bir parçasıdır."
+      }
     },
     {
       "id": "39",
@@ -587,7 +716,12 @@
       },
       "source_references": [
         "https://www.theacropolismuseum.gr/en/parthenon-east-pediment-heads-horses"
-      ]
+      ],
+      "tr": {
+        "title": "Parthenon doğu alınlığı figürleri (Akropolis Müzesi)",
+        "meta": "Pheidias atölyesi · Yaklaşık MÖ 437–432 · Akropolis Müzesi, Atina",
+        "text": "Doğu alınlığından kalan figürler arasında tanrıçalar (belki Hestia, Dione, Aphrodite), Helios'un atları ve Athena'nın doğuşuna tanıklık eden diğer tanrılar vardır. Ortadaki doğum grubu kayıptır."
+      }
     },
     {
       "id": "55",
@@ -606,7 +740,12 @@
       },
       "source_references": [
         "https://www.scribd.com/document/937433290/AR201-Lecture-5A-Athena"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu, kırmızı figür",
+        "meta": "Athena'nın Doğuşu Ressamı · Yaklaşık MÖ 460–450 · British Museum, Londra",
+        "text": "Athena'nın Zeus'un başından doğuşu. Kırmızı figür tekniği daha doğal bir anlatıma izin verir. Athena'nın Doğuşu Ressamı'na atfedilir."
+      }
     },
     {
       "id": "59",
@@ -629,7 +768,12 @@
       },
       "source_references": [
         "https://www.worldhistory.org/article/780/the-parthenon-sculptures/"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu, Parthenon doğu alınlığı",
+        "meta": "Pheidias atölyesi · Yaklaşık MÖ 437–432 · Akropolis Müzesi, Atina; British Museum, Londra",
+        "text": "Doğu alınlığı Athena'nın doğuşunu gösteriyor, Panathenaia Bayramı frizine bağlanıyordu. Sahnenin merkezinde Zeus, yanında yeni doğmuş, tam silahlı Athena; yakında baltasıyla Hephaistos."
+      }
     },
     {
       "id": "62",
@@ -650,7 +794,12 @@
       "source_references": [
         "https://dokumen.pub/the-gods-of-the-greeks-0299329402_9780299329402.html",
         "https://commons.wikimedia.org/wiki/File:Tenean_relief_pithos_fragments_-_birth_of_Athena_-_%CE%A4%CE%AE%CE%BD%CE%BF%CF%82_AM_-_01.jpg"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu, kabartmalı pithos (Tinos B64)",
+        "meta": "Bilinmeyen Kikladlı heykeltıraş · Yaklaşık MÖ 680–670 · Tinos Arkeoloji Müzesi, Yunanistan",
+        "text": "Büyük bir pithosun boynundaki kabartma, oturan sakallı Zeus'un başından çıkan Athena'yı gösterir. Hephaistos Zeus'un üstünde durup doğuma yardım eder. Hephaistos'un Yunan sanatında bilinen en eski tasviridir."
+      }
     },
     {
       "id": "63",
@@ -670,7 +819,12 @@
       },
       "source_references": [
         "https://ajaonline.org/book-review/612/"
-      ]
+      ],
+      "tr": {
+        "title": "Athena'nın Doğuşu, kabartmalı pithos (Tinos B3)",
+        "meta": "Bilinmeyen Kikladlı heykeltıraş · Yaklaşık MÖ 675 · Tinos Arkeoloji Müzesi, Yunanistan",
+        "text": "Kabartmalı bir pithos parçası: oturan sakallı bir tanrının başından fırlayan kanatlı bir figür. Zeus'un sakalını koruyan yeni yayımlanmış bir parça sayesinde Athena'nın doğuşu olduğu doğrulanmıştır."
+      }
     },
     {
       "id": "64",
@@ -690,7 +844,12 @@
       },
       "source_references": [
         "https://www.britishmuseum.org/collection/object/G_1856-1213-4"
-      ]
+      ],
+      "tr": {
+        "title": "Etrüsk bronz aynası (British Museum 1856,1213.4)",
+        "meta": "Bilinmeyen Etrüsk zanaatkâr · Yaklaşık MÖ 300–250 · British Museum, Londra",
+        "text": "Kazıma sahne, Menrva'nın (Athena/Minerva) Tinia'nın (Zeus) başından doğuşunu gösterir. Çelenk çerçeve içinde altı figür; kenara tersten yazılmış Etrüskçe adlar Tinia'yı, Menrva'yı ve diğer tanrıları tanıtır."
+      }
     },
     {
       "id": "65",
@@ -713,7 +872,12 @@
       },
       "source_references": [
         "https://www.britishmuseum.org/collection/object/G_1873-0820-103"
-      ]
+      ],
+      "tr": {
+        "title": "Etrüsk bronz aynası (British Museum 1873,0820.103)",
+        "meta": "Bilinmeyen Etrüsk zanaatkâr · Yaklaşık MÖ 350–300 · British Museum, Londra",
+        "text": "Ana sahnede her biri adıyla yazılmış dört figür vardır: Tinia (Zeus), Menerva (Athena), Thanr (Persephone?) ve Ethausva. Tinia, Menerva'yı doğurmaktadır. Karşılıklı çift sarmallardan oluşan bordür figürlerle kesilir."
+      }
     },
     {
       "id": "67",
@@ -731,7 +895,12 @@
       },
       "source_references": [
         "https://brewminate.com/etruscan-visual-representations-of-the-birth-of-athena-and-minerva-a-comparative-study/"
-      ]
+      ],
+      "tr": {
+        "title": "Etrüsk bronz aynası (Arezzo)",
+        "meta": "Bilinmeyen Etrüsk zanaatkâr · Yaklaşık MÖ 350–325 · Floransa Ulusal Arkeoloji Müzesi (ya da Arezzo)",
+        "text": "Her biri yazıyla tanıtılan beş kişilik bir doğum sahnesi. Menrva, Tinia'nın dağınık saç çizgisinden tam savaş donanımıyla çıkar: yuvarlak kalkan, mızrak ve Korinth miğferi. Zeus, Athena ve Hephaistos'un Etrüsk karşılıkları tanınır ama kendine özgü biçimde değişmiştir."
+      }
     },
     {
       "id": "68",
@@ -750,7 +919,12 @@
       },
       "source_references": [
         "https://brewminate.com/etruscan-visual-representations-of-the-birth-of-athena-and-minerva-a-comparative-study/"
-      ]
+      ],
+      "tr": {
+        "title": "Etrüsk bronz aynası (Palestrina)",
+        "meta": "Bilinmeyen Etrüsk zanaatkâr · Yaklaşık MÖ 325–300 · Palestrina Ulusal Arkeoloji Müzesi (ya da ilgili koleksiyon)",
+        "text": "Menrva'nın Tinia'nın başından doğuşu. Tinia'nın sağında Ethausva durur. Menrva daha önceki örneklere göre daha küçük gösterilmiştir. Etrüskçe yazılar tanrıları tanıtır."
+      }
     },
     {
       "id": "69",
@@ -769,7 +943,12 @@
       },
       "source_references": [
         "https://commons.wikimedia.org/wiki/Category:Etruscan_mirrors"
-      ]
+      ],
+      "tr": {
+        "title": "Etrüsk bronz aynası (Paris)",
+        "meta": "Bilinmeyen Etrüsk zanaatkâr · Yaklaşık MÖ 300–250 · Petit Palais, Paris",
+        "text": "Menrva'nın Tinia'nın başından doğuşu. Menrva biraz daha kararlı bir duruş alır ama boyu belirgin biçimde küçülmüştür. Paris, Berlin ve Londra'daki daha az ayrıntılı Helenistik eserler grubunun bir parçasıdır."
+      }
     },
     {
       "id": "73",
@@ -787,7 +966,12 @@
       },
       "source_references": [
         "https://commons.wikimedia.org/wiki/Category:Menrva"
-      ]
+      ],
+      "tr": {
+        "title": "Etrüsk bronz aynası (Bloomington)",
+        "meta": "Bilinmeyen Etrüsk zanaatkâr · Yaklaşık MÖ 325–300 · Indiana Üniversitesi Sanat Müzesi, Bloomington",
+        "text": "Menrva'nın Tinia'nın başından doğuşu. Yazılı adlarla alışılmış Etrüsk ikonografisini gösterir."
+      }
     },
     {
       "id": "74",
@@ -805,7 +989,12 @@
       },
       "source_references": [
         "https://commons.wikimedia.org/wiki/Category:Menrva"
-      ]
+      ],
+      "tr": {
+        "title": "Etrüsk bronz aynası (Bern)",
+        "meta": "Bilinmeyen Etrüsk zanaatkâr · Yaklaşık MÖ 350–300 · Bern Tarih Müzesi, İsviçre",
+        "text": "Menrva'nın Tinia'nın başından doğuşu. Turms, Menrva, Umaele, Aplu ve diğer tanrılar görülür; yazılı adlar figürleri tanıtır."
+      }
     },
     {
       "id": "76",
@@ -829,7 +1018,12 @@
       },
       "source_references": [
         "https://collections.louvre.fr/ark:/53355/cl010060385"
-      ]
+      ],
+      "tr": {
+        "title": "Minerva'nın Doğuşu (Boullogne, Louvre eskizi)",
+        "meta": "Genç Louis de Boullogne · Yaklaşık 1681–1682 · Louvre Müzesi, Paris",
+        "text": "Minerva (Athena), sanatları temsil eden alegorik figürler arasında Jüpiter'in başından çıkar. Minerva'nın koruduğu sanatları yücelten bir tavan süslemesi için tasarlanmış, sonradan 'Sanatların Koruyucusu Minerva' adını almıştır."
+      }
     },
     {
       "id": "77",
@@ -849,7 +1043,12 @@
       },
       "source_references": [
         "https://www.metmuseum.org/art/collection/search/742845"
-      ]
+      ],
+      "tr": {
+        "title": "Minerva'nın Doğuşu (Palazzo Barberini tavanı, Pietro da Cortona'dan)",
+        "meta": "Pietro da Cortona'dan (özgün fresk); Camillo Cungi (baskı) · Yaklaşık 1633–1639 (özgün fresk) · Çeşitli müzeler (baskılar)",
+        "text": "Minerva, Papa VIII. Urbanus döneminin göksel yüceltilmesinde görünür. Pietro da Cortona'nın, Minerva'yı devleri devirirken ve tanrısal zaferlere katılırken gösteren büyük Barok tavan programının parçasıdır."
+      }
     },
     {
       "id": "78",
@@ -867,9 +1066,14 @@
       },
       "source_references": [
         "https://www.wga.hu/html/g/giordano/3/medici07.html"
-      ]
+      ],
+      "tr": {
+        "title": "Minerva'nın Doğuşu (Palazzo Medici Riccardi tavanı, Giordano)",
+        "meta": "Luca Giordano · Yaklaşık 1683–1685 · Palazzo Medici Riccardi, Floransa",
+        "text": "Tavan süslemesinin bir parçası olarak Minerva, Buluş'a ve Beceri'ye bir anahtarla bir alet uzatır. Minerva'nın doğuşu ya da görünüşü, Medici hamiliğini yücelten daha geniş alegorik programın içine yerleştirilmiştir."
+      }
     }
-     ],
+  ],
   "recommended_priority_for_study": [
     {
       "rank": 1,

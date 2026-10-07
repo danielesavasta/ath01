@@ -255,7 +255,7 @@ function setLang(code){
   // with the Kinect's depth there are no fingers: the coin is held by pushing the hand towards the wall
   coin.setTexts(window.athSource === "depth" && t.owl.hint.playPush
     ? { ...t.owl, hint: { ...t.owl.hint, play: t.owl.hint.playPush } } : t.owl);
-  egg.setTexts(t.egg);
+  egg.setTexts({ ...t.egg, lang: code });   // the works' own texts (egg.json) come in this language
   war.setTexts(t.war);
   craft.setTexts(t.craft);
   mind.setTexts(t.mind);

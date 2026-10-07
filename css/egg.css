@@ -1,53 +1,37 @@
-/* Egg section (Birth): two mosaics beside the statue and the open view on the other side (js/egg.js).
-   Tiles are placed by js/egg.js in % of the frame; type comes from main.css. */
-.egg-tiles{ position: absolute; inset: 0; }
-.egg-tile{
-    position: absolute;
-    background: rgba(255,255,255,.04) center / cover no-repeat;
-    outline: 1px solid rgba(255,255,255,.08);
-    transform-origin: center;
-    transition: transform .45s cubic-bezier(.2,.8,.2,1), opacity .5s ease, filter .5s ease, outline-color .3s ease, box-shadow .45s ease;
-    will-change: transform, opacity;
+/* Egg section (Birth): the works floating in the dark beside the statue (js/egg.js). Each .egg-work is laid out
+   once at the size it has when brought forward (--bw × --bh frame px, its texts under it) and then only moved
+   (--x, --y) and scaled (--s); --shade darkens the far ones. Type comes from main.css. */
+.egg-space{ position: absolute; inset: 0; }
+.egg-work{
+    position: absolute; left: 0; top: 0;
+    width: calc(var(--bw) * var(--u));
+    transform-origin: 0 0;
+    transform: translate(calc(var(--x, 0) * var(--u)), calc(var(--y, 0) * var(--u))) scale(var(--s, .3));
+    will-change: transform;
+    opacity: 0; transition: opacity 1.2s ease;
 }
-/* coming in: one after another */
-.egg-stage .egg-tile{ opacity: 0; transform: scale(.94); }
-.egg-stage.shown .egg-tile{ opacity: 1; transform: none; transition-delay: calc(var(--i) * 18ms), calc(var(--i) * 18ms), 0s, 0s, 0s; }
-/* a hand on it: it lifts, with a red line filling along its foot while the hand settles */
-.egg-stage.shown .egg-tile.near,
-.egg-stage.shown .egg-tile.invite{ transform: scale(1.07); z-index: 2; outline-color: rgba(255,255,255,.85); box-shadow: 0 calc(10 * var(--u)) calc(40 * var(--u)) rgba(0,0,0,.8); transition-delay: 0s; }
-.egg-stage.shown .egg-tile.open{ transform: scale(1.07); z-index: 2; outline: 2px solid var(--amber); transition-delay: 0s; }
-.egg-settle{
-    position: absolute; left: 0; bottom: 0; height: calc(3 * var(--u)); width: calc(var(--settle, 0) * 100%);
-    background: var(--amber); opacity: 0; transition: opacity .2s ease;
-}
-.egg-tile.near .egg-settle{ opacity: 1; }
-/* while a view is open, the mosaic it covers fades away and the other one dims a little */
-.egg-stage.view-left .egg-tile.side-left,
-.egg-stage.view-right .egg-tile.side-right{ opacity: 0; pointer-events: none; transition-delay: 0s; }
-.egg-stage.view-left .egg-tile.side-right:not(.near):not(.open),
-.egg-stage.view-right .egg-tile.side-left:not(.near):not(.open){ opacity: .65; transition-delay: 0s; }
+.egg-stage.shown .egg-work{ opacity: 1; }
+.egg-pic{ position: relative; width: 100%; height: calc(var(--bh) * var(--u)); box-shadow: 0 0 calc(40 * var(--u)) rgba(0,0,0,.9); }
+.egg-pic img{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.egg-shade{ position: absolute; inset: 0; background: #000; opacity: var(--shade, 0); }
+/* a hand on it: a white edge, and a red line filling along its foot while the hand settles */
+.egg-pic::after{ content: ""; position: absolute; inset: 0; outline: 1px solid rgba(255,255,255,0); transition: outline-color .3s ease; }
+.egg-work.near .egg-pic::after{ outline-color: rgba(255,255,255,.85); outline-width: calc(2 / var(--s, 1) * 1px); }
+.egg-settle{ position: absolute; left: 0; bottom: 0; width: calc(var(--settle, 0) * 100%); height: calc(4 / var(--s, 1) * 1px); background: var(--amber); opacity: 0; }
+.egg-work.near .egg-settle{ opacity: 1; }
+.egg-noimg .egg-pic{ background: rgba(255,255,255,.05); }
 
-/* a work without a picture yet */
-.egg-noimg{ display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(6 * var(--u)); padding: calc(8 * var(--u)); text-align: center; }
-.egg-noimg .stone-text{ font-size: calc(14 * var(--u)); line-height: 1.25; }
-
-/* the open view: the picture, then its name, where and when, and its story */
-.egg-view{
-    position: absolute; top: var(--z-y); height: var(--z-h); width: var(--zr-w); left: var(--zr-x);
-    display: flex; flex-direction: column; gap: calc(26 * var(--u));
-    opacity: 0; pointer-events: none; transition: opacity .5s ease;
+/* its name, place and story, under it once it has come forward; left aligned on the side's edge */
+.egg-text{
+    position: absolute; top: calc(var(--bh) * var(--u) + 6 * var(--u)); left: calc(-1 * var(--tx) * var(--u));
+    width: calc(var(--zw) * var(--u));
+    padding: calc(18 * var(--u)) 0 calc(10 * var(--u));
+    background: linear-gradient(180deg, rgba(0,0,0,.92), #000 30%);   /* the works behind never show through the text */
+    opacity: 0; transform: translateY(calc(10 * var(--u))); transition: opacity .3s ease, transform .3s ease;
+    pointer-events: none;
 }
-.egg-stage.view-left .egg-view{ left: var(--zl-x); width: var(--zl-w); }
-.egg-view.open{ opacity: 1; }
-.egg-view-pic{ position: relative; flex: 1 1 auto; min-height: 0; }
-.egg-view-pic img{
-    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: left bottom;
-    opacity: 0; transform: scale(.98); transition: opacity .45s ease, transform .6s cubic-bezier(.2,.8,.2,1);
-}
-.egg-view-pic img.in{ opacity: 1; transform: none; }
-.egg-view-label{ flex: 0 0 auto; opacity: 0; transform: translateY(calc(8 * var(--u))); transition: opacity .35s ease, transform .5s ease; }
-.egg-view-label.in{ opacity: 1; transform: none; }
-.egg-view-title{ text-align: left; font-size: calc(36 * var(--u)); line-height: 1.1; }
-.egg-view-meta{ margin-top: calc(10 * var(--u)); letter-spacing: .06em; line-height: 1.5; }
-.egg-view .t-rule{ margin: calc(16 * var(--u)) 0; }
-.egg-view-desc{ max-height: calc(5 * 1.45em); overflow: hidden; }
+.egg-work.forward .egg-text{ opacity: 1; transform: none; transition: opacity .6s ease .15s, transform .7s ease .15s; }
+.egg-title{ text-align: left; font-size: calc(34 * var(--u)); line-height: 1.1; }
+.egg-meta{ margin-top: calc(10 * var(--u)); letter-spacing: .05em; line-height: 1.5; }
+.egg-text .t-rule{ margin: calc(14 * var(--u)) 0; }
+.egg-desc{ display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6; line-clamp: 6; overflow: hidden; }

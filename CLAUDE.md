@@ -76,11 +76,12 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
   icon is hidden; resting there it brightens and goes from warm to pure white (no ring); when full, the part is
   chosen and its panel (texts `craft.parts.<id>`, photo `assets/craft/<id>.jpg`) opens on the nearer side.
   No leader line (statue and wall are at different depths). Light drawn on `#craftLight` above the mask.
-- **Egg / Birth** (`js/egg.js`, Daniele's gallery, reworked): two mosaics of the artworks in `content/egg.json`, one
-  each side of the statue, sized to fit (`justify()`). A hand resting `T.settle` on a tile lifts it and opens the
-  artwork large with its story on the other side, so the same hand keeps browsing; it closes `T.linger` after the
-  hands leave. Tiles use `assets/gallery/small/`, the view `assets/gallery/large/` (made by `tools/gallery/resize.py`
-  from the originals in `assets/gallery/`; run it after adding a picture). The descriptions in egg.json are English only.
+- **Egg / Birth** (`js/egg.js`, Daniele's gallery, reworked): the works of `content/egg.json` float in the dark on both
+  sides of the statue, each at its own depth (near = large and bright, far = small and dim), drifting slowly. A hand
+  resting `T.settle` on a work brings it to the front of its side with its texts in the visitor's language (Turkish in
+  each work's `tr` field); the others of that side sink back; it returns `T.linger` after the hand leaves. Each side
+  works on its own. Tiles use `assets/gallery/small/`, forward works `assets/gallery/large/` (made by
+  `tools/gallery/resize.py` from the originals in `assets/gallery/`; run it after adding a picture).
 
 - **Sound** (`js/sound.js`): every sound is synthesized with Web Audio (no files), through a small room reverb;
   sections call `sfx(name, { x, v })` (x in frame px pans it, v is strength). Recipes and volume in that file; `?mute`.

@@ -1,12 +1,13 @@
-// Egg section (Birth): a gallery of artworks depicting Athena's birth, described in content/egg.json.
-// Pictures: assets/gallery/small/<id>.webp for the tiles and assets/gallery/large/<id>.webp for the open
-// view, made from the originals in assets/gallery/ by tools/gallery/resize.py.
+// Egg section (Birth): a gallery of artworks depicting Athena's birth, described in content/egg.json
+// (English fields, and Turkish in each work's "tr": { title, meta, text }).
+// Pictures: assets/gallery/small/<id>.webp while floating, assets/gallery/large/<id>.webp when brought forward,
+// made from the originals in assets/gallery/ by tools/gallery/resize.py.
 //
-// Two mosaics, one on each side of the statue (nothing behind it, where the mask hides it), each sized to
-// fill its side. A hand resting on a tile for a moment (T.settle) lifts it, and the artwork opens large with
-// its story on the OTHER side of the statue, so the same hand can go on browsing: moving to a neighbour
-// changes the open view. With no hand on the tiles for T.linger the view closes. With nobody there, a tile
-// now and then lifts by itself, to show that they can be picked.
+// The works float in a dark space on both sides of the statue (never behind it, where the mask hides it),
+// each at its own depth: near ones large and bright, far ones small and dim, all drifting slowly. A hand
+// resting on a work for a moment (T.settle) brings it to the front of its side, large, with its name, place
+// and story in the visitor's language; the others on that side sink back. Moving off it, it goes back to its
+// place after T.linger. The other side stays free, so a second visitor can bring one forward there.
 //
 //   import { createEgg } from "./egg.js";
 //   const egg = await createEgg({ stage, texts, dataUrl: "content/egg.json", imagesDir: "assets/gallery/", statueBand });
@@ -16,24 +17,30 @@ import { sfx } from "./sound.js";
 
 const W = 1920, H = 1080;
 const T = {
-  settle: 450,      // ms a hand rests on a tile before it opens (a shaking hand doesn't flicker)
-  linger: 2500,     // ms the open view stays after the hands leave the tiles
-  invite: 2600,     // ms between tiles lifting by themselves while nobody is there
-  inviteAfter: 4000,// ms without hands before that starts
-  gap: 10,          // px between tiles
-  top: 230,         // px: the mosaics start below the hint
-  bottom: 1000,     // px: and end here
-  left: 280,        // px: right of the back button
-  right: 1860,
-  aside: 50         // px kept free beside the statue
+  settle: 500,       // ms a hand rests on a work before it comes forward
+  linger: 2200,      // ms the work stays forward after the hand leaves it
+  fly: 0.0032,       // how fast a work comes forward / goes back (per ms, eased)
+  near: 240,         // px: the height of a work at the front of the space (depth 0)
+  far: 0.34,         // a work at the back is this much the size of one at the front
+  dimFar: 0.28,      // and this bright
+  drift: 18,         // px a work wanders around its place
+  invite: 3200,      // ms between works drifting forward by themselves while nobody is there
+  inviteAfter: 4000, // ms without hands before that starts
+  top: 210,          // px: the space starts below the hint
+  bottom: 1010,      // px
+  left: 270,         // px: right of the back button
+  right: 1880,
+  aside: 40,         // px kept free beside the statue
+  textH: 380         // px under a work brought forward, for its texts
 };
 
-function inside(r, x, y){
-  return r.width > 0 && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
-}
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const ease = (k) => k * k * (3 - 2 * k);
+const inside = (r, x, y) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
 
 // egg.json is not uniform (artist / artist_or_workshop, current_location / current_locations, ...)
-function meta(a){
+function metaEn(a){
   const bits = [];
   const artist = a.artist || a.artist_or_workshop;
   if (artist) bits.push(artist);
@@ -41,6 +48,10 @@ function meta(a){
   const loc = a.current_location || (Array.isArray(a.current_locations) ? a.current_locations.join(", ") : a.current_locations);
   if (loc) bits.push(loc);
   return bits.join(" · ");
+}
+function textsOf(a, lang){
+  if (lang === "tr" && a.tr) return a.tr;
+  return { title: a.title || "", meta: metaEn(a), text: a.scene_description || a.importance || "" };
 }
 
 function loadImage(src){
@@ -52,38 +63,21 @@ function loadImage(src){
   });
 }
 
-// rows of tiles, all the same height in a row and filling its width; the row height is the largest that
-// lets every tile fit in the box
-function justify(items, box, gap){
-  function rows(h){
-    const out = []; let row = [], w = 0;
-    for (const it of items){
-      const iw = it.ratio * h;
-      if (row.length && w + gap + iw > box.w){ out.push(row); row = []; w = 0; }
-      w += (row.length ? gap : 0) + iw; row.push(it);
+// places for n works in a box, spread out (best of a few random tries each), with a depth each
+function scatter(n, box, rand){
+  const pts = [];
+  for (let i = 0; i < n; i++){
+    let best = null, bestD = -1;
+    for (let k = 0; k < 24; k++){
+      const p = { x: box.x + rand() * box.w, y: box.y + rand() * box.h };
+      const d = pts.reduce((m, q) => Math.min(m, Math.hypot((p.x - q.x) / box.w, (p.y - q.y) / box.h)), 9);
+      if (d > bestD){ bestD = d; best = p; }
     }
-    if (row.length) out.push(row);
-    let y = 0;
-    const placed = out.map((r, i) => {
-      const natural = r.reduce((s, it) => s + it.ratio * h, 0), room = box.w - gap * (r.length - 1);
-      const rh = i < out.length - 1 || natural > room ? h * room / natural : h;   // the last row isn't stretched
-      let x = 0;
-      const cells = r.map((it) => { const c = { it, x, y, w: it.ratio * rh, h: rh }; x += c.w + gap; return c; });
-      y += rh + gap;
-      return { cells, width: x - gap };
-    });
-    return { placed, height: y - gap };
+    pts.push(best);
   }
-  let lo = 40, hi = 400;
-  for (let k = 0; k < 24; k++){ const mid = (lo + hi) / 2; if (rows(mid).height <= box.h) lo = mid; else hi = mid; }
-  const { placed, height } = rows(lo);
-  const dy = (box.h - height) / 2;                    // centred vertically
-  const cells = [];
-  for (const r of placed){
-    const dx = (box.w - r.width) / 2;                 // a short last row is centred
-    for (const c of r.cells) cells.push({ ...c, x: box.x + c.x + dx, y: box.y + c.y + dy });
-  }
-  return cells;
+  // depths spread evenly from front to back, in a shuffled order
+  const depths = pts.map((_, i) => 0.08 + 0.92 * i / Math.max(1, n - 1)).sort(() => rand() - 0.5);
+  return pts.map((p, i) => ({ ...p, z: depths[i] }));
 }
 
 export async function createEgg(opts){
@@ -96,164 +90,183 @@ export async function createEgg(opts){
   await Promise.all(artworks.map(async (a) => { a.image = await loadImage(`${dir}small/${a.id}.webp`); }));
 
   stage.classList.add("egg-stage");
-  stage.innerHTML = `<div class="egg-tiles"></div>
-    <div class="egg-view">
-      <div class="egg-view-pic"><img alt=""><img alt=""></div>
-      <div class="egg-view-label">
-        <div class="t-title stone-text egg-view-title"></div>
-        <div class="t-label egg-view-meta"></div>
-        <div class="t-rule"></div>
-        <div class="t-body egg-view-desc"></div>
-      </div>
-    </div>
-    <div class="egg-hint t-hint"></div>`;
-  const tilesEl = stage.querySelector(".egg-tiles");
-  const view = stage.querySelector(".egg-view");
-  const pics = [...view.querySelectorAll(".egg-view-pic img")];
-  const vTitle = view.querySelector(".egg-view-title"), vMeta = view.querySelector(".egg-view-meta"), vDesc = view.querySelector(".egg-view-desc");
-  const label = view.querySelector(".egg-view-label");
+  stage.innerHTML = `<div class="egg-space"></div><div class="egg-hint t-hint"></div>`;
+  const space = stage.querySelector(".egg-space");
   const hintEl = stage.querySelector(".egg-hint");
 
-  let TX = opts.texts || {};
-  const tiles = artworks.map((a, i) => {
+  let TX = opts.texts || {}, lang = "tr";
+  const works = artworks.map((a, i) => {
     const el = document.createElement("div");
-    el.className = "egg-tile";
-    el.style.setProperty("--i", i);
-    if (a.image) el.style.backgroundImage = `url("${a.image.src}")`;
-    else { el.classList.add("egg-noimg"); el.innerHTML = `<div class="stone-text"></div><div class="t-label"></div>`; el.firstChild.textContent = a.title || ""; }
-    el.innerHTML += `<i class="egg-settle"></i>`;
-    tilesEl.appendChild(el);
-    const side = i % 2 ? "right" : "left";
-    el.classList.add("side-" + side);
-    return { a, el, i, side, ratio: a.image ? a.image.ratio : 1, rect: null, rest: 0 };
+    el.className = "egg-work";
+    el.innerHTML = `<div class="egg-pic"><img alt=""><i class="egg-shade"></i><i class="egg-settle"></i></div>
+      <div class="egg-text"><div class="t-title stone-text egg-title"></div><div class="t-label egg-meta"></div><div class="t-rule"></div><div class="t-body egg-desc"></div></div>`;
+    const img = el.querySelector("img");
+    if (a.image) img.src = a.image.src; else el.classList.add("egg-noimg");
+    space.appendChild(el);
+    return {
+      a, el, img, pic: el.querySelector(".egg-pic"), text: el.querySelector(".egg-text"),
+      side: i % 2 ? "right" : "left", ratio: a.image ? a.image.ratio : 1,
+      home: null, phase: Math.random() * Math.PI * 2, speed: 0.6 + Math.random() * 0.6,
+      f: 0,                 // 0 floating at its place … 1 at the front of its side
+      rest: 0, box: null, large: false, fwd: null
+    };
   });
 
+  function fillTexts(w){
+    const t = textsOf(w.a, lang);
+    w.el.querySelector(".egg-title").textContent = t.title;
+    w.el.querySelector(".egg-meta").textContent = t.meta;
+    w.el.querySelector(".egg-desc").textContent = t.text;
+  }
   function applyTexts(){
     hintEl.textContent = TX.hint || "";
-    tiles.forEach((t) => { if (!t.a.image) t.el.lastChild.previousSibling.textContent = TX.noImage || ""; });
+    works.forEach(fillTexts);
   }
 
-  // ───────────── layout: one mosaic each side of the statue ─────────────
-  let band = [700, 1240];
-  const pct = (v, of) => (v / of * 100).toFixed(3) + "%";
+  // ───────────── the space: two sides of the statue ─────────────
+  let band = [700, 1240], zone = {};
   function relayout(){
     const b = opts.statueBand && opts.statueBand();
     band = b ? [(b[0] + 1) / 2 * W, (b[1] + 1) / 2 * W] : [700, 1240];
-    const zone = {
+    zone = {
       left:  { x: T.left, y: T.top, w: band[0] - T.aside - T.left, h: T.bottom - T.top },
       right: { x: band[1] + T.aside, y: T.top, w: T.right - band[1] - T.aside, h: T.bottom - T.top }
     };
+    let seed = 7;
+    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     for (const side of ["left", "right"]){
-      const cells = justify(tiles.filter((t) => t.side === side), zone[side], T.gap);
-      for (const c of cells){
-        const s = c.it.el.style;
-        s.left = pct(c.x, W); s.top = pct(c.y, H); s.width = pct(c.w, W); s.height = pct(c.h, H);
+      const list = works.filter((w) => w.side === side), z = zone[side];
+      // places are for the works' centres, kept far enough in that a near (large) work still fits
+      const inner = { x: z.x + T.near * 0.45, y: z.y + T.near * 0.5, w: Math.max(10, z.w - T.near * 0.9), h: Math.max(10, z.h - T.near) };
+      scatter(list.length, inner, rand).forEach((p, i) => { list[i].home = p; });
+      // each work is laid out once at its forward size and only moved and scaled after that (cheap to animate)
+      for (const w of list){
+        const maxH = z.h - T.textH, bw = Math.min(z.w, maxH * w.ratio), bh = bw / w.ratio;
+        w.fwd = { x: z.x + (z.w - bw) / 2, y: z.y, w: bw, h: bh };
+        w.el.style.setProperty("--bw", bw.toFixed(1));
+        w.el.style.setProperty("--bh", bh.toFixed(1));
+        w.el.style.setProperty("--zw", z.w.toFixed(1));
+        w.el.style.setProperty("--tx", ((z.w - bw) / 2).toFixed(1));
       }
     }
-    // the open view takes the whole of a side
-    stage.style.setProperty("--zl-x", pct(zone.left.x, W)); stage.style.setProperty("--zl-w", pct(zone.left.w, W));
-    stage.style.setProperty("--zr-x", pct(zone.right.x, W)); stage.style.setProperty("--zr-w", pct(zone.right.w, W));
-    stage.style.setProperty("--z-y", pct(zone.left.y, H)); stage.style.setProperty("--z-h", pct(zone.left.h, H));
   }
 
-  // ───────────── the open view ─────────────
-  let open = null, viewSide = null, pic = 0, linger = 0, idle = 0, inviteT = 0, invited = null, running = false, rectAge = 0;
-  function show(t){
-    if (open === t) return;
-    const first = !open;
-    open = t;
-    sfx("tile", { x: t.side === "left" ? 500 : 1420 });
-    viewSide = t.side === "left" ? "right" : "left";
-    stage.classList.toggle("view-left", viewSide === "left");
-    stage.classList.toggle("view-right", viewSide === "right");
-    // the next picture fades in over the last one; the text changes while it is faded out
-    pic = 1 - pic;
-    const img = pics[pic], other = pics[1 - pic];
-    img.classList.remove("in");
-    img.onload = () => { img.classList.add("in"); other.classList.remove("in"); };
-    img.src = `${opts.imagesDir || "assets/gallery/"}large/${t.a.id}.webp`;
-    if (!t.a.image) { img.removeAttribute("src"); other.classList.remove("in"); }
-    label.classList.remove("in");
-    clearTimeout(label._t);
-    label._t = setTimeout(() => {
-      vTitle.textContent = t.a.title || "";
-      vMeta.textContent = meta(t.a);
-      vDesc.textContent = t.a.scene_description || t.a.importance || "";
-      label.classList.add("in");
-    }, first ? 0 : 250);
-    view.classList.add("open");
-    tiles.forEach((x) => x.el.classList.toggle("open", x === t));
-  }
-  function close(){
-    if (!open) return;
-    open = null;
-    view.classList.remove("open");
-    stage.classList.remove("view-left", "view-right");
-    tiles.forEach((x) => x.el.classList.remove("open"));
+  // where a work is now: floating at its place, or brought to the front of its side
+  function place(w, t){
+    const h = w.home, z = zone[w.side];
+    const k = ease(w.f);
+    // floating: its depth sets its size and brightness; it wanders slowly around its place
+    const depth = h.z + (opened[w.side] && opened[w.side] !== w ? 0.35 * openK[w.side] : 0);   // the others sink back
+    const s = lerp(1, T.far, clamp01(depth));
+    const fh = Math.min(T.near, z.w * 0.55 / w.ratio) * s, fw = fh * w.ratio;   // wide works (pediments) a little lower
+    // it wanders around its place but never out of its side (never behind the statue)
+    const fx = Math.max(z.x, Math.min(z.x + z.w - fw, h.x + Math.sin(t * 0.00021 * w.speed + w.phase) * T.drift - fw / 2));
+    const fy = Math.max(z.y, Math.min(z.y + z.h - fh, h.y + Math.cos(t * 0.00017 * w.speed + w.phase * 1.3) * T.drift * 0.7 - fh / 2));
+    // while another work of its side is forward, it sinks back and almost out of sight
+    const behind = opened[w.side] && opened[w.side] !== w ? openK[w.side] : 0;
+    // forward: as large as fits the side above its texts
+    const { x: bx, y: by, w: bw, h: bh } = w.fwd;
+    return {
+      x: lerp(fx, bx, k), y: lerp(fy, by, k), w: lerp(fw, bw, k), h: lerp(fh, bh, k),
+      bright: lerp(lerp(1, T.dimFar, clamp01(depth)) * (1 - 0.88 * behind), 1, k),
+      depth: lerp(depth, -1, k)
+    };
   }
 
   // ───────────── per frame ─────────────
+  const opened = { left: null, right: null }, openK = { left: 0, right: 0 };
+  let running = false, idle = 0, inviteT = 0, invited = null, linger = { left: 0, right: 0 };
+
+  function bringForward(w){
+    const side = w.side;
+    if (opened[side] === w) return;
+    opened[side] = w;
+    linger[side] = 0;
+    sfx("tile", { x: side === "left" ? 500 : 1420 });
+    fillTexts(w);
+    if (!w.large && w.a.image){   // the sharp picture, once it has loaded
+      w.large = true;
+      const big = new Image();
+      big.onload = () => { w.img.src = big.src; };
+      big.src = `${dir}large/${w.a.id}.webp`;
+    }
+  }
+
   function frame(pts, dt){
     if (!running) return;
-    rectAge += dt;   // where the tiles are on screen, refreshed now and then (cheaper than every frame)
-    if (rectAge > 400 || !tiles[0].rect || tiles[0].rect.width === 0){ rectAge = 0; tiles.forEach((t) => { t.rect = t.el.getBoundingClientRect(); }); }
+    const t = performance.now();
+    const r = stage.getBoundingClientRect();
+    const toFrame = (p) => ({ x: (p.px - r.left) / r.width * W, y: (p.py - r.top) / r.height * H });
+    const hands = pts.map(toFrame);
+
+    // which work each hand is on: the nearest (frontmost) under it
     const under = new Set();
-    for (const p of pts){
-      for (const t of tiles){
-        if (viewSide && t.side === viewSide) continue;   // that side is covered by the open view
-        if (inside(t.rect, p.px, p.py)){ under.add(t); break; }
+    for (const p of hands){
+      let best = null;
+      for (const w of works){
+        if (!w.box || !inside(w.box, p.x, p.y)) continue;
+        if (opened[w.side] && opened[w.side] !== w) continue;   // the side's forward work covers the rest
+        if (!best || w.box.depth < best.box.depth) best = w;
       }
+      if (best) under.add(best);
     }
-    for (const t of tiles){
-      t.rest = under.has(t) ? t.rest + dt : 0;
-      t.el.classList.toggle("near", under.has(t) && t !== open);
-      t.el.style.setProperty("--settle", Math.min(t.rest / T.settle, 1).toFixed(3));
+    for (const w of works){
+      w.rest = under.has(w) ? w.rest + dt : 0;
+      if (w.rest >= T.settle && opened[w.side] !== w) bringForward(w);
     }
-    // the tile rested on longest (and long enough) opens
-    let best = null;
-    for (const t of under) if (t.rest >= T.settle && (!best || t.rest < best.rest)) best = t;
-    if (best && best !== open) show(best);
+    // a forward work goes back once no hand has been on it for a while
+    for (const side of ["left", "right"]){
+      const w = opened[side];
+      if (!w) continue;
+      linger[side] = under.has(w) ? 0 : linger[side] + dt;
+      if (linger[side] > T.linger) opened[side] = null;
+    }
 
-    // closing: no hand on any tile for a while
-    linger = under.size ? 0 : linger + dt;
-    if (open && linger > T.linger) close();
-
-    // nobody there: now and then a tile lifts by itself
-    idle = pts.length ? 0 : idle + dt;
+    // nobody there: now and then a work drifts forward a little by itself
+    idle = hands.length ? 0 : idle + dt;
     inviteT += dt;
-    const inviting = !open && idle > T.inviteAfter;
-    if (inviting && inviteT > T.invite){
-      inviteT = 0;
-      if (invited) invited.el.classList.remove("invite");
-      invited = tiles[Math.floor(Math.random() * tiles.length)];
-      invited.el.classList.add("invite");
-    } else if (!inviting && invited){ invited.el.classList.remove("invite"); invited = null; }
+    if (idle > T.inviteAfter && inviteT > T.invite){ inviteT = 0; invited = works[Math.floor(Math.random() * works.length)]; }
+    if (idle <= T.inviteAfter) invited = null;
+
+    // move everything
+    for (const side of ["left", "right"]) openK[side] += ((opened[side] ? 1 : 0) - openK[side]) * Math.min(1, dt * T.fly);
+    for (const w of works){
+      const goal = opened[w.side] === w ? 1 : (w === invited && inviteT < T.invite * 0.6 ? 0.12 : 0);
+      w.f += (goal - w.f) * Math.min(1, dt * T.fly);
+      const b = place(w, t);
+      w.box = b;
+      const st = w.el.style;
+      st.setProperty("--x", b.x.toFixed(1));
+      st.setProperty("--y", b.y.toFixed(1));
+      st.setProperty("--s", (b.w / w.fwd.w).toFixed(4));
+      st.setProperty("--shade", (1 - b.bright).toFixed(3));
+      w.el.style.setProperty("--settle", clamp01(w.rest / T.settle).toFixed(3));
+      w.el.style.zIndex = String(1000 - Math.round(b.depth * 500));
+      w.el.classList.toggle("near", under.has(w) && opened[w.side] !== w);
+      w.el.classList.toggle("forward", opened[w.side] === w && w.f > 0.6);
+    }
   }
 
   function reset(){
-    close();
-    linger = 0; idle = 0; inviteT = 0;
-    tiles.forEach((t) => { t.rest = 0; t.el.classList.remove("near", "invite"); });
-    invited = null;
-    pics.forEach((p) => { p.classList.remove("in"); p.removeAttribute("src"); });
+    opened.left = opened.right = null; openK.left = openK.right = 0;
+    linger = { left: 0, right: 0 }; idle = 0; inviteT = 0; invited = null;
+    works.forEach((w) => { w.f = 0; w.rest = 0; w.el.classList.remove("near", "forward"); });
   }
 
   relayout();
   applyTexts();
-  window.addEventListener("resize", () => tiles.forEach((t) => { t.rect = null; }));
 
   return {
     start(){
       running = true;
-      tiles.forEach((t) => { t.rect = null; });
-      stage.classList.remove("shown"); void stage.offsetWidth; stage.classList.add("shown");   // the tiles come in one by one
+      stage.classList.remove("shown"); void stage.offsetWidth; stage.classList.add("shown");   // the works come up out of the dark
     },
-    stop(){ running = false; close(); },
+    stop(){ running = false; reset(); },
     reset,
     get running(){ return running; },
-    setTexts(t){ TX = t || {}; applyTexts(); },
+    setTexts(t){ TX = t || {}; lang = TX.lang || lang; applyTexts(); },
     frame,
-    relayout(){ relayout(); tiles.forEach((t) => { t.rect = null; }); },
+    relayout,
     timing: T
   };
 }
