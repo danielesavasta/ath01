@@ -7,3 +7,4 @@ tools/test/smoke-*.png
 tools/kinect/background.npy
 tools/kinect-win/*.exe
 tools/kinect-win/*.dll
+tools/kinect-win/KinectBridgeV2/

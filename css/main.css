@@ -7,7 +7,7 @@
 
     /* type system shared by every section */
     --font-text: "Sporting Grotesque", "Arial Narrow", Arial, sans-serif;   /* Source Serif 4 is vendored if we go back to it */
-    --font-label: "Sporting Grotesque", "Arial Narrow", Arial, sans-serif;
+    --font-label: "Roboto Condensed", "Arial Narrow", Arial, sans-serif;
     --ink: #E9E1D0;
     --muted: #8F877A;
     --amber: #ED1C24;   /* old name kept to limit churn; every "amber" accent is a red */
@@ -44,7 +44,7 @@ body {
 .t-greek{ font-family: var(--font-text); font-style: italic; font-size: var(--size-hint); color: var(--muted); }
 
 /* names, numerals and titles: flat red, no carved/marble effect */
-.stone-text{ font-family: var(--font-label); font-weight: 700; color: var(--amber); }
+.stone-text{ font-family: var(--font-label); font-weight: 700; color: var(--amber); text-align: center; }
 
 /* the 1920×1080 frame: the statue photo, the venue mask, every section stage and the craft light */
 #athenaStatue, #venueMask, #coinStage, #eggStage, #warStage, #craftStage, #craftLight{
@@ -129,12 +129,15 @@ canvas {
 
 #title {
     position: absolute;
-    left: 50%;
+    left: -45%;
     top: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(0%, -50%);
     text-align: left;
     z-index: 3;
-
+    width: 14vw;
+}
+h1{font-size: 4em;
+    line-height: 1.1em;
 }
 /* Drawing canvas – above the predictions */
 #drawing {

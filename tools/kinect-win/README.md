@@ -1,38 +1,41 @@
-# Kinect on Windows: skeletons and open/closed hands
+# Kinect on Windows: Kinect 360 and Kinect One
 
-The venue setup. `KinectBridge.exe` reads the Kinect with Microsoft's own SDK: skeleton tracking (works in
-the dark), hands counted only when raised above the hips, and open or closed hand from KinectInteraction's
-grip detection. It sends hands to the page in the same form as the Mac bridge, and it also serves the page
-itself, so the PC needs no Python and no web server.
+The Windows bridge reads either Kinect generation with Microsoft's SDK. Both track raised hands in the dark
+and send the same hand data to the page; the bridge also serves the page, so the PC needs no Python or web
+server. Kinect 360 is the default; Kinect One is selected with `start-windows.bat one`.
 
 ## Once, on the PC
 
-1. Install **Kinect for Windows SDK 1.8** and **Kinect for Windows Developer Toolkit 1.8** (both from
-   Microsoft's download centre; the toolkit gives the open/closed hand). Without the toolkit the bridge
-   still runs, but every hand counts as open.
-2. Install Chrome.
-3. Plug in the Kinect (USB and its power adapter). Windows installs the driver; the Kinect light turns green
-   when a program uses it.
-4. Copy the repo to the PC (or `git clone`).
+1. For Kinect 360, install **Kinect for Windows SDK 1.8** and **Kinect for Windows Developer Toolkit 1.8**.
+   The toolkit supplies grip detection; without it, the v1 bridge still runs but treats hands as open.
+2. For Kinect One (Xbox One), install **Kinect for Windows SDK 2.0**. It uses Kinect v2's built-in hand
+   states and does not need the Developer Toolkit.
+3. Install Chrome and copy the repo to the PC (or `git clone`).
+4. Plug in the sensor and its power adapter. Kinect One also needs a USB 3.0 port and its Kinect adapter.
+   Windows installs the driver; the sensor light turns green when a program uses it.
 
 ## Every time
 
-Double-click `start-windows.bat` in the repo root. The first time it builds `KinectBridge.exe` (a few seconds,
-with the compiler that comes with Windows), then starts it minimised and opens Chrome full screen on
-`http://127.0.0.1:8770/index.htm`. `start-windows.bat window` opens a normal window instead.
-The status line (top right of the page) says `Kinect skeleton connected`. Close the "Athena Kinect" window
-to stop the bridge. It keeps waiting if the Kinect is unplugged and picks it up again when it's back.
+Double-click `start-windows.bat` for Kinect 360, or run `start-windows.bat one` for Kinect One. The first
+time, the matching bridge is built with the .NET compiler and SDK installed above; it starts minimised and
+opens Chrome full screen on `http://127.0.0.1:8770/index.htm`. Add `window` to open Chrome normally:
+`start-windows.bat window` or `start-windows.bat one window`. The page status says `Kinect skeleton connected`.
+Close the "Athena Kinect" window to stop the bridge. It keeps waiting if the sensor is unplugged and picks it
+up again when it is back.
 
-Options: `KinectBridge.exe --port 8770 --raise 0.10` (metres a hand must be above the hips to count).
+Build either variant explicitly with `tools\kinect-win\build.bat` (360) or
+`tools\kinect-win\build.bat one` (Kinect One). `--raise 0.10` sets how far above the hips a hand must be
+to count (metres); pass it to the bridge executable if tuning is needed.
 
 ## What to know
 
-- The SDK tracks the skeletons of **two people at a time** (up to six are seen, two get hands). Visitors
-  beyond two can't play at the same moment.
+- Kinect 360 tracks up to six skeletons but provides hands for two people. Kinect One tracks up to six
+  people and reports both hands for each tracked body.
 - Skeletons need most of the body in view, from about 0.8 to 4 m. Aim the Kinect so visitors at 1.5 to 3 m
   are seen from the knees up.
-- Grip needs the hand facing the Kinect. It is Microsoft's grip detector; test it with the coin on site.
+- Kinect 360's grip detector works best with the hand facing the sensor. Kinect One reports its own open,
+  closed, and other hand states; only its explicit closed state counts as closed.
 - Microsoft's licence allows the Xbox 360 Kinect for development with this SDK; the commercial version is
   "Kinect for Windows". Worth knowing if the museum asks.
-- Written in C# 5 against .NET Framework 4 so `build.bat` needs only Windows. It was compile-checked and
-  its web/WebSocket side tested with a simulated Kinect, but not yet run on a real Windows PC.
+- The v1 bridge is written in C# 5 against .NET Framework 4; Kinect One requires the Kinect v2 runtime and
+  SDK 2.0. The web/WebSocket interface is shared, but both sensors still need testing on the installation PC.

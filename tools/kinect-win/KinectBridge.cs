@@ -1,8 +1,7 @@
-// Kinect (Xbox 360 / Kinect for Windows v1) -> browser bridge for Windows, with skeleton tracking.
+// Kinect (Xbox 360 / Kinect for Windows v1, or Kinect One / v2) -> browser bridge for Windows.
 //
-// Uses Microsoft's Kinect for Windows SDK 1.8 (skeletons) and, when the Developer Toolkit 1.8 is installed,
-// KinectInteraction (open or closed hand: "grip"). Speaks the same language as tools/kinect/bridge.py, so
-// the page does not change:
+// The default build uses Kinect for Windows SDK 1.8; define KINECTV2 to use Kinect for Windows SDK 2.0.
+// Both builds speak the same language as tools/kinect/bridge.py, so the page does not change:
 //
 //     ws://127.0.0.1:8770/hands   JSON, every skeleton frame: { w, h, hands: [{ x, y, z, bx, side, closed }],
 //                                  bg, learning, skeleton: true }. x, y are 0..1 of the (unmirrored) depth
@@ -25,7 +24,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using Microsoft.Kinect;
-#if !NOGRIP
+#if !KINECTV2 && !NOGRIP
 using Microsoft.Kinect.Toolkit.Interaction;
 #endif
 
@@ -46,13 +45,17 @@ namespace Athena
                 if (args[i] == "--root") root = Path.GetFullPath(args[i + 1]);
                 if (args[i] == "--raise") raise = double.Parse(args[i + 1], CultureInfo.InvariantCulture);
             }
-            Console.WriteLine("Athena Kinect bridge (skeleton" +
+#if KINECTV2
+            Console.WriteLine("Athena Kinect One bridge (body tracking)");
+#else
+            Console.WriteLine("Athena Kinect 360 bridge (skeleton" +
 #if NOGRIP
                 ", no grip: Developer Toolkit not found at build time" +
 #else
                 " + grip" +
 #endif
                 ")");
+#endif
             Console.WriteLine("Serving " + root);
             Server.Start(port, root);
             Console.WriteLine("Open http://localhost:" + port + "/index.htm   (Ctrl-C to stop)");
@@ -65,7 +68,174 @@ namespace Athena
         }
     }
 
-    // ───────────── Kinect: skeletons, grip, depth picture ─────────────
+    // ───────────── Kinect: body tracking, hand state, depth picture ─────────────
+#if KINECTV2
+    class Tracker
+    {
+        const int W = 512, H = 424;
+        KinectSensor sensor;
+        BodyFrameReader bodyReader;
+        DepthFrameReader depthReader;
+        Body[] bodies;
+        ushort[] depth;
+        readonly double raise;
+        DateTime lastPicture = DateTime.MinValue;
+        DateTime lastActivity = DateTime.MinValue;
+        bool waitingSaid;
+
+        public Tracker(double raise) { this.raise = raise; }
+        // IsAvailable only turns true some time after Open(), so judge by frames: restart only after 6 s of silence
+        public bool Running { get { return sensor != null && sensor.IsOpen && (DateTime.Now - lastActivity).TotalSeconds < 6; } }
+
+        public void TryStart()
+        {
+            try
+            {
+                StopSensor();
+                sensor = KinectSensor.GetDefault();
+                if (sensor == null)
+                {
+                    if (!waitingSaid) Console.WriteLine("No Kinect One yet (USB 3.0 and power adapter?). Waiting...");
+                    waitingSaid = true;
+                    return;
+                }
+
+                waitingSaid = false;
+                bodies = new Body[sensor.BodyFrameSource.BodyCount];
+                depth = new ushort[W * H];
+                bodyReader = sensor.BodyFrameSource.OpenReader();
+                depthReader = sensor.DepthFrameSource.OpenReader();
+                bodyReader.FrameArrived += OnBodyFrame;
+                depthReader.FrameArrived += OnDepthFrame;
+                lastActivity = DateTime.Now;
+                sensor.Open();
+                Console.WriteLine("Kinect One started.");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Kinect One could not start: " + e.Message);
+                StopSensor();
+            }
+        }
+
+        void StopSensor()
+        {
+            if (bodyReader != null)
+            {
+                bodyReader.FrameArrived -= OnBodyFrame;
+                bodyReader.Dispose();
+                bodyReader = null;
+            }
+            if (depthReader != null)
+            {
+                depthReader.FrameArrived -= OnDepthFrame;
+                depthReader.Dispose();
+                depthReader = null;
+            }
+            if (sensor != null)
+            {
+                try { sensor.Close(); } catch { }
+                sensor = null;
+            }
+        }
+
+        void OnBodyFrame(object sender, BodyFrameArrivedEventArgs e)
+        {
+            lastActivity = DateTime.Now;
+            using (var frame = e.FrameReference.AcquireFrame())
+            {
+                if (frame == null) return;
+                frame.GetAndRefreshBodyData(bodies);
+            }
+            if (!Server.Wants("hands")) return;
+
+            var json = new StringBuilder();
+            json.Append("{\"w\":").Append(W).Append(",\"h\":").Append(H)
+                .Append(",\"bg\":true,\"learning\":null,\"skeleton\":true,\"hands\":[");
+            bool first = true;
+            foreach (var body in bodies)
+            {
+                if (body == null || !body.IsTracked) continue;
+                Joint hip = body.Joints[JointType.SpineBase];
+                if (hip.TrackingState == TrackingState.NotTracked) continue;
+                Joint spine = body.Joints[JointType.SpineShoulder];
+                DepthSpacePoint bodyPoint = sensor.CoordinateMapper.MapCameraPointToDepthSpace(spine.Position);
+                foreach (JointType jointType in new[] { JointType.HandRight, JointType.HandLeft })
+                {
+                    Joint hand = body.Joints[jointType];
+                    if (hand.TrackingState == TrackingState.NotTracked || hand.Position.Y < hip.Position.Y + raise) continue;
+                    DepthSpacePoint point = sensor.CoordinateMapper.MapCameraPointToDepthSpace(hand.Position);
+                    if (float.IsNaN(point.X) || float.IsInfinity(point.X) ||
+                        float.IsNaN(point.Y) || float.IsInfinity(point.Y) ||
+                        float.IsNaN(bodyPoint.X) || float.IsInfinity(bodyPoint.X)) continue;
+
+                    bool right = jointType == JointType.HandRight;
+                    HandState state = right ? body.HandRightState : body.HandLeftState;
+                    if (!first) json.Append(',');
+                    first = false;
+                    json.Append("{\"x\":").Append(Num(point.X / W, 4))
+                        .Append(",\"y\":").Append(Num(point.Y / H, 4))
+                        .Append(",\"z\":").Append(Num(hand.Position.Z * 1000, 0))
+                        .Append(",\"bx\":").Append(Num(bodyPoint.X / W, 4))
+                        .Append(",\"n\":0,\"side\":\"").Append(right ? "Right" : "Left")
+                        .Append("\",\"closed\":").Append(state == HandState.Closed ? "true" : "false")
+                        .Append(",\"id\":").Append(body.TrackingId * 2UL + (right ? 1UL : 0UL)).Append('}');
+                }
+            }
+            json.Append("]}");
+            Server.Broadcast("hands", json.ToString());
+        }
+
+        void OnDepthFrame(object sender, DepthFrameArrivedEventArgs e)
+        {
+            lastActivity = DateTime.Now;
+            int minDepth, maxDepth;
+            using (var frame = e.FrameReference.AcquireFrame())
+            {
+                if (frame == null) return;
+                frame.CopyFrameDataToArray(depth);
+                minDepth = frame.DepthMinReliableDistance;
+                maxDepth = frame.DepthMaxReliableDistance;
+            }
+            if (Server.Wants("depth") && (DateTime.Now - lastPicture).TotalMilliseconds > 90)
+            {
+                lastPicture = DateTime.Now;
+                Server.Broadcast("depth", DepthJpeg(minDepth, maxDepth));
+            }
+        }
+
+        static string Num(double value, int decimals)
+        {
+            return Math.Round(value, decimals).ToString(CultureInfo.InvariantCulture);
+        }
+
+        byte[] DepthJpeg(int minDepth, int maxDepth)
+        {
+            using (var bmp = new Bitmap(W, H, PixelFormat.Format24bppRgb))
+            {
+                var data = bmp.LockBits(new Rectangle(0, 0, W, H), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+                var row = new byte[data.Stride];
+                for (int y = 0; y < H; y++)
+                {
+                    for (int x = 0; x < W; x++)
+                    {
+                        int mm = depth[y * W + x];
+                        int value = mm >= minDepth && mm <= maxDepth
+                            ? (int)Math.Max(0, Math.Min(255, (maxDepth - mm) * 255 / (maxDepth - minDepth))) : 0;
+                        row[x * 3] = row[x * 3 + 1] = row[x * 3 + 2] = (byte)value;
+                    }
+                    System.Runtime.InteropServices.Marshal.Copy(row, 0, data.Scan0 + y * data.Stride, data.Stride);
+                }
+                bmp.UnlockBits(data);
+                using (var ms = new MemoryStream())
+                {
+                    bmp.Save(ms, ImageFormat.Jpeg);
+                    return ms.ToArray();
+                }
+            }
+        }
+    }
+#else
     class Tracker
 #if !NOGRIP
         : IInteractionClient
@@ -259,6 +429,7 @@ namespace Athena
             }
         }
     }
+#endif
 
     // ───────────── web server and WebSockets, on one port ─────────────
     static class Server

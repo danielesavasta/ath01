@@ -44,7 +44,7 @@ export default {
     },
 
     egg: {
-      hint: "Elini bir eserin üstünde tut: büyüsün, hikâyesi görünsün.",
+      hint: "Bir hikaye okumak için elinizi eserin üzerine koyun.",
       noImage: "Buraya henüz bir görsel eklenmedi"
     },
 
@@ -100,7 +100,7 @@ export default {
     },
 
     egg: {
-      hint: "Rest a hand over an artwork: it grows, and its story appears.",
+      hint: "Rest a hand over an artwork to read about its story.",
       noImage: "No image has been added here yet"
     },
 

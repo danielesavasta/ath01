@@ -20,11 +20,12 @@ Background research and the section texts: `docs/athena-six-aspects.md` (read it
 ## Running it
 
 - One click on a Mac: `start.command` (bridge with auto-restart + web server on 5510 + Chrome; `--kiosk`).
-  On the Windows PC: `start-windows.bat` (builds and runs `KinectBridge.exe`, which also serves the page on 8770).
+  On the Windows PC: `start-windows.bat` uses Kinect 360; `start-windows.bat one` uses Kinect One.
+  Both build and run the Windows bridge, which also serves the page on 8770.
   Or serve the repo root (VS Code Live Server, port 5504, or `python3 -m http.server`) and open `index.htm`.
 - Hands, in this order (the page keeps looking for a bridge, start order doesn't matter):
-  **skeleton** = Windows bridge `tools/kinect-win/` (Kinect SDK 1.8 skeletons, raised hands, open/closed by
-  grip, works in the dark; the venue plan, `start-windows.bat`; not yet run on a real PC) ·
+  **skeleton** = Windows bridge `tools/kinect-win/` (Kinect 360 SDK 1.8 or Kinect One SDK 2.0; raised hands
+  and open/closed hand state, works in the dark; the venue plan, `start-windows.bat`; not yet run on a real PC) ·
   **kinect** = Mac bridge `tools/kinect/bridge.py`, colour picture + MediaPipe (needs light) · **webcam**.
   `?source=skeleton|kinect|webcam|depth` forces one. `depth` (Mac bridge, hands found in depth, push towards
   the wall to grab) is only an option: Ege found reach-and-push awkward. See both READMEs.
