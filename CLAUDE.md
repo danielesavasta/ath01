@@ -53,6 +53,9 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
 - **`js/sections.js`**: the ATHENA letter menu and the section switch.
   - `SLOTS` (DOM order A T / H E / N A): hand over a letter rolls it to its icon (only if `assets/<file>` loads);
     resting `T.dwell` opens `SECTIONS[slot.section]`. Returning rolls all letters back to ATHENA.
+  - Going in / out: an iris from the chosen letter (`#veil` black outside a growing circle, `#veilRing` the red
+    ring, `#topicCard` the topic's name from `texts.menu.topics`); closing shrinks back into the letter. `busy`
+    blocks input meanwhile.
   - Inside a section: ANA SAYFA / HOME button bottom left (hand dwell), idle return after `T.idleReturn`
     with a countdown ring, TR/EN buttons in the menu (reset to Turkish when a visitor leaves).
   - `SECTIONS = { owl: coin, egg, war, craft }`. **Section contract**: `start()`, `stop()`, `reset()`, `setTexts(t)`,
@@ -73,9 +76,11 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
   icon is hidden; resting there it brightens and goes from warm to pure white (no ring); when full, the part is
   chosen and its panel (texts `craft.parts.<id>`, photo `assets/craft/<id>.jpg`) opens on the nearer side.
   No leader line (statue and wall are at different depths). Light drawn on `#craftLight` above the mask.
-- **Egg / Birth** (`js/egg/`, Daniele): masonry of scrolling "swimlane" rows of artworks from `content/egg.json`,
-  images in `assets/images/<id>.jpg|webp`. Rows auto-scroll, alternating direction; a hand (or the mouse)
-  resting over a tile grows it in place, pushing row neighbours apart, and shows its title/meta/description.
+- **Egg / Birth** (`js/egg.js`, Daniele's gallery, reworked): two mosaics of the artworks in `content/egg.json`, one
+  each side of the statue, sized to fit (`justify()`). A hand resting `T.settle` on a tile lifts it and opens the
+  artwork large with its story on the other side, so the same hand keeps browsing; it closes `T.linger` after the
+  hands leave. Tiles use `assets/gallery/small/`, the view `assets/gallery/large/` (made by `tools/gallery/resize.py`
+  from the originals in `assets/gallery/`; run it after adding a picture). The descriptions in egg.json are English only.
 
 - **Sound** (`js/sound.js`): every sound is synthesized with Web Audio (no files), through a small room reverb;
   sections call `sfx(name, { x, v })` (x in frame px pans it, v is strength). Recipes and volume in that file; `?mute`.

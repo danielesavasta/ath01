@@ -4,12 +4,13 @@
 /* the chosen part: counter, name, Greek word, a few lines, a photo; left or right of the statue,
    whichever the part is nearer to, and above the back button */
 .craft-panel{
-    position: absolute; left: calc(130 * var(--u)); top: calc(230 * var(--u)); width: calc(440 * var(--u));
+    position: absolute; left: calc(290 * var(--u)); top: calc(150 * var(--u)); width: calc(440 * var(--u));   /* right of the back button */
     opacity: 0; transform: translateY(calc(10 * var(--u)));
     transition: opacity .4s ease, transform .4s ease; pointer-events: none;
 }
 .craft-panel.right{ left: calc(1350 * var(--u)); }
 .craft-panel.in{ opacity: 1; transform: none; transition-duration: .9s; }
+.craft-panel .title{ text-align: left; }   /* .stone-text centres, for the buttons */
 .craft-panel .greek{ margin-top: calc(10 * var(--u)); }
 .craft-panel .text{ margin-top: calc(22 * var(--u)); }
 .craft-photo{ margin-top: calc(26 * var(--u)); width: calc(440 * var(--u)); height: calc(260 * var(--u)); overflow: hidden; }

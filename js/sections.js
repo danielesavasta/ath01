@@ -139,7 +139,8 @@ const egg = await createEgg({
   stage: eggStage,
   texts: textsFor(FIRST).egg,
   dataUrl: "content/egg.json",
-  imagesDir: "assets/gallery/"
+  imagesDir: "assets/gallery/",
+  statueBand
 });
 
 const war = createWar({
@@ -156,6 +157,7 @@ const craft = createCraft({
   parts: () => (window.VENUE ? window.VENUE.get().parts : []),
   statue: () => (window.VENUE ? window.VENUE.get().mask.points : null),
   photo: () => (window.VENUE ? window.VENUE.get().statueImage : true),
+  feather: () => (window.VENUE ? window.VENUE.get().mask.feather || 0 : 0),
   imagesDir: "assets/craft/"
 });
 
@@ -169,7 +171,7 @@ const mind = createMind({
 // every section, by its SLOTS name; each exposes start/stop/reset/setTexts, and most also setHands or frame
 const SECTIONS = { owl: coin, egg, war, craft, mind };
 
-if (window.VENUE) window.VENUE.onChange(() => { coin.relayout(); war.relayout(); craft.relayout(); mind.relayout(); });
+if (window.VENUE) window.VENUE.onChange(() => { coin.relayout(); war.relayout(); craft.relayout(); mind.relayout(); egg.relayout(); });
 
 // js/scripts.js asks, for every hand icon it draws, whether the open section wants it hidden (false)
 // or blended into another image ({ img, mix }); null keeps the hand
@@ -182,6 +184,56 @@ back.innerHTML = `<div class="back-ring"></div>
   <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M30 12 L18 24 L30 36" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
   <span class="stone-text"></span>`;
 document.body.insertBefore(back, document.getElementById("drawing"));
+
+// ───────────── going in and out of a topic ─────────────
+// The chosen letter opens like an iris: the other letters drop away, the topic is revealed in a circle that
+// grows from the letter across the wall, a thin red ring running ahead of it, and the topic's name shows
+// for a moment where the letter was. Going back, the topic closes into a circle shrinking into its letter.
+const veil = document.createElement("div");
+veil.id = "veil";
+document.body.insertBefore(veil, document.getElementById("drawing"));
+const veilRing = document.createElement("div");      // outside the veil, or its own mask would hide it
+veilRing.id = "veilRing";
+document.body.insertBefore(veilRing, document.getElementById("drawing"));
+const topicCard = document.createElement("div");
+topicCard.id = "topicCard";
+topicCard.innerHTML = `<div class="t-title stone-text"></div><div class="t-greek"></div>`;
+document.body.appendChild(topicCard);
+const TR = { open: 1300, close: 850, title: 1700 };   // ms
+let busy = false;
+const easeInOut = (k) => k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+function slotCentre(name){
+  const sl = SLOTS.find((x) => x.section === name);
+  const r = sl && sl.el.getBoundingClientRect();
+  return r && r.width ? [r.left + r.width / 2, r.top + r.height / 2] : [innerWidth / 2, innerHeight / 2];
+}
+// the circle's radius from r0 to r1 around (x, y); outside it the wall is black
+function iris(x, y, r0, r1, ms, done){
+  const far = Math.max(Math.hypot(x, y), Math.hypot(innerWidth - x, y), Math.hypot(x, innerHeight - y), Math.hypot(innerWidth - x, innerHeight - y)) + 80;
+  const from = r0 < 0 ? far : r0, to = r1 < 0 ? far : r1, t0 = performance.now();
+  for (const e of [veil, veilRing]){ e.style.setProperty("--vx", x + "px"); e.style.setProperty("--vy", y + "px"); e.classList.add("on"); }
+  let finished = false;
+  const finish = () => { if (!finished){ finished = true; done && done(); } };
+  setTimeout(finish, ms + 150);    // even if animation frames stall (a busy or hidden page), it ends
+  (function step(now){
+    if (finished) return;
+    const k = Math.min((now - t0) / ms, 1), r = from + (to - from) * easeInOut(k);
+    veil.style.setProperty("--vr", r.toFixed(1) + "px");
+    veilRing.style.setProperty("--vr", r.toFixed(1) + "px");
+    veilRing.style.setProperty("--ring", (to > from ? 1 - k * k : Math.min(1, k / 0.15) * (1 - k * k)).toFixed(3));
+    if (k < 1) requestAnimationFrame(step); else finish();
+  })(t0);
+}
+function showTopic(name, x, y){
+  const t = (textsFor(lang).menu.topics || {})[name] || {};
+  topicCard.querySelector(".t-title").textContent = t.title || "";
+  topicCard.querySelector(".t-greek").textContent = t.epithet || "";
+  topicCard.style.left = x + "px"; topicCard.style.top = y + "px";
+  topicCard.classList.toggle("from-right", x > innerWidth / 2);
+  topicCard.classList.remove("on"); void topicCard.offsetWidth; topicCard.classList.add("on");
+  clearTimeout(topicCard._t);
+  topicCard._t = setTimeout(() => topicCard.classList.remove("on"), TR.title);
+}
 
 // language buttons: bottom left of the menu
 const langBox = document.createElement("div");
@@ -219,27 +271,49 @@ window.addEventListener("ath:source", () => setLang(lang));
 let section = "menu", activeAt = 0;
 function openSection(name){
   const s = SECTIONS[name];
-  if (section !== "menu" || !s) return;
+  if (section !== "menu" || !s || busy) return;
+  busy = true;
   section = name; activeAt = performance.now();
   ring.style.opacity = 0;
+  const [x, y] = slotCentre(name);
+  SLOTS.forEach((sl) => sl.el.classList.toggle("chosen", sl.section === name));
+  document.body.classList.add("opening");
   s.reset();                     // a fresh start for every visit (the coin dropped on the table, the gallery at its first image)
   sfx("open");
-  document.body.classList.add("in-section", "section-" + name);
-  s.start();
+  veil.style.setProperty("--vr", "0px");
+  iris(x, y, 0, 0, 1);           // black everywhere for a moment, under the letters
+  setTimeout(() => {
+    document.body.classList.add("in-section", "section-" + name);
+    s.start();
+    showTopic(name, x, y);
+    iris(x, y, 0, -1, TR.open, () => {
+      veil.classList.remove("on"); veilRing.classList.remove("on");
+      document.body.classList.remove("opening");
+      busy = false;
+    });
+  }, 260);
 }
 // why: "back" (the button, or M) keeps the language; "idle" means the visitor has gone
 function closeSection(why = "back"){
-  if (section === "menu") return;
-  const s = SECTIONS[section];
-  document.body.classList.remove("in-section", "section-" + section);
-  section = "menu";
-  activeAt = performance.now();
+  if (section === "menu" || busy) return;
+  busy = true;
+  const name = section, s = SECTIONS[name];
+  const [x, y] = slotCentre(name);
   sfx("close");
-  if (why === "idle") setLang(FIRST);
   back.style.setProperty("--p", 0);
-  s.stop();
-  for (const sl of SLOTS){ sl.over = false; sl.dwell = 0; }
-  athenaWave();
+  topicCard.classList.remove("on");
+  iris(x, y, -1, 0, TR.close, () => {
+    document.body.classList.remove("in-section", "section-" + name);
+    SLOTS.forEach((sl) => sl.el.classList.remove("chosen"));
+    section = "menu";
+    activeAt = performance.now();
+    if (why === "idle") setLang(FIRST);
+    s.stop();
+    for (const sl of SLOTS){ sl.over = false; sl.dwell = 0; }
+    veil.classList.remove("on"); veilRing.classList.remove("on");
+    busy = false;
+    athenaWave(150);
+  });
 }
 
 // ───────────── input ─────────────
@@ -290,7 +364,8 @@ function frame(now){
   const dt = Math.max(0, Math.min(now - lastT, 100));
   lastT = now;
   const pts = pointers(now);
-  if (section === "menu") menuFrame(now, dt, pts); else sectionFrame(now, dt, pts);
+  if (busy){ if (section !== "menu") SECTIONS[section].frame?.([], dt); }   // going in or out: no choosing meanwhile
+  else if (section === "menu") menuFrame(now, dt, pts); else sectionFrame(now, dt, pts);
   requestAnimationFrame(frame);
 }
 

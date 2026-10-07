@@ -19,13 +19,15 @@ import { sfx } from "./sound.js";
 const W = 1920, H = 1080;
 
 const T = {
-  dwell: 1500,        // ms resting on a part to choose it
+  dwell: 1000,        // ms resting on a part to choose it
   hover: 0.32,        // light on a part with a hand in front of it
   ready: 0.8,         // light just before it is chosen (the dwell fills from hover to here)
   dim: 0.55,          // how much the rest of the statue is darkened while the section is open
   near: 30,           // px: a hand this close to a part's edge still counts as on it
   invite: 1800,       // ms each part stays lit while nobody is there
   inviteAfter: 2500,  // ms without hands before the parts start to show themselves
+  introStep: 650,     // on opening, the parts light up one after another, this far apart (ms)
+  introSpan: 1300,    // and each stays lit this long
   onPhoto: 0.5        // light held back over the statue photo, so the folds stay visible there
 };
 const WARM = [255, 226, 188], WHITE = [255, 255, 255];
@@ -78,7 +80,7 @@ export function createCraft(opts){
   let drawn = "";
 
   let TX = opts.texts || {};
-  let parts = [], running = false, chosen = null, side = "left", swap = 0, idle = 0, clock = 0;
+  let parts = [], running = false, chosen = null, side = "left", swap = 0, idle = 0, clock = 0, intro = 0;
   const onPart = new Map();     // hand id -> part id, for handSkin
 
   function load(){
@@ -143,7 +145,10 @@ export function createCraft(opts){
     idle = anyHands ? 0 : idle + dt;
 
     // nobody there and nothing chosen: the parts show themselves one after another
-    const inviting = !chosen && idle > T.inviteAfter && parts.length;
+    // just opened: every part lights up once, one after another, to show there is something to find
+    intro += dt;
+    const introOn = intro < parts.length * T.introStep + T.introSpan;
+    const inviting = !introOn && !chosen && idle > T.inviteAfter && parts.length;
     const invited = inviting ? parts[Math.floor(clock / T.invite) % parts.length] : null;
 
     for (const p of parts){
@@ -157,6 +162,13 @@ export function createCraft(opts){
       if (chosen === p.id){ target = 1; warm = 0; }
       else if (hovered){ target = T.hover + (T.ready - T.hover) * k; warm = 1 - k; }
       else if (p === invited){ target = T.hover * (0.6 + 0.4 * Math.sin((clock % T.invite) / T.invite * Math.PI)); }
+      else if (introOn){
+        const k0 = (intro - parts.indexOf(p) * T.introStep) / T.introSpan;
+        if (k0 > 0 && k0 < 1){
+          target = T.ready * Math.sin(k0 * Math.PI);
+          if (!p.introLit){ p.introLit = true; sfx("light", { x: centroid(p.points)[0] }); }
+        }
+      }
       const ease = Math.min(1, dt / (target > p.level ? 90 : 220));
       p.level += (target - p.level) * ease;
       p.warm += (warm - p.warm) * Math.min(1, dt / 150);
@@ -171,10 +183,12 @@ export function createCraft(opts){
   }
   function draw(force){
     const photo = opts.photo ? opts.photo() : false;
-    const key = parts.map((p) => p.level.toFixed(3) + p.warm.toFixed(2)).join() + photo;
+    const feather = opts.feather ? opts.feather() : 0;
+    const key = parts.map((p) => p.level.toFixed(3) + p.warm.toFixed(2)).join() + photo + feather;
     if (key === drawn && !force) return;
     drawn = key;
     lg.clearRect(0, 0, W, H);
+    lg.filter = feather > 0 ? `blur(${(feather / 2).toFixed(1)}px)` : "none";   // the same soft edge as the mask
     // the rest of the statue, a little darker, so the lit part stands out
     const statue = opts.statue ? opts.statue() : null;
     if (statue && statue.length > 2){
@@ -195,8 +209,8 @@ export function createCraft(opts){
 
   function reset(){
     load();
-    for (const p of parts){ p.dwell = 0; p.level = 0; p.warm = 1; }
-    chosen = null; idle = T.inviteAfter; clock = 0; clearTimeout(swap);
+    for (const p of parts){ p.dwell = 0; p.level = 0; p.warm = 1; p.introLit = false; }
+    chosen = null; idle = 0; clock = 0; intro = 0; clearTimeout(swap);
     panel.classList.remove("in", "was");
     onPart.clear();
     draw(true);

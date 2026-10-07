@@ -37,7 +37,7 @@ window.VENUE_FILE = {
     const DEFAULTS = {
         statueImage: true,
         mask: { on: true, points: [[993, 90], [984, 127], [990, 157], [982, 195], [980, 222], [983, 264], [937, 282], [899, 307], [901, 340], [899, 368], [900, 391], [903, 418], [912, 440], [911, 463], [912, 487], [911, 510], [912, 533], [911, 554], [911, 576], [909, 656], [905, 630], [903, 598], [911, 682], [912, 707], [912, 729], [915, 749], [921, 764], [929, 784], [930, 814], [938, 846], [943, 880], [931, 927], [916, 959], [907, 990], [899, 1037], [920, 1068], [962, 1066], [1001, 1079], [1056, 1066], [1092, 1053], [1121, 1020], [1142, 986], [1146, 940], [1148, 890], [1154, 842], [1165, 807], [1174, 754], [1175, 695], [1179, 651], [1182, 611], [1183, 579], [1180, 536], [1194, 507], [1195, 474], [1186, 423], [1182, 378], [1173, 352], [1161, 315], [1121, 277], [1054, 259], [1023, 255], [1031, 232], [1071, 224], [1090, 191], [1099, 152], [1091, 115], [1083, 96], [1071, 64], [1051, 51], [1022, 55]],
-                light: { on: true, color: '#fff1dc', level: 0.55, soft: 12, slope: 0.3 } },
+                light: { on: true, color: '#fff1dc', level: 0.55, soft: 12, slope: 0.3 }, feather: 6 },
         camera: { zoom: 1, cx: 0.5, cy: 0.5, kinectMirror: true },
         detect: { confidence: 0.6, upOnly: 70,
                   depth: { near: 500, far: 4000, reach: 180, margin: 120, push: 120 } },
@@ -46,7 +46,8 @@ window.VENUE_FILE = {
             { id: 'chiton',   points: [[755, 620], [815, 615], [840, 690], [875, 770], [890, 840], [930, 880], [970, 910], [940, 940], [850, 1000], [760, 1030], [740, 840], [735, 700]] },
             { id: 'aegis',    points: [[815, 615], [900, 580], [1040, 580], [1055, 700], [1045, 860], [1025, 905], [970, 905], [930, 880], [890, 840], [875, 770], [840, 690]] },
             { id: 'himation', points: [[1040, 580], [1110, 580], [1150, 640], [1175, 740], [1195, 840], [1200, 910], [1150, 920], [1100, 960], [1060, 940], [1045, 860], [1055, 700]] },
-            { id: 'roll',     points: [[760, 1045], [890, 975], [1000, 915], [1040, 910], [1070, 940], [1060, 980], [970, 1030], [870, 1075], [765, 1080]] }
+            { id: 'roll',     points: [[760, 1045], [890, 975], [1000, 915], [1040, 910], [1070, 940], [1060, 980], [970, 1030], [870, 1075], [765, 1080]] },
+            { id: 'helmet',   points: [[905, 305], [912, 250], [940, 195], [985, 172], [1020, 205], [1035, 250], [1042, 310], [1000, 300], [960, 292]] }
         ]
     };
     const clone = (o) => JSON.parse(JSON.stringify(o));
@@ -62,6 +63,8 @@ window.VENUE_FILE = {
     let stored = null;
     try { stored = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { stored = null; }
     let S = merge(fromFile(), stored || {});
+    // a part added to the file later (the helmet) also shows up where older settings were saved in this browser
+    for (const p of fromFile().parts) if (!S.parts.some((q) => q.id === p.id)) S.parts.push(clone(p));
 
     const listeners = [];
     function changed(persist = true) {
@@ -91,7 +94,8 @@ window.VENUE_FILE = {
             maskSvg.innerHTML = `<defs>
                 <linearGradient id="vmLight" x1="0" y1="0" x2="0" y2="1"><stop offset="0"/><stop offset="1"/></linearGradient>
                 <filter id="vmSoft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="0"/></filter>
-              </defs><polygon class="vm-base"/><polygon class="vm-light" fill="url(#vmLight)" filter="url(#vmSoft)"/>`;
+                <filter id="vmFeather" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="0"/></filter>
+              </defs><polygon class="vm-base" filter="url(#vmFeather)"/><polygon class="vm-light" fill="url(#vmLight)" filter="url(#vmSoft)"/>`;
             maskPoly = maskSvg.querySelector('.vm-base');
             lightPoly = maskSvg.querySelector('.vm-light');
             document.body.appendChild(maskSvg);
@@ -105,6 +109,8 @@ window.VENUE_FILE = {
         stops[0].setAttribute('stop-color', L.color); stops[0].setAttribute('stop-opacity', top.toFixed(3));
         stops[1].setAttribute('stop-color', L.color); stops[1].setAttribute('stop-opacity', bottom.toFixed(3));
         maskSvg.querySelector('#vmSoft feGaussianBlur').setAttribute('stdDeviation', (L.soft / 2).toFixed(1));
+        // edge feather: the black mask fades out over its edge instead of cutting hard across small details
+        maskSvg.querySelector('#vmFeather feGaussianBlur').setAttribute('stdDeviation', ((S.mask.feather || 0) / 2).toFixed(1));
         lightPoly.style.display = L.on ? '' : 'none';
         maskSvg.style.display = S.mask.on || L.on ? '' : 'none';
     }
@@ -136,47 +142,48 @@ window.VENUE_FILE = {
           <canvas class="vs-cam"></canvas>
           <svg class="vs-edit" viewBox="0 0 ${FRAME_W} ${FRAME_H}" preserveAspectRatio="none"><g class="vs-others"></g><polygon class="vs-poly"></polygon><g class="vs-handles"></g></svg>
           <div class="vs-panel">
-            <div class="vs-head"><b>KURULUM</b><span>K ile kapat</span></div>
-            <div class="vs-tabs"><button data-tab="mask">Heykel maskesi</button><button data-tab="parts">Kumaş parçaları</button><button data-tab="camera">Kamera</button></div>
+            <div class="vs-head"><b>SETUP</b><span>K to close</span></div>
+            <div class="vs-tabs"><button data-tab="mask">Statue mask</button><button data-tab="parts">Craft parts</button><button data-tab="camera">Camera</button></div>
             <div class="vs-body" data-for="mask">
-              <label><input type="checkbox" data-k="maskOn"> Maske açık: heykelin üstü siyah, oraya hiçbir şey yansımaz</label>
-              <label><input type="checkbox" data-k="lightOn"> Heykeli projektörle aydınlat (maskenin içi ışık olur)</label>
+              <label><input type="checkbox" data-k="maskOn"> Mask on: the statue is black, nothing is projected onto it</label>
+              <label class="vs-slider">Edge feather <output data-o="feather"></output><input type="range" min="0" max="40" step="1" data-k="feather"></label>
+              <label><input type="checkbox" data-k="lightOn"> Light the statue with the projector (the inside of the mask becomes light)</label>
               <div class="vs-light">
-                <label class="vs-color">Işığın rengi <input type="color" data-k="lightColor"></label>
-                <label class="vs-slider">Parlaklık <output data-o="level"></output><input type="range" min="0.05" max="1" step="0.01" data-k="level"></label>
-                <label class="vs-slider">Kenar yumuşaklığı <output data-o="soft"></output><input type="range" min="0" max="120" step="2" data-k="soft"></label>
-                <label class="vs-slider">Yön <output data-o="slope"></output><input type="range" min="-1" max="1" step="0.05" data-k="slope"></label>
+                <label class="vs-color">Light colour <input type="color" data-k="lightColor"></label>
+                <label class="vs-slider">Brightness <output data-o="level"></output><input type="range" min="0.05" max="1" step="0.01" data-k="level"></label>
+                <label class="vs-slider">Light edge softness <output data-o="soft"></output><input type="range" min="0" max="120" step="2" data-k="soft"></label>
+                <label class="vs-slider">Direction <output data-o="slope"></output><input type="range" min="-1" max="1" step="0.05" data-k="slope"></label>
               </div>
-              <label><input type="checkbox" data-k="statueImage"> Heykel fotoğrafı görünsün (sadece çalışırken)</label>
-              <p>Noktaları sürükle. Kenarın üstüne çift tıkla: yeni nokta. Noktaya sağ tıkla: sil.</p>
-              <button data-act="statueShape">Fotoğraftaki heykelin şekline dön</button>
+              <label><input type="checkbox" data-k="statueImage"> Show the statue photo (only while working without the statue)</label>
+              <p>Drag the points. Double-click an edge: new point. Right-click a point: delete it.</p>
+              <button data-act="statueShape">Back to the statue shape from the photo</button>
             </div>
             <div class="vs-body" data-for="parts">
-              <p>Zanaat bölümünde aydınlanan parçalar. Birini seç, noktalarını heykelin üstündeki kıvrımlara oturt. Maskeyle aynı: sürükle, kenara çift tıkla, noktaya sağ tıkla.</p>
+              <p>The parts the Craft section lights up. Pick one and fit its points to the statue. Same as the mask: drag, double-click an edge, right-click a point. Edge feather (Statue mask tab) softens these too.</p>
               <div class="vs-parts"></div>
-              <button data-act="partShape">Bu parçayı fotoğraftaki şekline döndür</button>
+              <button data-act="partShape">Back to this part's shape from the photo</button>
             </div>
             <div class="vs-body" data-for="camera">
-              <p>Kameranın gördüğü, çerçeve de ekrana gelen alan. Ziyaretçilerin ellerinin gezindiği bölgeyi kapsasın; ne kadar dar olursa uzaktaki eller o kadar iyi bulunur. Sürükle: taşı. Tekerlek: yakınlaştır.</p>
-              <label><input type="checkbox" data-k="kinectMirror"> Kinect görüntüsünü yatay çevir</label>
-              <label class="vs-slider">Yakınlaştırma <output data-o="zoom"></output><input type="range" min="1" max="3" step="0.05" data-k="zoom"></label>
-              <label class="vs-slider">Algılama eşiği <output data-o="confidence"></output><input type="range" min="0.3" max="0.9" step="0.05" data-k="confidence"></label>
-              <label class="vs-slider">Yukarı bakan el: dikeyden en fazla <output data-o="upOnly"></output><input type="range" min="20" max="180" step="5" data-k="upOnly"></label>
+              <p>What the camera sees; the frame is the area mapped onto the wall. Cover the area where visitors' hands move; the tighter it is, the better far-away hands are found. Drag: move. Wheel: zoom.</p>
+              <label><input type="checkbox" data-k="kinectMirror"> Mirror the Kinect picture</label>
+              <label class="vs-slider">Zoom <output data-o="zoom"></output><input type="range" min="1" max="3" step="0.05" data-k="zoom"></label>
+              <label class="vs-slider">Detection threshold <output data-o="confidence"></output><input type="range" min="0.3" max="0.9" step="0.05" data-k="confidence"></label>
+              <label class="vs-slider">Upward hand: at most from vertical <output data-o="upOnly"></output><input type="range" min="20" max="180" step="5" data-k="upOnly"></label>
               <div class="vs-depth">
-                <p><b>Derinlik (Kinect)</b>: eller karanlıkta da bulunur. Kinect duvarda, ziyaretçilere bakar; bir el,
-                  sahibinin gövdesinden belli bir mesafe öne (duvara doğru) uzanınca el sayılır. Oda kendini öğrenir;
-                  eşyalar yer değiştirdiyse ya da tuhaf eller çıkıyorsa buradan baştan öğret.</p>
-                <button data-act="learn">Odayı baştan öğren (5 sn sonra)</button>
+                <p><b>Depth (Kinect)</b>: hands are found in the dark too. The Kinect is on the wall, facing the visitors; a hand
+                  counts once it reaches a set distance in front of its owner's body (towards the wall). The room learns
+                  itself; if things were moved or odd hands appear, relearn it here.</p>
+                <button data-act="learn">Relearn the empty room (in 5 s)</button>
                 <p class="vs-depth-status"></p>
-                <label class="vs-slider">Gövdeden öne uzanma <output data-o="reach"></output><input type="range" min="80" max="500" step="10" data-k="reach"></label>
-                <label class="vs-slider">En uzak <output data-o="far"></output><input type="range" min="1500" max="6000" step="100" data-k="far"></label>
-                <label class="vs-slider">Tutmak için öne itme <output data-o="push"></output><input type="range" min="50" max="300" step="10" data-k="push"></label>
+                <label class="vs-slider">Reach in front of the body <output data-o="reach"></output><input type="range" min="80" max="500" step="10" data-k="reach"></label>
+                <label class="vs-slider">Farthest <output data-o="far"></output><input type="range" min="1500" max="6000" step="100" data-k="far"></label>
+                <label class="vs-slider">Push forward to grab <output data-o="push"></output><input type="range" min="50" max="300" step="10" data-k="push"></label>
               </div>
               <p class="vs-live"></p>
             </div>
             <div class="vs-foot">
-              <button data-act="save">Dosyaya kaydet (venue.js)</button>
-              <button data-act="revert">Dosyadaki ayarlara dön</button>
+              <button data-act="save">Save to file (venue.js)</button>
+              <button data-act="revert">Back to the settings in the file</button>
             </div>
             <p class="vs-note"></p>
           </div>`;
@@ -189,6 +196,7 @@ window.VENUE_FILE = {
         ui.querySelectorAll('input').forEach((inp) => inp.addEventListener('input', () => {
             const k = inp.dataset.k, v = inp.type === 'checkbox' ? inp.checked : inp.type === 'color' ? inp.value : parseFloat(inp.value);
             if (k === 'maskOn') S.mask.on = v;
+            else if (k === 'feather') S.mask.feather = v;
             else if (k === 'lightOn') S.mask.light.on = v;
             else if (k === 'lightColor') S.mask.light.color = v;
             else if (k === 'level' || k === 'soft' || k === 'slope') S.mask.light[k] = v;
@@ -205,11 +213,11 @@ window.VENUE_FILE = {
             if (d) { S.parts[part].points = clone(d.points); changed(); refresh(); }
         });
         ui.querySelector('[data-act="learn"]').addEventListener('click', () => {
-            if (!window.athDepth) { note('Kinect derinliği bağlı değil (tools/kinect/bridge.py çalışıyor mu?).'); return; }
+            if (!window.athDepth) { note('Kinect depth is not connected (is tools/kinect/bridge.py running?).'); return; }
             let n = 5;
             const tick = () => {
-                if (n > 0) { note(`Kinect'in önünden çekil: ${n}`); n--; setTimeout(tick, 1000); return; }
-                window.athDepth.learn(); note('Oda öğreniliyor...');
+                if (n > 0) { note(`Step out of the Kinect's view: ${n}`); n--; setTimeout(tick, 1000); return; }
+                window.athDepth.learn(); note('Learning the room...');
             };
             tick();
         });
@@ -217,7 +225,7 @@ window.VENUE_FILE = {
         ui.querySelector('[data-act="revert"]').addEventListener('click', () => {
             try { localStorage.removeItem(KEY); } catch (e) { /* nothing kept */ }
             S = fromFile(); changed(false); refresh();
-            note('content/venue.js dosyasındaki ayarlara dönüldü.');
+            note('Back to the settings in content/venue.js.');
         });
         wireMaskEditing();
         wireCameraEditing();
@@ -232,15 +240,16 @@ window.VENUE_FILE = {
         ui.querySelectorAll('.vs-tabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
         ui.querySelectorAll('.vs-body').forEach((b) => { b.hidden = b.dataset.for !== tab; });
         const set = (k, v) => { const i = ui.querySelector(`input[data-k="${k}"]`); if (i.type === 'checkbox') i.checked = v; else i.value = v; };
-        set('maskOn', S.mask.on); set('statueImage', S.statueImage);
+        set('maskOn', S.mask.on); set('statueImage', S.statueImage); set('feather', S.mask.feather);
+        ui.querySelector('[data-o="feather"]').textContent = S.mask.feather + ' px';
         const L = S.mask.light;
         set('lightOn', L.on); set('lightColor', L.color); set('level', L.level); set('soft', L.soft); set('slope', L.slope);
         ui.querySelector('.vs-light').hidden = !L.on;
         ui.classList.toggle('lit', L.on);   // show the light itself while adjusting it: outline only
         ui.querySelector('[data-o="level"]').textContent = Math.round(L.level * 100) + '%';
         ui.querySelector('[data-o="soft"]').textContent = L.soft + ' px';
-        ui.querySelector('[data-o="slope"]').textContent = Math.abs(L.slope) < 0.03 ? 'her yer eşit'
-            : (L.slope > 0 ? 'üstten, alt %' : 'alttan, üst %') + Math.round((1 - Math.abs(L.slope)) * 100);
+        ui.querySelector('[data-o="slope"]').textContent = Math.abs(L.slope) < 0.03 ? 'even'
+            : (L.slope > 0 ? 'from the top, bottom ' : 'from the bottom, top ') + Math.round((1 - Math.abs(L.slope)) * 100) + '%';
         const list = ui.querySelector('.vs-parts');
         list.innerHTML = '';
         S.parts.forEach((p, i) => {
@@ -256,7 +265,7 @@ window.VENUE_FILE = {
         ui.querySelector('[data-o="push"]').textContent = S.detect.depth.push + ' mm';
         ui.querySelector('[data-o="zoom"]').textContent = S.camera.zoom.toFixed(2) + '×';
         ui.querySelector('[data-o="confidence"]').textContent = S.detect.confidence.toFixed(2);
-        ui.querySelector('[data-o="upOnly"]').textContent = S.detect.upOnly >= 180 ? 'her yön' : S.detect.upOnly + '°';
+        ui.querySelector('[data-o="upOnly"]').textContent = S.detect.upOnly >= 180 ? 'any direction' : S.detect.upOnly + '°';
         drawMaskEditor();
     }
 
@@ -379,7 +388,7 @@ window.VENUE_FILE = {
         g.fillStyle = '#111'; g.fillRect(0, 0, innerWidth, innerHeight);
         const cam = window.athCamera;
         const live = ui.querySelector('.vs-live');
-        if (!cam || !cam.w) { live.textContent = 'Kamera görüntüsü yok.'; camView = null; return; }
+        if (!cam || !cam.w) { live.textContent = 'No camera picture.'; camView = null; return; }
         const mirror = cameraMirrored();
         // fit the whole camera image on screen in its active orientation
         const s = Math.min(innerWidth * 0.94 / cam.w, (innerHeight - 40) * 0.94 / cam.h);
@@ -402,11 +411,11 @@ window.VENUE_FILE = {
             g.beginPath(); g.arc(ox + (mirror ? 1 - p.x : p.x) * W, oy + p.y * H, 12, 0, Math.PI * 2);
             g.strokeStyle = '#3FA08C'; g.lineWidth = 3; g.stroke();
         }
-        live.textContent = `Kamera ${cam.w}×${cam.h} · el bulucuya giden alan ${crop.w}×${crop.h} piksel · şu an ${lastHands} el`;
+        live.textContent = `Camera ${cam.w}×${cam.h} · area sent to the hand finder ${crop.w}×${crop.h} px · ${lastHands} hand(s) now`;
         const st = window.athDepth && window.athDepth.status;
         ui.querySelector('.vs-depth').hidden = !window.athDepth;
         if (st) ui.querySelector('.vs-depth-status').textContent = st.learning != null
-            ? `Oda öğreniliyor: %${Math.round(st.learning * 100)}` : (st.bg ? 'Oda öğrenildi; kendini güncelliyor.' : 'Oda henüz öğrenilmedi.');
+            ? `Learning the room: ${Math.round(st.learning * 100)}%` : (st.bg ? 'Room learned; it keeps updating itself.' : 'Room not learned yet.');
     }
 
     function saveFile() {
@@ -418,6 +427,7 @@ window.VENUE_FILE = {
   statueImage: ${S.statueImage},
   mask: {
     on: ${S.mask.on},
+    feather: ${S.mask.feather || 0},
     points: [${pts}],
     light: { on: ${S.mask.light.on}, color: '${S.mask.light.color}', level: ${S.mask.light.level}, soft: ${S.mask.light.soft}, slope: ${S.mask.light.slope} }
   },
@@ -434,14 +444,14 @@ ${S.parts.map((p) => `    { id: '${p.id}', points: [${p.points.map((q) => `[${q[
         a.download = 'venue.js';
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-        note('venue.js indirildi. content/ klasörüne koy (eskisinin yerine).');
+        note('venue.js downloaded. Put it in the content/ folder (replacing the old one).');
     }
 
     function toggle() {
         if (!ui) buildUi();
         ui.hidden = !ui.hidden;
         document.body.classList.toggle('venue-setup', !ui.hidden);
-        if (!ui.hidden) { note(stored ? 'Bu tarayıcıda kaydedilmiş ayarlar kullanılıyor.' : ''); refresh(); drawCamera(); }
+        if (!ui.hidden) { note(stored ? 'Using the settings saved in this browser.' : ''); refresh(); drawCamera(); }
     }
     window.addEventListener('keydown', (e) => {
         if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;

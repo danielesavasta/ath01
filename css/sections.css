@@ -121,3 +121,34 @@ body.in-section #backBtn.hover{ opacity: 1; background: rgba(255,255,255,.14); t
     overflow: auto;
 }
 body.show-panel #coinPanel{ display: grid; }
+
+/* going in and out of a topic (js/sections.js): black outside a circle that grows from the chosen letter, with
+   a thin red ring on its edge; the letters drop away, the chosen one swells and fades */
+#veil{
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; display: none;
+    background: #000;
+    -webkit-mask: radial-gradient(circle at var(--vx, 50%) var(--vy, 50%), transparent calc(var(--vr, 0px) - 1px), #000 calc(var(--vr, 0px) + 60px));
+    mask: radial-gradient(circle at var(--vx, 50%) var(--vy, 50%), transparent calc(var(--vr, 0px) - 1px), #000 calc(var(--vr, 0px) + 60px));
+}
+#veil.on{ display: block; }
+#veilRing{ position: fixed; inset: 0; z-index: 0; pointer-events: none; display: none; overflow: hidden; }
+#veilRing.on{ display: block; }
+#veilRing::after{
+    content: ""; position: absolute; left: var(--vx); top: var(--vy);
+    width: calc(var(--vr, 0px) * 2); height: calc(var(--vr, 0px) * 2); transform: translate(-50%, -50%);
+    border-radius: 50%; border: calc(2 * var(--u)) solid var(--amber); opacity: var(--ring, 0);
+}
+body.opening .letter-slot{ transition: opacity .45s ease, transform .6s cubic-bezier(.3,.7,.3,1); }
+body.opening .letter-slot:not(.chosen){ opacity: 0; transform: translateY(calc(30 * var(--u))); }
+body.opening .letter-slot.chosen{ transform: scale(1.18); }
+body.opening #langSwitch, body.opening #title{ opacity: 0; transition: opacity .3s ease; }
+
+/* the topic's name, for a moment where its letter was */
+#topicCard{
+    position: absolute; z-index: 4; pointer-events: none; transform: translate(-50%, -50%);
+    text-align: center; opacity: 0; transition: opacity .5s ease, letter-spacing 1.6s cubic-bezier(.2,.7,.2,1);
+    letter-spacing: 0; white-space: nowrap;
+}
+#topicCard .t-title{ font-size: calc(64 * var(--u)); letter-spacing: inherit; }
+#topicCard .t-greek{ margin-top: calc(10 * var(--u)); }
+#topicCard.on{ opacity: 1; letter-spacing: .08em; }

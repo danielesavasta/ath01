@@ -18,7 +18,15 @@ export default {
 
   tr: {
     menu: {
-      back: "ANA SAYFA"
+      back: "ANA SAYFA",
+      // shown for a moment when a topic opens
+      topics: {
+        egg:   { title: "DOĞUŞ",  epithet: "Metis" },
+        owl:   { title: "BAYKUŞ", epithet: "Sikke ve ticaret" },
+        war:   { title: "SAVAŞ",  epithet: "Promachos" },
+        craft: { title: "ZANAAT", epithet: "Ergane" },
+        mind:  { title: "AKIL",   epithet: "mētis" }
+      }
     },
 
     owl: {
@@ -68,7 +76,8 @@ export default {
         chiton:   { title: "KİTON",    greek: "χιτών",   text: "En altta giyilen ince giysi. Sık ve keskin kıvrımlar hafif bir kumaşı taklit eder." },
         aegis:    { title: "AİGİS",    greek: "αἰγίς",   text: "Göğsü örten pullu deri. Ortasında Medusa'nın başı, kenarında kıvrılan yılanlar." },
         himation: { title: "HİMATİON", greek: "ἱμάτιον", text: "Omuzdan aşağı dökülen kalın örtü. Kıvrımları kitonunkilerden daha derin ve ağır." },
-        roll:     { title: "KIVRIM",   greek: "",        text: "Örtünün kalçadan geçen, sarılmış kenarı." }
+        roll:     { title: "KIVRIM",   greek: "",        text: "Örtünün kalçadan geçen, sarılmış kenarı." },
+        helmet:   { title: "MİĞFER",   greek: "κόρυς",   text: "Korinth tipi bir miğfer; yüzüne indirilmemiş, başının üstüne itilmiş. Göz delikleri gökyüzüne bakar: Athena savaşmıyor, nöbet tutuyor." }
       }
     },
 
@@ -87,7 +96,14 @@ export default {
 
   en: {
     menu: {
-      back: "HOME"
+      back: "HOME",
+      topics: {
+        egg:   { title: "BIRTH",   epithet: "Metis" },
+        owl:   { title: "THE OWL", epithet: "Coin and trade" },
+        war:   { title: "WAR",     epithet: "Promachos" },
+        craft: { title: "CRAFT",   epithet: "Ergane" },
+        mind:  { title: "MIND",    epithet: "mētis" }
+      }
     },
 
     owl: {
@@ -133,7 +149,8 @@ export default {
         chiton:   { title: "CHITON",   greek: "χιτών",   text: "The thin garment worn underneath. Close, sharp folds imitate a light fabric." },
         aegis:    { title: "AEGIS",    greek: "αἰγίς",   text: "The scaled skin over her chest, with Medusa's head at the centre and snakes coiled along the edge." },
         himation: { title: "HIMATION", greek: "ἱμάτιον", text: "The heavy mantle falling from the shoulder. Its folds are deeper and heavier than the chiton's." },
-        roll:     { title: "THE ROLL", greek: "",        text: "The rolled edge of the mantle, drawn across the hips." }
+        roll:     { title: "THE ROLL", greek: "",        text: "The rolled edge of the mantle, drawn across the hips." },
+        helmet:   { title: "HELMET",   greek: "κόρυς",   text: "A Corinthian helmet, pushed back on her head instead of lowered over the face. Its eye-holes look at the sky: Athena is not fighting, she is keeping watch." }
       }
     },
 
