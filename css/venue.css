@@ -13,7 +13,7 @@
 #venueSetup[hidden]{ display: none; }
 #venueSetup .vs-cam{ position: absolute; inset: 0; width: 100%; height: 100%; cursor: move; }
 #venueSetup .vs-edit{ position: absolute; overflow: visible; }
-#venueSetup[data-tab="camera"] .vs-edit{ display: none; }
+#venueSetup[data-tab="camera"] .vs-edit, #venueSetup[data-tab="mind"] .vs-edit{ display: none; }
 #venueSetup .vs-poly{ fill: rgba(240,60,50,.28); stroke: #F04438; stroke-width: 3; vector-effect: non-scaling-stroke; }
 #venueSetup.lit .vs-poly{ fill: none; stroke-dasharray: 8 6; }
 #venueSetup .vs-others polygon{ fill: none; stroke: rgba(255,255,255,.45); stroke-width: 1.5; stroke-dasharray: 4 5; vector-effect: non-scaling-stroke; }

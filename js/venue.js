@@ -39,6 +39,9 @@ window.VENUE_FILE = {
         mask: { on: true, points: [[993, 90], [984, 127], [990, 157], [982, 195], [980, 222], [983, 264], [937, 282], [899, 307], [901, 340], [899, 368], [900, 391], [903, 418], [912, 440], [911, 463], [912, 487], [911, 510], [912, 533], [911, 554], [911, 576], [909, 656], [905, 630], [903, 598], [911, 682], [912, 707], [912, 729], [915, 749], [921, 764], [929, 784], [930, 814], [938, 846], [943, 880], [931, 927], [916, 959], [907, 990], [899, 1037], [920, 1068], [962, 1066], [1001, 1079], [1056, 1066], [1092, 1053], [1121, 1020], [1142, 986], [1146, 940], [1148, 890], [1154, 842], [1165, 807], [1174, 754], [1175, 695], [1179, 651], [1182, 611], [1183, 579], [1180, 536], [1194, 507], [1195, 474], [1186, 423], [1182, 378], [1173, 352], [1161, 315], [1121, 277], [1054, 259], [1023, 255], [1031, 232], [1071, 224], [1090, 191], [1099, 152], [1091, 115], [1083, 96], [1071, 64], [1051, 51], [1022, 55]],
                 light: { on: true, color: '#fff1dc', level: 0.55, soft: 12, slope: 0.3 }, feather: 6 },
         camera: { zoom: 1, cx: 0.5, cy: 0.5, kinectMirror: true },
+        // the Mind section's pace (K, Mind): seconds per sentence, seconds the points take to flow into the next
+        // drawing, and how many points draw the olive
+        mind: { line: 7.5, morph: 2.8, particles: 30000 },
         detect: { confidence: 0.6, upOnly: 70,
                   depth: { near: 500, far: 4000, reach: 180, margin: 120, push: 120 } },
         // cloth parts lit by the Craft section (js/craft/), drawn on the statue photo; redraw them at the venue (K)
@@ -143,7 +146,7 @@ window.VENUE_FILE = {
           <svg class="vs-edit" viewBox="0 0 ${FRAME_W} ${FRAME_H}" preserveAspectRatio="none"><g class="vs-others"></g><polygon class="vs-poly"></polygon><g class="vs-handles"></g></svg>
           <div class="vs-panel">
             <div class="vs-head"><b>SETUP</b><span>K to close</span></div>
-            <div class="vs-tabs"><button data-tab="mask">Statue mask</button><button data-tab="parts">Craft parts</button><button data-tab="camera">Camera</button></div>
+            <div class="vs-tabs"><button data-tab="mask">Statue mask</button><button data-tab="parts">Craft parts</button><button data-tab="camera">Camera</button><button data-tab="mind">Mind</button></div>
             <div class="vs-body" data-for="mask">
               <label><input type="checkbox" data-k="maskOn"> Mask on: the statue is black, nothing is projected onto it</label>
               <label class="vs-slider">Edge feather <output data-o="feather"></output><input type="range" min="0" max="40" step="1" data-k="feather"></label>
@@ -162,6 +165,13 @@ window.VENUE_FILE = {
               <p>The parts the Craft section lights up. Pick one and fit its points to the statue. Same as the mask: drag, double-click an edge, right-click a point. Edge feather (Statue mask tab) softens these too.</p>
               <div class="vs-parts"></div>
               <button data-act="partShape">Back to this part's shape from the photo</button>
+            </div>
+            <div class="vs-body" data-for="mind">
+              <p>The pace of the Mind section (the olive drawn by particles). Changes apply the next time Mind opens; press N to try.</p>
+              <label class="vs-slider">Time per sentence <output data-o="mindLine"></output><input type="range" min="4" max="15" step="0.5" data-k="mindLine"></label>
+              <label class="vs-slider">Flow between drawings <output data-o="mindMorph"></output><input type="range" min="0.8" max="6" step="0.1" data-k="mindMorph"></label>
+              <label class="vs-slider">Particles <output data-o="mindParticles"></output><input type="range" min="5000" max="60000" step="1000" data-k="mindParticles"></label>
+              <p>More particles show more detail but cost speed; if the movement stutters, lower them.</p>
             </div>
             <div class="vs-body" data-for="camera">
               <p>What the camera sees; the frame is the area mapped onto the wall. Cover the area where visitors' hands move; the tighter it is, the better far-away hands are found. Drag: move. Wheel: zoom.</p>
@@ -204,6 +214,9 @@ window.VENUE_FILE = {
             else if (k === 'zoom') { S.camera.zoom = v; clampCamera(); }
             else if (k === 'kinectMirror') S.camera.kinectMirror = v;
             else if (k === 'reach' || k === 'far' || k === 'push') S.detect.depth[k] = v;
+            else if (k === 'mindLine') S.mind.line = v;
+            else if (k === 'mindMorph') S.mind.morph = v;
+            else if (k === 'mindParticles') S.mind.particles = v;
             else S.detect[k] = v;
             changed(); refresh();
         }));
@@ -260,6 +273,10 @@ window.VENUE_FILE = {
         });
         set('kinectMirror', S.camera.kinectMirror); set('zoom', S.camera.zoom); set('confidence', S.detect.confidence); set('upOnly', S.detect.upOnly);
         set('reach', S.detect.depth.reach); set('far', S.detect.depth.far); set('push', S.detect.depth.push);
+        set('mindLine', S.mind.line); set('mindMorph', S.mind.morph); set('mindParticles', S.mind.particles);
+        ui.querySelector('[data-o="mindLine"]').textContent = S.mind.line.toFixed(1) + ' s';
+        ui.querySelector('[data-o="mindMorph"]').textContent = S.mind.morph.toFixed(1) + ' s';
+        ui.querySelector('[data-o="mindParticles"]').textContent = S.mind.particles.toLocaleString('en');
         ui.querySelector('[data-o="reach"]').textContent = S.detect.depth.reach + ' mm';
         ui.querySelector('[data-o="far"]').textContent = (S.detect.depth.far / 1000).toFixed(1) + ' m';
         ui.querySelector('[data-o="push"]').textContent = S.detect.depth.push + ' mm';
@@ -292,7 +309,7 @@ window.VENUE_FILE = {
     function wireMaskEditing() {
         const svg = ui.querySelector('.vs-edit');
         svg.addEventListener('pointerdown', (e) => {
-            if (tab === 'camera' || e.button !== 0 || e.target.tagName !== 'circle') return;
+            if (tab === 'camera' || tab === 'mind' || e.button !== 0 || e.target.tagName !== 'circle') return;
             dragging = +e.target.dataset.i;
             svg.setPointerCapture(e.pointerId);
         });
@@ -305,12 +322,12 @@ window.VENUE_FILE = {
         svg.addEventListener('pointerup', () => { if (dragging >= 0) { dragging = -1; changed(); } });
         svg.addEventListener('contextmenu', (e) => {
             e.preventDefault();
-            if (tab === 'camera' || e.target.tagName !== 'circle' || editPoints().length <= 3) return;
+            if (tab === 'camera' || tab === 'mind' || e.target.tagName !== 'circle' || editPoints().length <= 3) return;
             editPoints().splice(+e.target.dataset.i, 1);
             changed(); drawMaskEditor();
         });
         svg.addEventListener('dblclick', (e) => {
-            if (tab === 'camera') return;
+            if (tab === 'camera' || tab === 'mind') return;
             const q = toFrame(e), P = editPoints();
             let best = 0, bd = Infinity;
             for (let i = 0; i < P.length; i++) {
@@ -432,6 +449,7 @@ window.VENUE_FILE = {
     light: { on: ${S.mask.light.on}, color: '${S.mask.light.color}', level: ${S.mask.light.level}, soft: ${S.mask.light.soft}, slope: ${S.mask.light.slope} }
   },
     camera: { zoom: ${+S.camera.zoom.toFixed(3)}, cx: ${+S.camera.cx.toFixed(4)}, cy: ${+S.camera.cy.toFixed(4)}, kinectMirror: ${S.camera.kinectMirror} },
+  mind: { line: ${S.mind.line}, morph: ${S.mind.morph}, particles: ${S.mind.particles} },
   detect: { confidence: ${S.detect.confidence}, upOnly: ${S.detect.upOnly},
             depth: { near: ${S.detect.depth.near}, far: ${S.detect.depth.far}, reach: ${S.detect.depth.reach}, margin: ${S.detect.depth.margin}, push: ${S.detect.depth.push} } },
   parts: [

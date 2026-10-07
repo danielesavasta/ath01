@@ -89,6 +89,8 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
 - **Mind** (`js/mind.js`): no gesture; five sentences while Daniele's olive plate grows (frames cut by
   `tools/olive/slice.py`), then back to the menu by itself (`done`). The olive is drawn by `T.particles` points in the
   drawing's own colours, which flow along curved paths into each next drawing (`T.morph`, `T.swirl`, `T.stagger`).
+  Its pace and particle count are set in `K` → Mind (time per sentence, flow time, particles; saved as `mind` in
+  `content/venue.js`), read each time Mind opens.
 - **Gymnasion** (`js/gymn.js`, id `gymn`): the Vedius Gymnasion as a dark 3D ruin (three.js) left of the statue, walls
   traced from the ground plan in `refs/` by `tools/gymn/trace.py` into `assets/gymn/plan.json`. Opening: the plan draws
   itself in red, the walls rise, the camera tilts. Raised hands are torches (spotlights with shadows; lit places keep a

@@ -19,19 +19,16 @@ import { sfx } from "./sound.js";
 const W = 1920, H = 1080;
 
 const T = {
-  line: 5500,      // ms each sentence stays (its drawings are spread over this time)
-  fade: 1100,      // ms one drawing dissolves into the next (at most; shorter when drawings come faster)
-  chapterFade: 1400,  // ms for the cut from the tree to the branch
+  line: 7500,      // ms each sentence stays (its drawings are spread over this time); K → Mind overrides
   hold: 4000,      // ms the last sentence and flower stay before the section closes
   out: 1200,       // ms the picture and sentence take to fade out at the end
   height: 1200,     // px the tallest drawing is drawn at (the plate's cells are ~250 px tall)
   left: 300,       // px: the olive is centred between this (right of the back button) and the statue
   ground: 930,     // px: the drawings stand on this line
   grow: [0.5, 1],  // the seedling is drawn this much smaller than the tree, growing in between
-  particles: 18000,  // points that draw the olive
+  particles: 30000,  // points that draw the olive; K → Mind overrides
   dot: 2,          // px, each point's size
-  morph: 1500,     // ms the points take to flow into the next drawing (at most; less when drawings come faster)
-  chapterMorph: 2200, // ms for the change from the tree to the branch
+  morph: 2800,     // ms the points take to flow into the next drawing; K → Mind overrides
   stagger: 0.4,    // share of the flow over which the points set off one after another
   swirl: 70,       // px the flow's paths curve aside
   shimmer: 0.6     // px the points tremble at rest
@@ -76,12 +73,26 @@ export function createMind(opts){
     const n = steps.length;   // drawings of the tree so far
     steps.push({
       img, chapter: c,
-      at: c * T.line + i * T.line / names.length,
-      fade: i === 0 && c === TREE ? T.chapterFade : Math.min(T.fade, 0.95 * T.line / names.length),
+      chapter: c, index: i, of: names.length,
       grow: c < TREE ? T.grow[0] + (T.grow[1] - T.grow[0]) * n / (treeCount - 1) : 1
     });
   }));
-  const storyEnd = CHAPTERS.length * T.line + T.hold;
+  // the pace: from the room settings (K, Mind) when there are any, else T; read each time Mind opens
+  let line = T.line, morph = T.morph, storyEnd = 0;
+  function schedule(){
+    const m = (opts.settings && opts.settings()) || {};
+    line = (m.line || T.line / 1000) * 1000;
+    morph = (m.morph || T.morph / 1000) * 1000;
+    for (const s of steps){
+      const gap = line / s.of;
+      s.at = s.chapter * line + s.index * gap;
+      // the flow into this drawing: as set, but never so long that it lags far behind the next ones
+      s.morph = s.index === 0 && s.chapter === TREE ? morph * 1.4 : Math.min(morph, gap * 1.8);
+    }
+    storyEnd = CHAPTERS.length * line + T.hold;
+    const want = m.particles || T.particles;
+    if (want !== P){ alloc(want); sampled = false; }
+  }
 
   let TX = opts.texts || {};
   let band = [700, 1240];
@@ -126,11 +137,14 @@ export function createMind(opts){
   // ───────────── particles ─────────────
   // each drawing, sampled once: where its points go and their colours (frame px), in the same order for all
   // drawings (sorted from the ground up, so the flow keeps the tree's shape: roots stay low, crowns high)
-  const P = T.particles;
-  const px = new Float32Array(P), py = new Float32Array(P), pr = new Float32Array(P), pg = new Float32Array(P), pb = new Float32Array(P);
-  const sx = new Float32Array(P), sy = new Float32Array(P), sr = new Float32Array(P), sg = new Float32Array(P), sb = new Float32Array(P);
-  const cxp = new Float32Array(P), cyp = new Float32Array(P), delay = new Float32Array(P), seed = new Float32Array(P);
-  for (let i = 0; i < P; i++){ seed[i] = Math.random() * Math.PI * 2; }
+  let P = 0, px, py, pr, pg, pb, sx, sy, sr, sg, sb, cxp, cyp, delay, seed;
+  function alloc(n){
+    P = n;
+    const f = () => new Float32Array(P);
+    px = f(); py = f(); pr = f(); pg = f(); pb = f(); sx = f(); sy = f(); sr = f(); sg = f(); sb = f();
+    cxp = f(); cyp = f(); delay = f(); seed = f();
+    for (let i = 0; i < P; i++) seed[i] = Math.random() * Math.PI * 2;
+  }
   let sampled = false, from = -1, to = -1, morphAt = 0, morphMs = T.morph;
   let box = { x: 0, y: 0, w: 1, h: 1 }, buf = null, buf32 = null;
 
@@ -194,8 +208,8 @@ export function createMind(opts){
     if (cur < 0) return;
     if (cur !== to){
       if (cur > 0) sfx("grow", { x: oliveX() });   // a soft rustle as the olive grows
-      const s = steps[cur], prev = steps[cur - 1];
-      morphTo(cur, prev && s.chapter === TREE && prev.chapter < TREE ? T.chapterMorph : (cur === 0 ? T.morph : Math.min(T.morph, s.fade * 1.3)));
+      const s = steps[cur];
+      morphTo(cur, s.morph);
     }
     const s = steps[to];
     // at the very end everything fades out
@@ -229,8 +243,8 @@ export function createMind(opts){
     if (!scale) measure();
     t = Math.min(t + dt, storyEnd);
     if (t >= storyEnd) done = true;
-    const n = Math.min(CHAPTERS.length, Math.floor(t / T.line) + 1);
-    if (n !== shown && t < CHAPTERS.length * T.line) showLine(n);
+    const n = Math.min(CHAPTERS.length, Math.floor(t / line) + 1);
+    if (n !== shown && t < CHAPTERS.length * line) showLine(n);
     lineEl.classList.toggle("in", shown > 0 && t < storyEnd - T.out);
     draw();
   }
@@ -247,7 +261,7 @@ export function createMind(opts){
   reset();
 
   return {
-    start(){ relayout(); running = true; },
+    start(){ relayout(); schedule(); running = true; },
     stop(){ running = false; clearTimeout(swap); },
     reset,
     setTexts(x){ TX = x || {}; applyTexts(); },
