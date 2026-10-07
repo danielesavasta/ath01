@@ -127,18 +127,22 @@ canvas {
     z-index: 0;
 }
 
+/* the text beside the letters, in the space left of them, on the 1920×1080 frame like everything else */
 #title {
     position: absolute;
-    left: -45%;
-    top: 50%;
-    transform: translate(0%, -50%);
+    left: calc(var(--frame-left) + 70 * var(--u));
+    top: calc(var(--frame-top) + 540 * var(--u));
+    transform: translateY(-50%);
+    width: calc(300 * var(--u));
     text-align: left;
     z-index: 3;
-    width: 14vw;
+    pointer-events: none;
+    transition: opacity var(--fade) ease;
 }
-h1{font-size: 4em;
-    line-height: 1.1em;
-}
+#title h1{ margin: 0; font-family: var(--font-text); font-weight: 700; font-size: calc(46 * var(--u)); line-height: 1.05; color: var(--ink); }
+#title h2{ margin: calc(28 * var(--u)) 0 0; font-family: var(--font-text); font-weight: 400; font-size: calc(22 * var(--u)); line-height: 1.4; color: var(--ink); }
+#title p{ margin: calc(24 * var(--u)) 0 0; font-family: var(--font-text); font-size: calc(16 * var(--u)); line-height: 1.5; letter-spacing: .04em; color: var(--muted); }
+body.in-section #title{ opacity: 0; }
 /* Drawing canvas – above the predictions */
 #drawing {
     position: absolute;
