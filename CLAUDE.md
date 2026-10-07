@@ -87,11 +87,12 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
 
 - **Sound** (`js/sound.js`): every sound is synthesized with Web Audio (no files), through a small room reverb;
   sections call `sfx(name, { x, v })` (x in frame px pans it, v is strength). Recipes and volume in that file; `?mute`.
-- **Mind** (`js/mind.js`): no gesture; five sentences while Daniele's olive plate grows (frames cut by
+- **Mind** (`js/mind.js`): five sentences while Daniele's olive plate grows (frames cut by
   `tools/olive/slice.py`), then back to the menu by itself (`done`). The olive is drawn by `T.particles` points in the
-  drawing's own colours, which flow along curved paths into each next drawing (`T.morph`, `T.swirl`, `T.stagger`).
-  Its pace and particle count are set in `K` → Mind (time per sentence, flow time, particles; saved as `mind` in
-  `content/venue.js`), read each time Mind opens.
+  drawing's own colours, which flow along curved paths into each next drawing (`T.morph`, `T.swirl`, `T.stagger`);
+  after each sentence's drawings the olive rests (`T.rest`). One slight gesture: a hand parts the points like leaves
+  and they spring back (`T.reach`, `T.push`, `T.sweep`, `T.spring`). Pace and particle count are set in `K` → Mind
+  (growing time, rest, flow time, particles; saved as `mind` in `content/venue.js`), read each time Mind opens.
 - **Gymnasion** (`js/gymn.js`, id `gymn`): the Vedius Gymnasion as a dark 3D ruin (three.js) left of the statue, walls
   traced from the ground plan in `refs/` by `tools/gymn/trace.py` into `assets/gymn/plan.json`. Opening: the plan draws
   itself in red, the walls rise, the camera tilts. Raised hands are torches (spotlights with shadows; lit places keep a
@@ -126,7 +127,7 @@ Order agreed with Ege: left column top to bottom Birth, War, Mind; right column 
 | T (right, top) | `owl` | The Owl (coin, trade) | done |
 | H (left, middle) | `war` | War | built, stillness under test; icon pending (uses `owl.svg`) |
 | E (right, middle) | `craft` | Craft | built with 4 draft parts; parts, texts, photos to decide; needs `assets/craft.svg` |
-| N (left, bottom) | `mind` | Mind | built: the olive and the mētis story (Athena and Poseidon, Odysseus), no gesture; texts DRAFT |
+| N (left, bottom) | `mind` | Mind | built: the olive and the mētis story (Athena and Poseidon, Odysseus), hands part the olive's points; texts DRAFT |
 | A (right, bottom) | `gymn` | Gymnasion | built: 3D ruin explored with hand torches, sentences found in four places, niche ending; texts DRAFT; icon still `bee.svg` |
 
 Gymnasion is last (bottom right) because its last sentence, about the rough back made to stand against a
