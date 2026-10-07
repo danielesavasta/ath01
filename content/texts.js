@@ -18,7 +18,15 @@ export default {
 
   tr: {
     menu: {
-      back: "ANA SAYFA"
+      back: "ANA SAYFA",
+      // shown for a moment when a topic opens
+      topics: {
+        egg:   { title: "DOĞUŞ",  epithet: "Metis" },
+        owl:   { title: "BAYKUŞ", epithet: "Sikke ve ticaret" },
+        war:   { title: "SAVAŞ",  epithet: "Promachos" },
+        craft: { title: "ZANAAT", epithet: "Ergane" },
+        mind:  { title: "AKIL",   epithet: "mētis" }
+      }
     },
 
     owl: {
@@ -88,7 +96,14 @@ export default {
 
   en: {
     menu: {
-      back: "HOME"
+      back: "HOME",
+      topics: {
+        egg:   { title: "BIRTH",   epithet: "Metis" },
+        owl:   { title: "THE OWL", epithet: "Coin and trade" },
+        war:   { title: "WAR",     epithet: "Promachos" },
+        craft: { title: "CRAFT",   epithet: "Ergane" },
+        mind:  { title: "MIND",    epithet: "mētis" }
+      }
     },
 
     owl: {
