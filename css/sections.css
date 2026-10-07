@@ -53,7 +53,7 @@ body.in-section #langSwitch{ opacity: 0; visibility: hidden; transition: opacity
 /* back to the menu: bottom left of the frame, only inside a section */
 #backBtn{
     position: absolute;
-    left: calc(var(--frame-left) + var(--margin-x));
+    left: 1%;
     top: 50%; /* calc(var(--frame-top) + 1080 * var(--u) - 70 * var(--u) - 170 * var(--u));*/
     width: calc(170 * var(--u));
     height: calc(170 * var(--u));
