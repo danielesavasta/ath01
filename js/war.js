@@ -93,14 +93,14 @@ export function createWar(opts){
   const gorgonSrc = opts.gorgon || "assets/gorgon.svg";
   stage.innerHTML = `
     <canvas class="war-canvas" width="${W}" height="${H}"></canvas>
-    <div class="war-tally"><div class="t-label name"></div><div class="num stone-text"></div></div>
+    <div class="war-tally"><span class="name"></span><span class="num"></span></div>
     <div class="war-hint">
       <div class="t-hint text"></div>
       <div class="war-demo"><div class="war-demo-ring"></div><img class="war-demo-hand" src="assets/openHand.svg" alt=""><img class="war-demo-g" src="${gorgonSrc}" alt=""></div>
     </div>
     <div class="war-line"><div class="t-label count"></div><div class="t-rule"></div><div class="t-sentence text"></div></div>`;
   const cv = stage.querySelector(".war-canvas"), g = cv.getContext("2d");
-  const tallyName = stage.querySelector(".war-tally .name"), tallyNum = stage.querySelector(".war-tally .num");
+  const tally = stage.querySelector(".war-tally"), tallyName = tally.querySelector(".name"), tallyNum = tally.querySelector(".num");
   const hintEl = stage.querySelector(".war-hint .text"), lineEl = stage.querySelector(".war-line");
   const lineCount = lineEl.querySelector(".count"), lineText = lineEl.querySelector(".text");
 
@@ -167,6 +167,7 @@ export function createWar(opts){
     sfx("stone", { x: ar.x });
     count++;
     tallyNum.textContent = roman(count);
+    tally.classList.remove("hit"); void tally.offsetWidth; tally.classList.add("hit");
     const lines = TX.lines || [];
     if (shown < lines.length && count >= T.firstLine + shown * T.perLine) showLine();
   }

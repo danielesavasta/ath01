@@ -1,8 +1,16 @@
 /* War section: arrows on one canvas (js/war/war.js), texts on top. Stage, hint, tally and type are shared in main.css. */
 .war-canvas{ position: absolute; inset: 0; width: 100%; height: 100%; }
 
-/* arrows turned to stone, top left: the word small, the numeral carved */
-.war-tally .num{ font-family: var(--font-label); font-weight: 700; font-size: calc(64 * var(--u)); line-height: 1.1; margin-top: calc(6 * var(--u)); }
+/* arrows turned to stone, top left: the same type as the Owl's tally (css/coin.css), word and numeral on one line */
+.war-tally{ display: flex; align-items: baseline; gap: calc(34 * var(--u)); }
+.war-tally .name, .war-tally .num{ font-family: var(--font-label); line-height: 1.1; color: var(--amber); }
+.war-tally .name{ font-size: calc(30 * var(--u)); font-weight: 700; letter-spacing: .1em; }
+.war-tally .num{ font-size: calc(52 * var(--u)); font-weight: 400; letter-spacing: .02em; }
+.war-tally.hit .name, .war-tally.hit .num{ animation: war-hit 1.8s ease-out; }
+@keyframes war-hit{
+    0%{ color: #fff; text-shadow: 0 0 calc(18 * var(--u)) rgba(237,28,36,.85); }
+    100%{ color: var(--amber); text-shadow: none; }
+}
 
 /* top right: a short line and a small picture of the gesture (a hand settling, then the gorgoneion) */
 .war-hint{
