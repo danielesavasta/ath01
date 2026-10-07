@@ -139,7 +139,8 @@ const egg = await createEgg({
   stage: eggStage,
   texts: textsFor(FIRST).egg,
   dataUrl: "content/egg.json",
-  imagesDir: "assets/gallery/"
+  imagesDir: "assets/gallery/",
+  statueBand
 });
 
 const war = createWar({
@@ -170,7 +171,7 @@ const mind = createMind({
 // every section, by its SLOTS name; each exposes start/stop/reset/setTexts, and most also setHands or frame
 const SECTIONS = { owl: coin, egg, war, craft, mind };
 
-if (window.VENUE) window.VENUE.onChange(() => { coin.relayout(); war.relayout(); craft.relayout(); mind.relayout(); });
+if (window.VENUE) window.VENUE.onChange(() => { coin.relayout(); war.relayout(); craft.relayout(); mind.relayout(); egg.relayout(); });
 
 // js/scripts.js asks, for every hand icon it draws, whether the open section wants it hidden (false)
 // or blended into another image ({ img, mix }); null keeps the hand

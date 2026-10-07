@@ -1,83 +1,53 @@
-/* Egg section — a mosaic of artworks (content/egg.json), js/egg.js.
-   Tiles share one row height and grow to fill their row; the hovered one opens in .egg-panel on its own half. */
-.egg-mosaic{
-    position: absolute;
-    inset: calc(110 * var(--u)) calc(60 * var(--u));
-    display: flex;
-    flex-wrap: wrap;
-    align-content: center;
-    gap: calc(10 * var(--u));
-}
+/* Egg section (Birth): two mosaics beside the statue and the open view on the other side (js/egg.js).
+   Tiles are placed by js/egg.js in % of the frame; type comes from main.css. */
+.egg-tiles{ position: absolute; inset: 0; }
 .egg-tile{
-    --h: calc(150 * var(--u));
-    flex: calc(var(--ratio) * 100) 1 calc(var(--ratio) * var(--h));
-    height: var(--h);
+    position: absolute;
     background: rgba(255,255,255,.04) center / cover no-repeat;
-    border: 1px solid rgba(255,255,255,.1);
-    transition: opacity .3s ease;
+    outline: 1px solid rgba(255,255,255,.08);
+    transform-origin: center;
+    transition: transform .45s cubic-bezier(.2,.8,.2,1), opacity .5s ease, filter .5s ease, outline-color .3s ease, box-shadow .45s ease;
+    will-change: transform, opacity;
 }
-.egg-tile.hover{ opacity: .35; }
-.egg-panel{
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 30%;
-    z-index: 500;
-    
-    pointer-events: none;
-    transition: all .7s ease;
-    scale: 0;
-    background: #000;
+/* coming in: one after another */
+.egg-stage .egg-tile{ opacity: 0; transform: scale(.94); }
+.egg-stage.shown .egg-tile{ opacity: 1; transform: none; transition-delay: calc(var(--i) * 18ms), calc(var(--i) * 18ms), 0s, 0s, 0s; }
+/* a hand on it: it lifts, with a red line filling along its foot while the hand settles */
+.egg-stage.shown .egg-tile.near,
+.egg-stage.shown .egg-tile.invite{ transform: scale(1.07); z-index: 2; outline-color: rgba(255,255,255,.85); box-shadow: 0 calc(10 * var(--u)) calc(40 * var(--u)) rgba(0,0,0,.8); transition-delay: 0s; }
+.egg-stage.shown .egg-tile.open{ transform: scale(1.07); z-index: 2; outline: 2px solid var(--amber); transition-delay: 0s; }
+.egg-settle{
+    position: absolute; left: 0; bottom: 0; height: calc(3 * var(--u)); width: calc(var(--settle, 0) * 100%);
+    background: var(--amber); opacity: 0; transition: opacity .2s ease;
 }
-.egg-panel.left{ left: 5%; }
-.egg-panel.right{ right: 5%; }
-.egg-panel.open{  scale: 1; pointer-events: auto; }
-.egg-panel-img{ position: absolute; inset: 0; background: center / contain no-repeat; }
-.egg-panel .egg-tile-label{ opacity: 1; transform: none; }
-.egg-noimg{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: calc(6 * var(--u));
-    padding: calc(8 * var(--u));
-    text-align: center;
-    background: rgba(255,255,255,.03);
-}
-.egg-noimg-title{
-    font-size: calc(14 * var(--u));
-    letter-spacing: .02em;
-    line-height: 1.25;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-.egg-noimg-text{ font-size: calc(10 * var(--u)); letter-spacing: .04em; color: #6C7078; }
-.egg-tile-label{
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: calc(16 * var(--u)) calc(16 * var(--u)) calc(14 * var(--u));
-    background: linear-gradient(180deg, transparent, rgba(0,0,0,.92) 55%);
-    opacity: 0;
-    transform: translateY(calc(8 * var(--u)));
-    transition: opacity .3s ease, transform .3s ease;
-    pointer-events: none;
-}
-.egg-tile.hover .egg-tile-label{ opacity: 1; transform: translateY(0); }
-.egg-tile-title{ font-size: calc(21 * var(--u)); letter-spacing: .03em; margin-bottom: calc(4 * var(--u)); }
-.egg-tile-meta{ font-size: calc(14 * var(--u)); color: #B9AE99; margin-bottom: calc(6 * var(--u)); }
-.egg-tile-desc{
-    font-size: calc(13 * var(--u));
-    line-height: 1.4;
-    color: #cfc7b4;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
+.egg-tile.near .egg-settle{ opacity: 1; }
+/* while a view is open, the mosaic it covers fades away and the other one dims a little */
+.egg-stage.view-left .egg-tile.side-left,
+.egg-stage.view-right .egg-tile.side-right{ opacity: 0; pointer-events: none; transition-delay: 0s; }
+.egg-stage.view-left .egg-tile.side-right:not(.near):not(.open),
+.egg-stage.view-right .egg-tile.side-left:not(.near):not(.open){ opacity: .65; transition-delay: 0s; }
 
+/* a work without a picture yet */
+.egg-noimg{ display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(6 * var(--u)); padding: calc(8 * var(--u)); text-align: center; }
+.egg-noimg .stone-text{ font-size: calc(14 * var(--u)); line-height: 1.25; }
+
+/* the open view: the picture, then its name, where and when, and its story */
+.egg-view{
+    position: absolute; top: var(--z-y); height: var(--z-h); width: var(--zr-w); left: var(--zr-x);
+    display: flex; flex-direction: column; gap: calc(26 * var(--u));
+    opacity: 0; pointer-events: none; transition: opacity .5s ease;
+}
+.egg-stage.view-left .egg-view{ left: var(--zl-x); width: var(--zl-w); }
+.egg-view.open{ opacity: 1; }
+.egg-view-pic{ position: relative; flex: 1 1 auto; min-height: 0; }
+.egg-view-pic img{
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: left bottom;
+    opacity: 0; transform: scale(.98); transition: opacity .45s ease, transform .6s cubic-bezier(.2,.8,.2,1);
+}
+.egg-view-pic img.in{ opacity: 1; transform: none; }
+.egg-view-label{ flex: 0 0 auto; opacity: 0; transform: translateY(calc(8 * var(--u))); transition: opacity .35s ease, transform .5s ease; }
+.egg-view-label.in{ opacity: 1; transform: none; }
+.egg-view-title{ text-align: left; font-size: calc(36 * var(--u)); line-height: 1.1; }
+.egg-view-meta{ margin-top: calc(10 * var(--u)); letter-spacing: .06em; line-height: 1.5; }
+.egg-view .t-rule{ margin: calc(16 * var(--u)) 0; }
+.egg-view-desc{ max-height: calc(5 * 1.45em); overflow: hidden; }
