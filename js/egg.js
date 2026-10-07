@@ -11,7 +11,7 @@
 //   egg.start();
 //   egg.frame(pts, dt);   // pts: [{ px, py, mouse? }], call once per animation frame while the section is open
 
-const EXTS = ["jpg", "jpeg", "png", "webp"];
+const EXTS = ["webp"];
 
 function findImage(dir, id){
   return new Promise((resolve) => {

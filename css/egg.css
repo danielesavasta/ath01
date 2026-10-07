@@ -21,16 +21,17 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    width: 50%;
+    width: 30%;
     z-index: 500;
-    opacity: 0;
+    
     pointer-events: none;
-    transition: opacity .3s ease;
+    transition: all .7s ease;
+    scale: 0;
     background: #000;
 }
-.egg-panel.left{ left: 0; }
-.egg-panel.right{ right: 0; }
-.egg-panel.open{ opacity: 1; }
+.egg-panel.left{ left: 5%; }
+.egg-panel.right{ right: 5%; }
+.egg-panel.open{  scale: 1; pointer-events: auto; }
 .egg-panel-img{ position: absolute; inset: 0; background: center / contain no-repeat; }
 .egg-panel .egg-tile-label{ opacity: 1; transform: none; }
 .egg-noimg{

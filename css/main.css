@@ -119,6 +119,14 @@ canvas {
     z-index: 0;
 }
 
+#title {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: left;
+    z-index: 3;
+}
 /* Drawing canvas – above the predictions */
 #drawing {
     position: absolute;
