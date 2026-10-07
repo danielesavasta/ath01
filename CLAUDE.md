@@ -54,8 +54,9 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
   - `SLOTS` (DOM order A T / H E / N A): hand over a letter rolls it to its icon (only if `assets/<file>` loads);
     resting `T.dwell` opens `SECTIONS[slot.section]`. Returning rolls all letters back to ATHENA.
   - Going in / out: an iris from the chosen letter (`#veil` black outside a growing circle, `#veilRing` the red
-    ring, `#topicCard` the topic's name from `texts.menu.topics`); closing shrinks back into the letter. `busy`
-    blocks input meanwhile.
+    ring, `#topicCard` the topic's name from `texts.menu.topics`); closing shrinks back into the letter, then the
+    letters spin like slot-machine reels through `assets/letters/A–Z.svg` and stop in reading order on ATHENA
+    (`spinToAthena`, timing in `REEL`); the intro text and language buttons fade in after. `busy` blocks input meanwhile.
   - Inside a section: ANA SAYFA / HOME button bottom left (hand dwell), idle return after `T.idleReturn`
     with a countdown ring, TR/EN buttons in the menu (reset to Turkish when a visitor leaves).
   - `SECTIONS = { owl: coin, egg, war, craft }`. **Section contract**: `start()`, `stop()`, `reset()`, `setTexts(t)`,

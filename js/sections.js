@@ -102,6 +102,63 @@ function athenaWave(delay = 350){
   SLOTS.forEach((s, i) => setTimeout(() => { s.want = s.letter; s.again = true; roll(s); }, delay + i * 140));
 }
 
+// Coming back from a topic the letters spin like a slot machine's reels, through the whole alphabet
+// (assets/letters/A–Z.svg), and stop one after another in reading order until they read ATHENA again.
+const ABC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+for (const k of ABC) new Image().src = `assets/letters/${k}.svg`;   // loaded before the first spin, so no blank cells
+const REEL = { first: 900, next: 220, speed: 11, bounce: 0.07 };    // ms the first reel spins, ms between stops, letters/s, overshoot
+const READ = ["egg", "owl", "war", "craft", "mind", "gymn"];         // A T H E N A
+function spinToAthena(done){
+  const order = READ.map((id) => SLOTS.find((s) => s.section === id));
+  sfx("spin");
+  let left = order.length;
+  order.forEach((s, i) => {
+    s.busy = true;
+    s.el.querySelectorAll(".letter, .reel").forEach((e) => e.remove());
+    const ms = REEL.first + i * REEL.next;
+    const n = Math.max(4, Math.round(ms / 1000 * REEL.speed));
+    // top to bottom: the letter it stops on, then random ones, then an empty cell it starts on
+    const reel = document.createElement("div");
+    reel.className = "reel";
+    const cells = [s.letter];
+    while (cells.length <= n){
+      const k = ABC[Math.floor(Math.random() * ABC.length)];
+      if (k !== cells[cells.length - 1]) cells.push(k);
+    }
+    cells.push("");
+    for (const k of cells){
+      const c = document.createElement("div");
+      c.className = "reel-cell";
+      if (k) c.style.backgroundImage = `url('assets/letters/${k}.svg')`;
+      reel.appendChild(c);
+    }
+    s.el.appendChild(reel);
+    const h = 100 / cells.length;     // one cell, in % of the reel's height
+    const anim = reel.animate([
+      { transform: `translateY(${-(cells.length - 1) * h}%)`, easing: "cubic-bezier(.45,.05,.6,1)" },
+      { transform: `translateY(${-(cells.length - 1) * h * 0.8}%)`, offset: 0.12, easing: "cubic-bezier(.1,.4,.3,1)" },
+      { transform: `translateY(${REEL.bounce * h}%)`, offset: 0.9, easing: "ease-in-out" },
+      { transform: "translateY(0)" }
+    ], { duration: ms, fill: "forwards" });
+    let landed = false;
+    const land = () => {
+      if (landed) return;
+      landed = true;
+      reel.remove();
+      s.el.appendChild(makeLetter(s, s.letter));
+      s.shown = s.letter; s.busy = false;
+      roll(s);                            // a hand that came over it meanwhile
+      if (--left === 0) done && done();
+    };
+    setTimeout(() => {
+      const r = s.el.getBoundingClientRect();
+      sfx("clack", { x: frameX(r.left + r.width / 2), v: 0.6 + i / order.length * 0.4 });
+    }, ms * 0.9);
+    anim.onfinish = land;
+    setTimeout(land, ms + 300);           // even if animation frames stall
+  });
+}
+
 // ───────────── the owl section ─────────────
 // Where the statue stands, from the mask set up for the room (content/venue.js, setup screen: K).
 // The coin uses it to keep throws from landing behind her and to frame its close-up beside her.
@@ -326,12 +383,16 @@ function closeSection(why = "back"){
     activeAt = performance.now();
     if (why === "idle") setLang(FIRST);
     s.stop();
-    for (const sl of SLOTS){ sl.over = false; sl.dwell = 0; }
+    for (const sl of SLOTS){ sl.over = false; sl.dwell = 0; sl.want = sl.letter; sl.leftAt = 0; }
     veilRing.classList.remove("on");
     // the wall stays black until the topic has faded out underneath (its stage fades for --fade, .6 s)
     veilOff = setTimeout(() => veil.classList.remove("on"), 700);
-    busy = false;
-    athenaWave(150);
+    // the letters spin back to ATHENA; the text and the language buttons come once they have stopped
+    document.body.classList.add("returning");
+    spinToAthena(() => {
+      document.body.classList.remove("returning");
+      busy = false;
+    });
   });
 }
 

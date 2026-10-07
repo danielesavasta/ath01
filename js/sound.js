@@ -112,6 +112,8 @@ const SOUNDS = {
   },
   close(o, t){ [440, 329.6, 246.9].forEach((f, i) => tone(o, t + i * 0.09, { f, type: "triangle", a: 0.01, peak: 0.06, d: 0.9 })); },
   lang(o, t){ tone(o, t, { f: 1250, type: "triangle", peak: 0.08, d: 0.07 }); hiss(o, t, { f: 3000, q: 2, peak: 0.05, d: 0.04 }); },
+  spin(o, t){ hiss(o, t, { f: 2200, to: 900, q: 0.9, a: 0.3, peak: 0.035, d: 1.4 }); },   // the letters' reels start
+  clack(o, t){ hiss(o, t, { f: 2600, q: 1.6, peak: 0.06, d: 0.05 }); tone(o, t, { f: 196, type: "triangle", peak: 0.05, d: 0.16 }); },   // one stops
   tick(o, t){ tone(o, t, { f: 1600, peak: 0.03, d: 0.05 }); },
   line(o, t){ bell(o, t, 659.3, { peak: 0.05, d: 2, bright: 0.5 }); tone(o, t, { f: 329.6, peak: 0.03, a: 0.08, d: 1.4 }); },
 

@@ -46,6 +46,13 @@ body.in-section #langSwitch{ opacity: 0; visibility: hidden; transition: opacity
 }
 /*#langSwitch .lang.on .lang-ring{ background: rgba(227,216,195,.75); }
 */
+/* coming back from a topic: each letter is a reel of the alphabet that spins and stops (js/sections.js spinToAthena);
+   the container shows at once (the reels start empty), the text and language buttons wait until they stop */
+body.returning .container{ transition: none; }
+body.returning #title, body.returning #langSwitch{ opacity: 0; transition: none; }
+.reel{ position: absolute; left: 0; top: 0; width: 100%; z-index: 3; will-change: transform; }
+.reel-cell{ width: calc(300 * var(--u)); height: calc(300 * var(--u)); background-size: cover; }
+
 /* a letter rolling back from its icon moves up (the icon came in moving down) */
 .letter-slot.roll-up .letter-incoming{ transform: translateY(100%); }
 .letter-slot.roll-up .letter-exiting{ transform: translateY(-100%); }
