@@ -64,7 +64,7 @@ function makeLetter(slot, key){
   el.className = "letter";
   el.dataset.letter = key;
   if (key === slot.icon) el.style.backgroundImage = `url('assets/${slot.file}')`;
-  else el.classList.add("letter" + key);
+  else if (key) el.style.backgroundImage = `url('assets/letters/${key}.svg')`;
   return el;
 }
 
@@ -108,24 +108,48 @@ const ABC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 for (const k of ABC) new Image().src = `assets/letters/${k}.svg`;   // loaded before the first spin, so no blank cells
 const REEL = { first: 900, next: 220, speed: 11, bounce: 0.07 };    // ms the first reel spins, ms between stops, letters/s, overshoot
 const READ = ["egg", "owl", "war", "craft", "mind", "gymn"];         // A T H E N A
-function spinToAthena(done){
+const EPITHETS = ["PALLAS", "ERGANE", "SAITIS", "POLIAS", "TRITO", "AREIA", "LEITIS", "HIPPIA", "ERYMA", "HYGEIA", "ALEA", "KORIE", "XENIA"];
+const IDLE_LETTERS = { wait: 8000, epithet: 5000 };   // ms of quiet before the first epithet, ms an epithet stays
+let idleEpithet = null, idleLettersAt = 0, lastEpithet = "", spinning = false;
+function updateIdleLetters(now, pts){
+  if (spinning || SLOTS.some((s) => s.busy)) return;
+  if (pts.length){
+    if (idleEpithet) spinToWord("ATHENA");
+    return;
+  }
+  if (now - activeAt < IDLE_LETTERS.wait || now < idleLettersAt) return;
+  if (idleEpithet){ spinToWord("ATHENA"); return; }
+  const choices = EPITHETS.filter((word) => word !== lastEpithet);
+  spinToWord(choices[Math.floor(Math.random() * choices.length)]);
+}
+const spinToAthena = (done) => spinToWord("ATHENA", done, true);
+// Every letter spins like a reel from the face it shows to its letter of `word` (a blank where the word is
+// shorter than six). `fromBlank`: start from an empty cell (coming back from a topic) instead of the current letter.
+function spinToWord(word, done, fromBlank = false){
   const order = READ.map((id) => SLOTS.find((s) => s.section === id));
+  const targets = order.map((s, i) => (word === "ATHENA" ? s.letter : word[i] || ""));
+  idleEpithet = word === "ATHENA" ? null : word;
+  if (idleEpithet) lastEpithet = word;
+  spinning = true;
   sfx("spin");
   let left = order.length;
   order.forEach((s, i) => {
-    s.busy = true;
+    const target = targets[i];
+    const start = !fromBlank && /^[A-Z]$/.test(s.shown) ? s.shown : "";
+    s.busy = true; s.want = target;
     s.el.querySelectorAll(".letter, .reel").forEach((e) => e.remove());
     const ms = REEL.first + i * REEL.next;
     const n = Math.max(4, Math.round(ms / 1000 * REEL.speed));
-    // top to bottom: the letter it stops on, then random ones, then an empty cell it starts on
+    // top to bottom: the letter it stops on, then random ones, then the cell it starts on
     const reel = document.createElement("div");
     reel.className = "reel";
-    const cells = [s.letter];
+    const cells = [target];
     while (cells.length <= n){
       const k = ABC[Math.floor(Math.random() * ABC.length)];
       if (k !== cells[cells.length - 1]) cells.push(k);
     }
-    cells.push("");
+    if (cells[cells.length - 1] === start) cells.pop();
+    cells.push(start);
     for (const k of cells){
       const c = document.createElement("div");
       c.className = "reel-cell";
@@ -145,10 +169,14 @@ function spinToAthena(done){
       if (landed) return;
       landed = true;
       reel.remove();
-      s.el.appendChild(makeLetter(s, s.letter));
-      s.shown = s.letter; s.busy = false;
+      s.el.appendChild(makeLetter(s, target));
+      s.shown = target; s.busy = false;
       roll(s);                            // a hand that came over it meanwhile
-      if (--left === 0) done && done();
+      if (--left === 0){
+        spinning = false;
+        idleLettersAt = performance.now() + IDLE_LETTERS.epithet;
+        done && done();
+      }
     };
     setTimeout(() => {
       const r = s.el.getBoundingClientRect();
@@ -158,7 +186,6 @@ function spinToAthena(done){
     setTimeout(land, ms + 300);           // even if animation frames stall
   });
 }
-
 // ───────────── the owl section ─────────────
 // Where the statue stands, from the mask set up for the room (content/venue.js, setup screen: K).
 // The coin uses it to keep throws from landing behind her and to frame its close-up beside her.
@@ -341,7 +368,7 @@ function setLang(code){
 setLang(FIRST);
 window.addEventListener("ath:source", () => setLang(lang));
 
-let section = "menu", activeAt = 0;
+let section = "menu", activeAt = performance.now();
 function openSection(name){
   const s = SECTIONS[name];
   if (section !== "menu" || !s || busy) return;
@@ -453,6 +480,7 @@ function frame(now){
 
 function menuFrame(now, dt, pts){
   if (pts.some((p) => !p.mouse)) activeAt = now;
+  updateIdleLetters(now, pts);
   if (lang !== FIRST && now - activeAt > T.langReset) setLang(FIRST);
 
   // languages: a hand resting on the other language switches to it
