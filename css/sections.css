@@ -146,9 +146,9 @@ body.opening #langSwitch, body.opening #title{ opacity: 0; transition: opacity .
 /* the topic's name, for a moment where its letter was */
 #topicCard{
     position: absolute; z-index: 4; pointer-events: none; transform: translate(-50%, -50%);
-    text-align: center; opacity: 0; transition: opacity .5s ease, letter-spacing 1.6s cubic-bezier(.2,.7,.2,1);
+    text-align: center; opacity: 0; transition: opacity .3s ease, letter-spacing 1.2s cubic-bezier(.2,.7,.2,1);
     letter-spacing: 0; white-space: nowrap;
 }
 #topicCard .t-title{ font-size: calc(64 * var(--u)); letter-spacing: inherit; }
 #topicCard .t-greek{ margin-top: calc(10 * var(--u)); }
-#topicCard.on{ opacity: 1; letter-spacing: .08em; }
+#topicCard.on{ opacity: 1; letter-spacing: .08em; transition: opacity .45s ease, letter-spacing 1.2s cubic-bezier(.2,.7,.2,1); }
