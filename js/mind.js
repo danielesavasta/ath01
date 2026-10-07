@@ -22,7 +22,7 @@ const T = {
   line: 7500,      // ms each sentence stays (its drawings are spread over this time); K → Mind overrides
   hold: 4000,      // ms the last sentence and flower stay before the section closes
   out: 1200,       // ms the picture and sentence take to fade out at the end
-  height: 1200,     // px the tallest drawing is drawn at (the plate's cells are ~250 px tall)
+  height: 1000,     // px the tallest drawing is drawn at (the plate's cells are ~250 px tall)
   left: 300,       // px: the olive is centred between this (right of the back button) and the statue
   ground: 930,     // px: the drawings stand on this line
   grow: [0.5, 1],  // the seedling is drawn this much smaller than the tree, growing in between
