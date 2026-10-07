@@ -42,11 +42,11 @@ const ROLL_MS = 850;          // a little longer than the .letter transition in 
 // left column top to bottom: birth, war, mind · right column: owl, craft, gymnasion
 const SLOTS = [
   { letter: "A", icon: "🥚", file: "zeus.svg", section: "egg" },        // birth
-  { letter: "T", icon: "🦉", file: "owl.svg", section: "owl" },         // the coin
-  { letter: "H", icon: "⚔", file: "war.svg", section: "war" },          // war (placeholder icon)
   { letter: "E", icon: "🧵", file: "hand.svg", section: "craft" },       // craft (placeholder icon)
-  { letter: "N", icon: "🧠", file: "mind.svg", section: "mind" },
-  { letter: "A", icon: "🏛", file: "gymnasion.svg", section: "gymnasion" }
+  { letter: "T", icon: "🦉", file: "owl.svg", section: "owl" },         // the coin
+  { letter: "N", icon: "🧠", file: "olive.svg", section: "mind" },
+  { letter: "H", icon: "⚔", file: "war.svg", section: "war" },          // war (placeholder icon)
+  { letter: "A", icon: "🏛", file: "bee.svg", section: "gymn" }
 ];
 // an icon only takes part once its file has loaded (the others are not drawn yet)
 for (const s of SLOTS){

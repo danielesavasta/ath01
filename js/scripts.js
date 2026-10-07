@@ -2,7 +2,7 @@
 const videoElement = document.getElementById('myvideo');
 const handImg = document.getElementById('handimage'); // unused but kept for compatibility
 const canvasElement = document.getElementById('canvas');
-const canvasCtx = canvasElement.getContext('2d');
+/*const canvasCtx = canvasElement.getContext('2d');*/
 const drawingElement = document.getElementById('drawing');
 const drawingCtx = drawingElement.getContext('2d');
 const updatenote = document.getElementById('updatenote');
@@ -389,7 +389,7 @@ function onResults(results) {
     if (!width || !height) return;
     canvasElement.width = width;
     canvasElement.height = height;
-    canvasCtx.clearRect(0, 0, width, height);
+    /*canvasCtx.clearRect(0, 0, width, height);*/
     fitDrawingCanvas();
 
     // The letters react to hands in js/sections.js: a hand over a letter rolls it to its section's icon.

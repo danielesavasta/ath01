@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="100%" height="100%" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:affinity="https://www.affinity.studio/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
-    <g transform="matrix(1,0,0,1,-0.000219,0)">
+    <g transform="matrix(1,0,0,1,-0.000024,-0.000364)">
         <g transform="matrix(1.345348,0,0,1.345348,-56.435635,-487.592673)">
-            <g id="T" transform="matrix(-0.998047,0,0,-0.998047,463.642685,1104.720341)">
-                <path d="M299.669,362.429L309.223,521.979L404.161,521.979L422.519,743.744L41.204,743.744L60.306,521.979L156.847,521.979L166.414,362.429L299.669,362.429Z" style="fill:rgb(225,12,11);"/>
+            <g id="C" transform="matrix(0,1,-1,0,784.20478,320.479916)">
+                <path d="M422.519,715.497L395.76,742.256L68.708,742.256L41.949,715.497L41.949,361.685L176.045,361.685L186.582,421.934L272.091,421.934L282.627,361.685L422.519,361.685L422.519,715.497Z" style="fill:rgb(225,12,11);"/>
             </g>
         </g>
     </g>
