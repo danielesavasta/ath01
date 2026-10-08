@@ -28,4 +28,4 @@ timeout /t 3 /nobreak >nul
 set "CHROME=%ProgramFiles%\Google\Chrome\Application\chrome.exe"
 if not exist "%CHROME%" set "CHROME=%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe"
 if not exist "%CHROME%" set "CHROME=%LocalAppData%\Google\Chrome\Application\chrome.exe"
-if /I "%WINDOW_MODE%"=="window" ( start "" "%CHROME%" http://127.0.0.1:8770/index.htm ) else ( start "" "%CHROME%" --kiosk --autoplay-policy=no-user-gesture-required http://127.0.0.1:8770/index.htm )
+if /I "%WINDOW_MODE%"=="window" ( start "" "%CHROME%" http://127.0.0.1:8770/index.htm ) else ( start "" "%CHROME%" --window-position=1920,0 --kiosk --autoplay-policy=no-user-gesture-required http://127.0.0.1:8770/index.htm )
