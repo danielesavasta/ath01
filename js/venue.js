@@ -42,6 +42,8 @@ window.VENUE_FILE = {
         // the Mind section's pace (K, Mind): seconds a sentence's drawings take, seconds the last one rests before
         // the next sentence, seconds the points take to flow into the next drawing, and how many points draw the olive
         mind: { line: 7.5, rest: 2, morph: 2.8, particles: 30000 },
+        // sound (K, Sound): the overall volume, and the soundscapes under the effects (a share of it)
+        sound: { volume: 0.8, ambience: 0.55 },
         detect: { confidence: 0.6, upOnly: 70,
                   depth: { near: 500, far: 4000, reach: 180, margin: 120, push: 120 } },
         // cloth parts lit by the Craft section (js/craft/), drawn on the statue photo; redraw them at the venue (K)
@@ -146,7 +148,7 @@ window.VENUE_FILE = {
           <svg class="vs-edit" viewBox="0 0 ${FRAME_W} ${FRAME_H}" preserveAspectRatio="none"><g class="vs-others"></g><polygon class="vs-poly"></polygon><g class="vs-handles"></g></svg>
           <div class="vs-panel">
             <div class="vs-head"><b>SETUP</b><span>K to close</span></div>
-            <div class="vs-tabs"><button data-tab="mask">Statue mask</button><button data-tab="parts">Craft parts</button><button data-tab="camera">Camera</button><button data-tab="mind">Mind</button></div>
+            <div class="vs-tabs"><button data-tab="mask">Statue mask</button><button data-tab="parts">Craft parts</button><button data-tab="camera">Camera</button><button data-tab="mind">Mind</button><button data-tab="sound">Sound</button></div>
             <div class="vs-body" data-for="mask">
               <label><input type="checkbox" data-k="maskOn"> Mask on: the statue is black, nothing is projected onto it</label>
               <label class="vs-slider">Edge feather <output data-o="feather"></output><input type="range" min="0" max="40" step="1" data-k="feather"></label>
@@ -173,6 +175,12 @@ window.VENUE_FILE = {
               <label class="vs-slider">Flow between drawings <output data-o="mindMorph"></output><input type="range" min="0.8" max="6" step="0.1" data-k="mindMorph"></label>
               <label class="vs-slider">Particles <output data-o="mindParticles"></output><input type="range" min="5000" max="60000" step="1000" data-k="mindParticles"></label>
               <p>More particles show more detail but cost speed; if the movement stutters, lower them.</p>
+            </div>
+            <div class="vs-body" data-for="sound">
+              <p>The room's loudness. Set it with the venue's speakers, standing where visitors stand. S mutes everything.</p>
+              <label class="vs-slider">Overall volume <output data-o="volume"></output><input type="range" min="0" max="1" step="0.01" data-k="volume"></label>
+              <label class="vs-slider">Soundscapes (the bed under each page) <output data-o="ambience"></output><input type="range" min="0" max="1" step="0.01" data-k="ambience"></label>
+              <p>After a minute with nobody in front, the soundscape sinks to a whisper by itself.</p>
             </div>
             <div class="vs-body" data-for="camera">
               <p>What the camera sees; the frame is the area mapped onto the wall. Cover the area where visitors' hands move; the tighter it is, the better far-away hands are found. Drag: move. Wheel: zoom.</p>
@@ -219,6 +227,7 @@ window.VENUE_FILE = {
             else if (k === 'mindRest') S.mind.rest = v;
             else if (k === 'mindMorph') S.mind.morph = v;
             else if (k === 'mindParticles') S.mind.particles = v;
+            else if (k === 'volume' || k === 'ambience') S.sound[k] = v;
             else S.detect[k] = v;
             changed(); refresh();
         }));
@@ -280,6 +289,9 @@ window.VENUE_FILE = {
         ui.querySelector('[data-o="mindRest"]').textContent = S.mind.rest.toFixed(1) + ' s';
         ui.querySelector('[data-o="mindMorph"]').textContent = S.mind.morph.toFixed(1) + ' s';
         ui.querySelector('[data-o="mindParticles"]').textContent = S.mind.particles.toLocaleString('en');
+        set('volume', S.sound.volume); set('ambience', S.sound.ambience);
+        ui.querySelector('[data-o="volume"]').textContent = Math.round(S.sound.volume * 100) + '%';
+        ui.querySelector('[data-o="ambience"]').textContent = Math.round(S.sound.ambience * 100) + '%';
         ui.querySelector('[data-o="reach"]').textContent = S.detect.depth.reach + ' mm';
         ui.querySelector('[data-o="far"]').textContent = (S.detect.depth.far / 1000).toFixed(1) + ' m';
         ui.querySelector('[data-o="push"]').textContent = S.detect.depth.push + ' mm';
@@ -312,7 +324,7 @@ window.VENUE_FILE = {
     function wireMaskEditing() {
         const svg = ui.querySelector('.vs-edit');
         svg.addEventListener('pointerdown', (e) => {
-            if (tab === 'camera' || tab === 'mind' || e.button !== 0 || e.target.tagName !== 'circle') return;
+            if (tab === 'camera' || tab === 'mind' || tab === 'sound' || e.button !== 0 || e.target.tagName !== 'circle') return;
             dragging = +e.target.dataset.i;
             svg.setPointerCapture(e.pointerId);
         });
@@ -325,12 +337,12 @@ window.VENUE_FILE = {
         svg.addEventListener('pointerup', () => { if (dragging >= 0) { dragging = -1; changed(); } });
         svg.addEventListener('contextmenu', (e) => {
             e.preventDefault();
-            if (tab === 'camera' || tab === 'mind' || e.target.tagName !== 'circle' || editPoints().length <= 3) return;
+            if (tab === 'camera' || tab === 'mind' || tab === 'sound' || e.target.tagName !== 'circle' || editPoints().length <= 3) return;
             editPoints().splice(+e.target.dataset.i, 1);
             changed(); drawMaskEditor();
         });
         svg.addEventListener('dblclick', (e) => {
-            if (tab === 'camera' || tab === 'mind') return;
+            if (tab === 'camera' || tab === 'mind' || tab === 'sound') return;
             const q = toFrame(e), P = editPoints();
             let best = 0, bd = Infinity;
             for (let i = 0; i < P.length; i++) {
@@ -453,6 +465,7 @@ window.VENUE_FILE = {
   },
     camera: { zoom: ${+S.camera.zoom.toFixed(3)}, cx: ${+S.camera.cx.toFixed(4)}, cy: ${+S.camera.cy.toFixed(4)}, kinectMirror: ${S.camera.kinectMirror} },
   mind: { line: ${S.mind.line}, rest: ${S.mind.rest}, morph: ${S.mind.morph}, particles: ${S.mind.particles} },
+  sound: { volume: ${S.sound.volume}, ambience: ${S.sound.ambience} },
   detect: { confidence: ${S.detect.confidence}, upOnly: ${S.detect.upOnly},
             depth: { near: ${S.detect.depth.near}, far: ${S.detect.depth.far}, reach: ${S.detect.depth.reach}, margin: ${S.detect.depth.margin}, push: ${S.detect.depth.push} } },
   parts: [

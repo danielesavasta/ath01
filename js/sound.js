@@ -62,6 +62,9 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden && ct
 window.addEventListener("ath:hands", () => { if (!ctx) wake(); });
 wake();   // with the autoplay flag this starts right away; otherwise it waits for one of the above
 
+// the overall volume (K → Sound)
+export function setVolume(v){ T.volume = v; if (master && !muted) master.gain.setTargetAtTime(v, ctx.currentTime, 0.1); }
+
 window.addEventListener("keydown", (e) => {
   if (e.code !== "KeyS" || (e.target && e.target.tagName === "INPUT")) return;
   muted = !muted;
@@ -187,6 +190,52 @@ const SOUNDS = {
 // the least time between two of the same sound (ms), so bursts stay readable
 const GAP = { clink: 45, arrow: 250, crumble: 120, hover: 120, tick: 200, light: 200, grow: 300, torch: 400, stir: 350 };
 
+// ───────────── a ring filling under a resting hand ─────────────
+// A held voice like bowed glass on A that swells while the ring fills: the fifth joins at a third, the octave
+// at two thirds, the brightness opens, and the "open" chord (also on A) completes it. When the hand leaves it
+// sinks with the ring. One voice per ring (`key`); p is the ring's fill 0..1, x where it is (frame px).
+const voices = new Map();
+function dwellVoice(){
+  const g = ctx.createGain(), lp = ctx.createBiquadFilter(), p = ctx.createStereoPanner(), send = ctx.createGain();
+  g.gain.value = 0; lp.type = "lowpass"; lp.frequency.value = 500; lp.Q.value = 0.4; send.gain.value = 0.9;
+  lp.connect(g).connect(p).connect(master); p.connect(send).connect(wet);
+  const parts = [[220, 0, 1], [330, 0.33, 0.55], [440, 0.66, 0.4], [660, 0.88, 0.22]].map(([f, at, a]) => {
+    const pg = ctx.createGain(); pg.gain.value = at ? 0 : 1; pg.connect(lp);
+    const oscs = [-0.6, 0.7].map((det) => {
+      const o = ctx.createOscillator(), og = ctx.createGain();
+      o.frequency.value = f + det; og.gain.value = a * 0.5;
+      o.connect(og).connect(pg); o.start();
+      return o;
+    });
+    return { pg, at, oscs };
+  });
+  return { g, lp, p, parts };
+}
+export function dwell(key, p, x = 960){
+  let v = voices.get(key);
+  if (p <= 0.001 || muted || !ctx || ctx.state !== "running"){
+    if (v){
+      const t = ctx.currentTime;
+      v.g.gain.cancelScheduledValues(t); v.g.gain.setTargetAtTime(0, t, 0.12);
+      v.parts.forEach((q) => q.oscs.forEach((o) => o.stop(t + 1)));
+      voices.delete(key);
+    }
+    return;
+  }
+  if (!v){ v = dwellVoice(); voices.set(key, v); }
+  const t = ctx.currentTime;
+  v.g.gain.setTargetAtTime(0.06 * Math.pow(p, 0.8), t, 0.06);
+  v.lp.frequency.setTargetAtTime(500 + 3000 * p * p, t, 0.08);
+  v.p.pan.setTargetAtTime(Math.max(-1, Math.min(1, (x / 1920) * 2 - 1)) * 0.8, t, 0.1);
+  for (const q of v.parts) q.pg.gain.setTargetAtTime(p >= q.at ? 1 : 0, t, 0.3);
+}
+export function dwellStop(){ for (const k of [...voices.keys()]) dwell(k, 0); }
+
+// for js/ambience.js (the soundscapes): the context and the master, once sound is running
+export function audio(){ return init() && ctx.state === "running" ? { ctx, master } : null; }
+const listeners = [];
+export function onSfx(fn){ listeners.push(fn); }   // told every time an effect plays (the soundscape dips under it)
+
 export function sfx(name, opts = {}){
   const recipe = SOUNDS[name];
   if (!recipe || muted || !init() || ctx.state !== "running") return;
@@ -195,6 +244,7 @@ export function sfx(name, opts = {}){
   last.set(name, now);
   const pan = opts.x === undefined ? 0 : (opts.x / 1920) * 2 - 1;
   recipe(out(pan * 0.8, opts.room ?? 1), ctx.currentTime + 0.005, Math.max(0, Math.min(1, opts.v ?? 1)));
+  for (const fn of listeners) fn(name);
 }
 
-window.athSound = { sfx, get muted(){ return muted; }, get context(){ return ctx; }, timing: T, names: Object.keys(SOUNDS) };
+window.athSound = { sfx, dwell, get muted(){ return muted; }, get context(){ return ctx; }, get master(){ return master; }, timing: T, names: Object.keys(SOUNDS) };

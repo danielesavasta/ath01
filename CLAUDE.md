@@ -87,8 +87,17 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
 
 - **Sound** (`js/sound.js`): every sound is synthesized with Web Audio (no files), through a small room reverb;
   sections call `sfx(name, { x, v })` (x in frame px pans it, v is strength). Recipes and volume in that file; `?mute`.
-  Every sound as a button: `tools/test/sound.html` (for phones, tablets, the venue speakers). On iPad/iPhone audio
-  starts with the first touch and asks for "playback" so Silent Mode does not mute it (Safari 17+).
+  A ring filling under a resting hand (menu letters, back, languages) has a held voice that swells with it
+  (`dwell(key, p, x)` in sound.js). Every sound as a button: `tools/test/sound.html` (soundscapes, the ring, effects;
+  for phones, tablets, the venue speakers). On iPad/iPhone audio starts with the first touch and asks for
+  "playback" so Silent Mode does not mute it (Safari 17+).
+- **Soundscapes** (`js/ambience.js`): a quiet bed under each page, also synthesized, no music and no loops: air in a
+  stone hall, drones like bowed glass in pure intervals on D, rare far events in a long dark hall (bowl, lyre, frame
+  drum, loom, crickets, a little owl, dripping water). `SCENES` has one recipe per page (`menu` + the six ids), `LEVEL`
+  balances them. `sections.js` calls `ambience.scene(name)` on open/close (crossfade), `ambience.set("hush", …)`
+  in War (the gorgon's stare muffles it), `ambience.set("grow", …)` in Mind (a voice per sentence), and
+  `ambience.activity()` every frame (after `T.idleAfter` s with nobody it sinks to a whisper). Volumes in `K` → Sound
+  (saved as `sound` in `content/venue.js`); effects dip it slightly.
 - **Mind** (`js/mind.js`): five sentences while Daniele's olive plate grows (frames cut by
   `tools/olive/slice.py`), then back to the menu by itself (`done`). The olive is drawn by `T.particles` points in the
   drawing's own colours, which flow along curved paths into each next drawing (`T.morph`, `T.swirl`, `T.stagger`);
