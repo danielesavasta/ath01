@@ -87,6 +87,8 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
 
 - **Sound** (`js/sound.js`): every sound is synthesized with Web Audio (no files), through a small room reverb;
   sections call `sfx(name, { x, v })` (x in frame px pans it, v is strength). Recipes and volume in that file; `?mute`.
+  Every sound as a button: `tools/test/sound.html` (for phones, tablets, the venue speakers). On iPad/iPhone audio
+  starts with the first touch and asks for "playback" so Silent Mode does not mute it (Safari 17+).
 - **Mind** (`js/mind.js`): five sentences while Daniele's olive plate grows (frames cut by
   `tools/olive/slice.py`), then back to the menu by itself (`done`). The olive is drawn by `T.particles` points in the
   drawing's own colours, which flow along curved paths into each next drawing (`T.morph`, `T.swirl`, `T.stagger`);

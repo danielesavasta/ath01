@@ -42,8 +42,23 @@ function init(){
   wet.connect(conv).connect(master);
   return ctx;
 }
-function wake(){ if (init() && ctx.state === "suspended") ctx.resume(); }
-["pointerdown", "keydown", "touchstart"].forEach((e) => window.addEventListener(e, wake, { passive: true }));
+// iPad / iPhone: Safari's Web Audio is silenced by the silent switch / Silent Mode unless the page asks for
+// "playback" (Safari 17+), only starts inside a touch, and can come back "interrupted" (after a call or the
+// screen locking). A silent sample played in the first touch unlocks older versions too.
+if (navigator.audioSession) try { navigator.audioSession.type = "playback"; } catch (e) {}
+let unlocked = false;
+function wake(e){
+  if (!init()) return;
+  if (ctx.state !== "running") ctx.resume().catch(() => {});
+  if (e && !unlocked){                       // only inside a touch, click or key press
+    unlocked = true;
+    const b = ctx.createBufferSource();
+    b.buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+    b.connect(ctx.destination); b.start(0);
+  }
+}
+["pointerdown", "keydown", "touchstart", "touchend", "click"].forEach((e) => window.addEventListener(e, wake, { passive: true }));
+document.addEventListener("visibilitychange", () => { if (!document.hidden && ctx) wake(); });
 window.addEventListener("ath:hands", () => { if (!ctx) wake(); });
 wake();   // with the autoplay flag this starts right away; otherwise it waits for one of the above
 
@@ -182,4 +197,4 @@ export function sfx(name, opts = {}){
   recipe(out(pan * 0.8, opts.room ?? 1), ctx.currentTime + 0.005, Math.max(0, Math.min(1, opts.v ?? 1)));
 }
 
-window.athSound = { sfx, get muted(){ return muted; }, timing: T, names: Object.keys(SOUNDS) };
+window.athSound = { sfx, get muted(){ return muted; }, get context(){ return ctx; }, timing: T, names: Object.keys(SOUNDS) };
