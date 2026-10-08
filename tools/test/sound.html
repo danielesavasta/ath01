@@ -1,0 +1,41 @@
+<!doctype html>
+<!-- Sound check: every sound of js/sound.js as a button, for testing on a phone, tablet or the venue's
+     speakers. Open it from the repo root's server: tools/test/sound.html -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sound check</title>
+  <style>
+    body{ margin: 0; padding: 24px 16px 48px; background: #000; color: #E3D8C3; font: 16px/1.4 -apple-system, system-ui, sans-serif; }
+    h1{ margin: 0 0 4px; font-size: 22px; }
+    p{ margin: 0 0 18px; color: #8F877A; font-size: 14px; }
+    #state{ color: #ED1C24; }
+    .grid{ display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+    button{ padding: 18px 8px; border: 1px solid #333; border-radius: 10px; background: #111; color: inherit; font: inherit; }
+    button:active{ background: #ED1C24; color: #000; }
+    label{ display: block; margin: 0 0 18px; font-size: 14px; color: #8F877A; }
+    input{ width: 100%; max-width: 320px; }
+  </style>
+</head>
+<body>
+  <h1>Sound check</h1>
+  <p>Tap a sound. Audio: <span id="state">not started (tap anything)</span></p>
+  <label>Pan (left to right of the wall) <input id="pan" type="range" min="0" max="1920" value="960"></label>
+  <div class="grid" id="grid"></div>
+  <script type="module">
+    import { sfx } from "../../js/sound.js";
+    const grid = document.getElementById("grid"), state = document.getElementById("state"), pan = document.getElementById("pan");
+    for (const name of window.athSound.names){
+      const b = document.createElement("button");
+      b.textContent = name;
+      b.addEventListener("click", () => sfx(name, { x: +pan.value, v: 1 }));
+      grid.appendChild(b);
+    }
+    setInterval(() => {
+      const ctx = window.athSound.context;
+      state.textContent = !ctx ? "not started (tap anything)" : ctx.state + (window.athSound.muted ? ", muted" : "");
+    }, 300);
+  </script>
+</body>
+</html>
