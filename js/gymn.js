@@ -265,21 +265,22 @@ export function createGymn(opts){
     const pts = opts.statue ? opts.statue() : null;
     const xs = pts && pts.length ? pts.map((p) => p[0]) : [band[0], band[1]];
     const ys = pts && pts.length ? pts.map((p) => p[1]) : [60, 1060];
-    const cw = 34, ped = 70;
-    const x0 = Math.min(...xs) - 70, x1 = Math.max(...xs) + 70, mid = (x0 + x1) / 2, base = Math.min(H - 10, Math.max(...ys) + 8);
+    const cw = 40, ped = 90, nicheShift = 80; // sits a bit left of the mask, like the ruin's view offset
+    const margin = 130; // px of air around the mask on each side: how far out the columns stand (larger = bigger niche)
+    const x0 = Math.min(...xs) - margin - nicheShift, x1 = Math.max(...xs) + margin - nicheShift, mid = (x0 + x1) / 2, base = Math.min(H - 10, Math.max(...ys) + 10);
     // the pediment only if there is room above the head; the lines crossing the statue fall on the mask (no light)
-    const room = Math.min(...ys) - 40 >= ped + 30;
-    const top = room ? Math.min(...ys) - 40 : 14;
+    const room = Math.min(...ys) - 55 >= ped + 36;
+    const top = room ? Math.min(...ys) - 55 : 14;
     const path = [
       // the two columns
-      `M${x0} ${base} V${top + 30} M${x0 + cw} ${base} V${top + 30}`,
-      `M${x1} ${base} V${top + 30} M${x1 - cw} ${base} V${top + 30}`,
+      `M${x0} ${base} V${top + 36} M${x0 + cw} ${base} V${top + 36}`,
+      `M${x1} ${base} V${top + 36} M${x1 - cw} ${base} V${top + 36}`,
       // capitals and the entablature
-      `M${x0 - 10} ${top + 30} H${x1 + 10} M${x0 - 10} ${top + 12} H${x1 + 10} M${x0 - 10} ${top + 30} V${top + 12} M${x1 + 10} ${top + 30} V${top + 12}`,
+      `M${x0 - 14} ${top + 36} H${x1 + 14} M${x0 - 14} ${top + 14} H${x1 + 14} M${x0 - 14} ${top + 36} V${top + 14} M${x1 + 14} ${top + 36} V${top + 14}`,
       // the pediment
-      room ? `M${x0 - 16} ${top + 12} L${mid} ${top + 12 - ped} L${x1 + 16} ${top + 12}` : "",
+      room ? `M${x0 - 20} ${top + 14} L${mid} ${top + 14 - ped} L${x1 + 20} ${top + 14}` : "",
       // the base
-      `M${x0 - 20} ${base} H${x1 + 20}`
+      `M${x0 - 26} ${base} H${x1 + 26}`
     ];
     nicheEl.innerHTML = path.filter(Boolean).map((d, i) => `<path d="${d}" style="--i:${i}"/>`).join("");
     stage.classList.add("ended");

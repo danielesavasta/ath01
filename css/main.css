@@ -220,9 +220,9 @@ body.in-section #title{ opacity: 0; }
 /* the credit: small, bottom right of the frame, on the menu and in every section (above the transition's black) */
 #credit{
     position: absolute;
-    right: 1.25%;
+    left: 4%;
     bottom: 2.5%;
     /*transform: translate(0%, -100%);*/
-    font-family: var(--font-text); font-size: calc(13 * var(--u)); letter-spacing: .04em; line-height: 1;
-    color: var(--muted); white-space: nowrap; pointer-events: none; z-index: 2;
+    font-family: var(--font-text); font-size: calc(13 * var(--u)); letter-spacing: .04em; line-height: 1.5em;
+    color: var(--muted); white-space: pre-line; pointer-events: none; z-index: 2;
 }

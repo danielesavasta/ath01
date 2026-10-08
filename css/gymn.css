@@ -21,7 +21,6 @@ body.section-gymn #gymnStage{ opacity: 1; visibility: visible; transition: opaci
 .gymn-label.lit{ opacity: 1; }
 
 /* the niche around the real statue: thin red lines drawing themselves */
-.gymn-niche{ position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .gymn-niche path{ fill: none; stroke: var(--amber); stroke-width: 2.4; stroke-linecap: round; }
 .gymn-niche.in path{ transition: stroke-dashoffset 1.6s cubic-bezier(.4,.1,.2,1) calc(var(--i) * .25s); stroke-dashoffset: 0 !important; }
 

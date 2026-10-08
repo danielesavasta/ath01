@@ -26,7 +26,7 @@ export default {
         object: "Athena, Ephesos (Vedius Gymnasionu), Roma Dönemi, mermer"
       },
       // small, bottom right on every page
-      credit: "© 2026 · Daniele Savasta & Ege Canpolat",
+      credit: "Daniele Savasta\nEge Canpolat",
       // shown for a moment when a topic opens
       topics: {
         egg:   { title: "DOĞUŞ",  epithet: "Metis" },
@@ -124,7 +124,7 @@ export default {
         sub: "An interactive experience exploring the various epithets of the goddess Athena.",
         object: "Athena, Ephesus (Vedius Gymnasion), Roman Period, marble"
       },
-      credit: "© 2026 · Daniele Savasta & Ege Canpolat",
+      credit: "Daniele Savasta\nEge Canpolat",
       topics: {
         egg:   { title: "BIRTH",   epithet: "Metis" },
         owl:   { title: "THE OWL", epithet: "Coin and trade" },
