@@ -9,7 +9,7 @@
     --font-text: "Sporting Grotesque", "Arial Narrow", Arial, sans-serif;   /* Source Serif 4 is vendored if we go back to it */
     --font-label: "Roboto Condensed", "Arial Narrow", Arial, sans-serif;
     --ink: #E9E1D0;
-    --muted: #8F877A;
+    --muted: #e6e1da;
     --amber: #ED1C24;   /* old name kept to limit churn; every "amber" accent is a red */
     --line: #34363A;    /* borders of dev panels and cards */
     --panel-bg: rgba(11,11,12,.94);

@@ -110,7 +110,7 @@ export function createWar(opts){
   let snakes = null;
   // the gorgoneion as it is now: its snakes moving (a loop of frames), or the still picture until they are made
   const gorgonNow = () => snakes ? snakes[Math.floor(performance.now() / SNAKES.ms) % snakes.length] : gorgon;
-  const ICON = 140;                // the hand icon's size (js/scripts.js HAND_ICON), for the mouse's gorgoneion
+  const ICON = 140;                // the gorgoneion's size (frame px), for both the mouse and a real hand's icon
   let stone = null;               // the statue's marble, for arrows turned to stone
   if (opts.stoneTexture){
     const img = new Image();
@@ -324,7 +324,8 @@ export function createWar(opts){
     frame,
     relayout,
     // js/scripts.js asks for each hand's icon: a still hand blends into the gorgoneion
-    handSkin(id){ const h = hands.get(id); return h && h.g > 0 ? { img: gorgonNow(), mix: h.g } : null; },
+    // same size as the mouse's own gorgoneion (drawn above) so a hand is never smaller than the mouse
+    handSkin(id){ const h = hands.get(id); return h && h.g > 0 ? { img: gorgonNow(), mix: h.g, size: ICON } : null; },
     get running(){ return running; },
     get count(){ return count; },
     get hands(){ return [...hands.values()]; },

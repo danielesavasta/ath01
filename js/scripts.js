@@ -473,7 +473,7 @@ function finishHands(found, map, width, height) {
     const size = HAND_ICON * map.u;
     const handInfos = [];
     for (const h of shown) {
-        // the open section may hide a hand's icon (false) or blend it into another image ({ img, mix: 0..1 }),
+        // the open section may hide a hand's icon (false) or blend it into another image ({ img, mix: 0..1, size? }),
         // see window.athHandSkin in js/sections.js
         const skin = window.athHandSkin ? window.athHandSkin(h.id) : null;
         if (skin === false) continue;
@@ -496,9 +496,11 @@ function finishHands(found, map, width, height) {
             drawingCtx.restore();
         }
         if (mix > 0 && skin.img.complete) {   // upright, not turned with the hand
+            // a section can ask for its blended image at its own size (skin.size, frame px) instead of the hand icon's
+            const skinSize = (skin.size || HAND_ICON) * map.u;
             drawingCtx.save();
             drawingCtx.globalAlpha = mix;
-            drawingCtx.drawImage(skin.img, h.sx - size / 2, h.sy - size / 2, size, size);
+            drawingCtx.drawImage(skin.img, h.sx - skinSize / 2, h.sy - skinSize / 2, skinSize, skinSize);
             drawingCtx.restore();
         }
         handInfos.push(`H${h.id}${h.label === 'Left' ? 'L' : 'R'} ${Math.round(h.sx)}|${Math.round(h.sy)}`);

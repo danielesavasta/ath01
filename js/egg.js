@@ -18,8 +18,8 @@ import { sfx } from "./sound.js";
 
 const W = 1920, H = 1080;
 const T = {
-  settle: 500,       // ms a hand rests on a work before it comes forward
-  linger: 2200,      // ms the work stays forward after the hand leaves it
+  settle: 750,       // ms a hand rests on a work before it comes forward
+  linger: 2700,      // ms the work stays forward after the hand leaves it
   fly: 0.0032,       // how fast a work comes forward / goes back (per ms, eased)
   near: 250,         // px: the height of a work at the front of the space (depth 0)
   far: 0.3,          // a work at the back is this much the size of one at the front
