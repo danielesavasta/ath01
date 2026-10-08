@@ -22,9 +22,8 @@ import { createCraft } from "./craft.js";
 import { createMind } from "./mind.js";
 import { createGymn } from "./gymn.js";
 import { sfx, dwell, dwellStop, setVolume } from "./sound.js";
-import { ambience } from "./ambience.js";
 // the room's loudness from the setup screen (K → Sound)
-function applySound(v){ const s = v && v.sound; if (!s) return; setVolume(s.volume); ambience.volume(s.ambience); }
+function applySound(v){ const s = v && v.sound; if (s) setVolume(s.volume); }
 if (window.VENUE){ applySound(window.VENUE.get()); window.VENUE.onChange(applySound); }
 import TEXTS from "../content/texts.js";
 
@@ -385,7 +384,6 @@ function openSection(name){
   document.body.classList.add("opening");
   s.reset();                     // a fresh start for every visit (the coin dropped on the table, the gallery at its first image)
   sfx("open");
-  ambience.scene(name);          // the topic's soundscape fades in under the opening
   veil.style.setProperty("--vr", "0px");
   iris(x, y, 0, 0, 1);           // black everywhere for a moment, under the letters
   setTimeout(() => showTopic(name, x, y), 200);   // the topic's name on black, where its letter was
@@ -408,7 +406,6 @@ function closeSection(why = "back"){
   const name = section, s = SECTIONS[name];
   const [x, y] = slotCentre(name);
   sfx("close");
-  ambience.scene("menu");
   back.style.setProperty("--p", 0);
   topicCard.classList.remove("on");
   iris(x, y, -1, 0, TR.close, () => {
@@ -479,7 +476,6 @@ function frame(now){
   const dt = Math.max(0, Math.min(now - lastT, 100));
   lastT = now;
   const pts = pointers(now);
-  ambience.activity(pts.length > 0);
   if (busy){ dwellStop(); if (section !== "menu") SECTIONS[section].frame?.([], dt); }   // going in or out: no choosing meanwhile
   else if (section === "menu") menuFrame(now, dt, pts); else sectionFrame(now, dt, pts);
   requestAnimationFrame(frame);
@@ -534,9 +530,6 @@ function sectionFrame(now, dt, pts){
   active.frame?.(pts, dt);      // sections without hand physics of their own (the egg gallery) get dwell here
   if (active.done){ closeSection("back"); return; }   // a section that tells a story once (mind) ends by itself
   const handsIn = pts.some((p) => !p.mouse);
-  // the soundscape follows the topic: war hushes under the gorgon's stare, mind's drone grows with the olive
-  if (section === "war") ambience.set("hush", Math.max(0, ...war.hands.map((h) => h.g)));
-  if (section === "mind") ambience.set("grow", Math.max(0, (mind.chapter - 1) / 4));
   if (handsIn || active.holding || active.playing) activeAt = now;   // mind: stays open while its story is told
 
   // a hand resting on the back button (not one carrying the coin)

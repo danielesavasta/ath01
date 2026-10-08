@@ -231,11 +231,6 @@ export function dwell(key, p, x = 960){
 }
 export function dwellStop(){ for (const k of [...voices.keys()]) dwell(k, 0); }
 
-// for js/ambience.js (the soundscapes): the context and the master, once sound is running
-export function audio(){ return init() && ctx.state === "running" ? { ctx, master } : null; }
-const listeners = [];
-export function onSfx(fn){ listeners.push(fn); }   // told every time an effect plays (the soundscape dips under it)
-
 export function sfx(name, opts = {}){
   const recipe = SOUNDS[name];
   if (!recipe || muted || !init() || ctx.state !== "running") return;
@@ -244,7 +239,6 @@ export function sfx(name, opts = {}){
   last.set(name, now);
   const pan = opts.x === undefined ? 0 : (opts.x / 1920) * 2 - 1;
   recipe(out(pan * 0.8, opts.room ?? 1), ctx.currentTime + 0.005, Math.max(0, Math.min(1, opts.v ?? 1)));
-  for (const fn of listeners) fn(name);
 }
 
 window.athSound = { sfx, dwell, get muted(){ return muted; }, get context(){ return ctx; }, get master(){ return master; }, timing: T, names: Object.keys(SOUNDS) };

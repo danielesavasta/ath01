@@ -42,8 +42,8 @@ window.VENUE_FILE = {
         // the Mind section's pace (K, Mind): seconds a sentence's drawings take, seconds the last one rests before
         // the next sentence, seconds the points take to flow into the next drawing, and how many points draw the olive
         mind: { line: 7.5, rest: 2, morph: 2.8, particles: 30000 },
-        // sound (K, Sound): the overall volume, and the soundscapes under the effects (a share of it)
-        sound: { volume: 0.8, ambience: 0 },
+        // sound (K, Sound): the overall volume
+        sound: { volume: 0.8 },
         detect: { confidence: 0.6, upOnly: 70,
                   depth: { near: 500, far: 4000, reach: 180, margin: 120, push: 120 } },
         // cloth parts lit by the Craft section (js/craft/), drawn on the statue photo; redraw them at the venue (K)
@@ -179,8 +179,6 @@ window.VENUE_FILE = {
             <div class="vs-body" data-for="sound">
               <p>The room's loudness. Set it with the venue's speakers, standing where visitors stand. S mutes everything.</p>
               <label class="vs-slider">Overall volume <output data-o="volume"></output><input type="range" min="0" max="1" step="0.01" data-k="volume"></label>
-              <label class="vs-slider">Soundscapes (the bed under each page) <output data-o="ambience"></output><input type="range" min="0" max="1" step="0.01" data-k="ambience"></label>
-              <p>After a minute with nobody in front, the soundscape sinks to a whisper by itself.</p>
             </div>
             <div class="vs-body" data-for="camera">
               <p>What the camera sees; the frame is the area mapped onto the wall. Cover the area where visitors' hands move; the tighter it is, the better far-away hands are found. Drag: move. Wheel: zoom.</p>
@@ -227,7 +225,7 @@ window.VENUE_FILE = {
             else if (k === 'mindRest') S.mind.rest = v;
             else if (k === 'mindMorph') S.mind.morph = v;
             else if (k === 'mindParticles') S.mind.particles = v;
-            else if (k === 'volume' || k === 'ambience') S.sound[k] = v;
+            else if (k === 'volume') S.sound.volume = v;
             else S.detect[k] = v;
             changed(); refresh();
         }));
@@ -289,9 +287,8 @@ window.VENUE_FILE = {
         ui.querySelector('[data-o="mindRest"]').textContent = S.mind.rest.toFixed(1) + ' s';
         ui.querySelector('[data-o="mindMorph"]').textContent = S.mind.morph.toFixed(1) + ' s';
         ui.querySelector('[data-o="mindParticles"]').textContent = S.mind.particles.toLocaleString('en');
-        set('volume', S.sound.volume); set('ambience', S.sound.ambience);
+        set('volume', S.sound.volume);
         ui.querySelector('[data-o="volume"]').textContent = Math.round(S.sound.volume * 100) + '%';
-        ui.querySelector('[data-o="ambience"]').textContent = Math.round(S.sound.ambience * 100) + '%';
         ui.querySelector('[data-o="reach"]').textContent = S.detect.depth.reach + ' mm';
         ui.querySelector('[data-o="far"]').textContent = (S.detect.depth.far / 1000).toFixed(1) + ' m';
         ui.querySelector('[data-o="push"]').textContent = S.detect.depth.push + ' mm';
@@ -465,7 +462,7 @@ window.VENUE_FILE = {
   },
     camera: { zoom: ${+S.camera.zoom.toFixed(3)}, cx: ${+S.camera.cx.toFixed(4)}, cy: ${+S.camera.cy.toFixed(4)}, kinectMirror: ${S.camera.kinectMirror} },
   mind: { line: ${S.mind.line}, rest: ${S.mind.rest}, morph: ${S.mind.morph}, particles: ${S.mind.particles} },
-  sound: { volume: ${S.sound.volume}, ambience: ${S.sound.ambience} },
+  sound: { volume: ${S.sound.volume} },
   detect: { confidence: ${S.detect.confidence}, upOnly: ${S.detect.upOnly},
             depth: { near: ${S.detect.depth.near}, far: ${S.detect.depth.far}, reach: ${S.detect.depth.reach}, margin: ${S.detect.depth.margin}, push: ${S.detect.depth.push} } },
   parts: [

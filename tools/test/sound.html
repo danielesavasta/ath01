@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Sound check: the soundscapes (js/ambience.js) and every effect (js/sound.js) as buttons, for testing on a
+<!-- Sound check: the ring's voice and every effect (js/sound.js) as buttons, for testing on a
      phone, tablet or the venue's speakers. Open it from the repo root's server: tools/test/sound.html -->
 <html lang="en">
 <head>
@@ -22,13 +22,7 @@
 </head>
 <body>
   <h1>Sound check</h1>
-  <p>Tap anything first. Audio: <span id="state">not started</span>. Headphones show the soundscapes best; tablet speakers lose the low end.</p>
-
-  <h2>Soundscapes (trial, not in the piece yet)</h2>
-  <p>Mostly silence: now and then a short phrase, then quiet again. Main page: a lyre. Owl: the little owl calling, and a low string. "Play one now" skips the wait.</p>
-  <div class="grid" id="scenes"></div>
-  <label style="margin-top:14px">Soundscape volume <input id="ambVol" type="range" min="0" max="1" step="0.01"></label>
-  <label><input id="hall" type="checkbox" style="display:inline;width:auto"> Simulate the museum's large hall (for headphones; at the venue the room does this)</label>
+  <p>Tap anything first. Audio: <span id="state">not started</span>. Tablet speakers lose the low end; headphones or the venue speakers show it best.</p>
 
   <h2>A ring filling</h2>
   <p>Drag slowly, like a hand resting on a letter; at the end it opens.</p>
@@ -40,29 +34,7 @@
 
   <script type="module">
     import { sfx, dwell } from "../../js/sound.js";
-    import { ambience } from "../../js/ambience.js";
     const $ = (id) => document.getElementById(id);
-    const NAMES = { menu: "Main page", egg: "Birth", owl: "Owl", war: "War", craft: "Craft", mind: "Mind", gymn: "Gymnasion" };
-    ambience.volume(0.7);   // off in the piece for now; audible here
-    const sceneBtns = [];
-    for (const name of ambience.scenes){
-      const b = document.createElement("button");
-      b.textContent = NAMES[name] || name;
-      b.addEventListener("click", () => { ambience.scene(name); sceneBtns.forEach((x) => x.classList.toggle("on", x === b)); });
-      $("scenes").appendChild(b); sceneBtns.push(b);
-    }
-    sceneBtns[0].classList.add("on");
-    const now = document.createElement("button");
-    now.textContent = "Play one now";
-    now.addEventListener("click", () => ambience.now());
-    $("scenes").appendChild(now);
-    const off = document.createElement("button");
-    off.textContent = "Silence";
-    off.addEventListener("click", () => { ambience.volume(0); $("ambVol").value = 0; });
-    $("scenes").appendChild(off);
-    $("ambVol").value = 0.7;
-    $("ambVol").addEventListener("input", (e) => ambience.volume(+e.target.value));
-    $("hall").addEventListener("change", (e) => ambience.hall(e.target.checked));
     $("fill").addEventListener("input", (e) => {
       const p = +e.target.value;
       dwell("test", p);
@@ -75,11 +47,9 @@
       b.addEventListener("click", () => sfx(name, { x: +$("pan").value, v: 1 }));
       $("grid").appendChild(b);
     }
-    // the page is always "someone there", so the soundscape never sinks to its idle whisper here
-    setInterval(() => ambience.activity(true), 1000);
     setInterval(() => {
       const ctx = window.athSound.context;
-      $("state").textContent = !ctx ? "not started" : ctx.state + (window.athSound.muted ? ", muted" : "") + (ambience.name ? " · " + (NAMES[ambience.name] || ambience.name) : "");
+      $("state").textContent = !ctx ? "not started" : ctx.state + (window.athSound.muted ? ", muted" : "");
     }, 300);
   </script>
 </body>
