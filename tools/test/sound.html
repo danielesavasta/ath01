@@ -24,12 +24,11 @@
   <h1>Sound check</h1>
   <p>Tap anything first. Audio: <span id="state">not started</span>. Headphones show the soundscapes best; tablet speakers lose the low end.</p>
 
-  <h2>Soundscapes</h2>
-  <p>One for the main page and one for each topic. They crossfade, like walking between rooms.</p>
+  <h2>Soundscapes (trial, not in the piece yet)</h2>
+  <p>Mostly silence: now and then a short phrase, then quiet again. Main page: a lyre. Owl: the little owl calling, and a low string. "Play one now" skips the wait.</p>
   <div class="grid" id="scenes"></div>
   <label style="margin-top:14px">Soundscape volume <input id="ambVol" type="range" min="0" max="1" step="0.01"></label>
-  <label>War: the gorgon's stare (hush) <input id="hush" type="range" min="0" max="1" step="0.01" value="0"></label>
-  <label>Mind: the olive grows (sentence 1 to 5) <input id="grow" type="range" min="0" max="1" step="0.25" value="0"></label>
+  <label><input id="hall" type="checkbox" style="display:inline;width:auto"> Simulate the museum's large hall (for headphones; at the venue the room does this)</label>
 
   <h2>A ring filling</h2>
   <p>Drag slowly, like a hand resting on a letter; at the end it opens.</p>
@@ -44,6 +43,7 @@
     import { ambience } from "../../js/ambience.js";
     const $ = (id) => document.getElementById(id);
     const NAMES = { menu: "Main page", egg: "Birth", owl: "Owl", war: "War", craft: "Craft", mind: "Mind", gymn: "Gymnasion" };
+    ambience.volume(0.7);   // off in the piece for now; audible here
     const sceneBtns = [];
     for (const name of ambience.scenes){
       const b = document.createElement("button");
@@ -51,14 +51,18 @@
       b.addEventListener("click", () => { ambience.scene(name); sceneBtns.forEach((x) => x.classList.toggle("on", x === b)); });
       $("scenes").appendChild(b); sceneBtns.push(b);
     }
+    sceneBtns[0].classList.add("on");
+    const now = document.createElement("button");
+    now.textContent = "Play one now";
+    now.addEventListener("click", () => ambience.now());
+    $("scenes").appendChild(now);
     const off = document.createElement("button");
     off.textContent = "Silence";
     off.addEventListener("click", () => { ambience.volume(0); $("ambVol").value = 0; });
     $("scenes").appendChild(off);
-    $("ambVol").value = ambience.timing.volume;
+    $("ambVol").value = 0.7;
     $("ambVol").addEventListener("input", (e) => ambience.volume(+e.target.value));
-    $("hush").addEventListener("input", (e) => ambience.set("hush", +e.target.value));
-    $("grow").addEventListener("input", (e) => ambience.set("grow", +e.target.value));
+    $("hall").addEventListener("change", (e) => ambience.hall(e.target.checked));
     $("fill").addEventListener("input", (e) => {
       const p = +e.target.value;
       dwell("test", p);

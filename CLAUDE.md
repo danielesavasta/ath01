@@ -91,13 +91,13 @@ Load order in `index.htm`: `lib/hands.js`, `lib/camera_utils.js` → `content/ve
   (`dwell(key, p, x)` in sound.js). Every sound as a button: `tools/test/sound.html` (soundscapes, the ring, effects;
   for phones, tablets, the venue speakers). On iPad/iPhone audio starts with the first touch and asks for
   "playback" so Silent Mode does not mute it (Safari 17+).
-- **Soundscapes** (`js/ambience.js`): a quiet bed under each page, also synthesized, no music and no loops: air in a
-  stone hall, drones like bowed glass in pure intervals on D, rare far events in a long dark hall (bowl, lyre, frame
-  drum, loom, crickets, a little owl, dripping water). `SCENES` has one recipe per page (`menu` + the six ids), `LEVEL`
-  balances them. `sections.js` calls `ambience.scene(name)` on open/close (crossfade), `ambience.set("hush", …)`
-  in War (the gorgon's stare muffles it), `ambience.set("grow", …)` in Mind (a voice per sentence), and
-  `ambience.activity()` every frame (after `T.idleAfter` s with nobody it sinks to a whisper). Volumes in `K` → Sound
-  (saved as `sound` in `content/venue.js`); effects dip it slightly.
+- **Soundscapes** (`js/ambience.js`), second try, **off in the piece** (`T.volume` 0, `K` → Sound) while Ege judges it on
+  the sound check page. The first version (a noise bed with its own echo) turned to wash in the museum's large hall.
+  Now: no bed, no echo of our own (the hall is the echo), mostly silence; each page one voice playing a short phrase
+  now and then, close and dry. So far `menu` (a simulated lyre in D Dorian: Karplus-Strong string, pluck position,
+  wooden body, neighbouring strings ringing) and `owl` (the little owl's call, a low string); other pages silent.
+  `sections.js` calls `ambience.scene(name)` on open/close and `ambience.activity()` every frame (it stops after
+  `T.idleAfter` s with nobody there).
 - **Mind** (`js/mind.js`): five sentences while Daniele's olive plate grows (frames cut by
   `tools/olive/slice.py`), then back to the menu by itself (`done`). The olive is drawn by `T.particles` points in the
   drawing's own colours, which flow along curved paths into each next drawing (`T.morph`, `T.swirl`, `T.stagger`);
