@@ -14,7 +14,8 @@
 import { audio, onSfx } from "./sound.js";
 
 const T = {
-  volume: 0.55,      // the soundscapes under the effects, 0..1 (K → Sound overrides)
+  volume: 0,         // the soundscapes under the effects, 0..1 (K → Sound overrides). Off: the first version did not
+                     // work in the museum's large hall (a noise bed plus echo, in a room that echoes); being redone
   fade: 3,           // s, crossfade between pages
   idleAfter: 60,     // s with nobody in front before it sinks…
   idleLevel: 0.3,    // …to this share of its volume

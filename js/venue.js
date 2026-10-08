@@ -43,7 +43,7 @@ window.VENUE_FILE = {
         // the next sentence, seconds the points take to flow into the next drawing, and how many points draw the olive
         mind: { line: 7.5, rest: 2, morph: 2.8, particles: 30000 },
         // sound (K, Sound): the overall volume, and the soundscapes under the effects (a share of it)
-        sound: { volume: 0.8, ambience: 0.55 },
+        sound: { volume: 0.8, ambience: 0 },
         detect: { confidence: 0.6, upOnly: 70,
                   depth: { near: 500, far: 4000, reach: 180, margin: 120, push: 120 } },
         // cloth parts lit by the Craft section (js/craft/), drawn on the statue photo; redraw them at the venue (K)
