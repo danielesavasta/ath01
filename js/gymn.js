@@ -29,6 +29,9 @@ const T = {
   autoGap: 4000,      // ms between two places found by the wandering torch
   torchSpeed: 90,     // plan px per second, the wandering torch
   memory: 0.5,        // how brightly a lit spot keeps glowing afterwards (0..1)
+  moonlight: 1,       // the ruin's light before any torch (1 = as tuned for the projector; a projector loses dark greys)
+  exposure: 1.35,     // overall brightness of the picture
+  planLines: 0.5,     // how strongly the red plan stays on the floor after the walls rise (0..1)
   endAfter: 2600,     // ms after the last place is found before the ending
   endFade: 1800,      // ms the ruin takes to fade out
   niche: 2600,        // ms the niche takes to draw itself around the statue
@@ -70,11 +73,13 @@ export function createGymn(opts){
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = T.exposure;
   renderer.setClearColor(0x000000, 1);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(32, W / H, 10, 6000);
-  scene.add(new THREE.AmbientLight(0x6f86b0, 0.16));            // moonlight, just enough to sense the walls
-  const moon = new THREE.DirectionalLight(0x8aa0c8, 0.32);
+  // moonlight: enough to see the whole ruin on a projected wall, cool, so the torches still stand out warm
+  scene.add(new THREE.HemisphereLight(0x9fb2d6, 0x2a2420, 0.55 * T.moonlight));
+  const moon = new THREE.DirectionalLight(0x9db0d4, 1.1 * T.moonlight);
   moon.position.set(-300, 500, 200);
   scene.add(moon);
 
@@ -296,7 +301,7 @@ export function createGymn(opts){
     placeCamera(clamp01(t / T.tilt));
     if (lines){
       lines.geometry.setDrawRange(0, Math.floor(lineCountTotal * clamp01(t / T.draw) / 2) * 2);
-      lines.material.opacity = 1 - 0.75 * clamp01((t - T.draw) / 1500);
+      lines.material.opacity = 1 - (1 - T.planLines) * clamp01((t - T.draw) / 1500);
     }
     const riseK = (t - T.draw * 0.6) / T.rise;
     if (riseK > 0 && !rumbled){ rumbled = true; sfx("rise", { x: 500 }); }
@@ -332,7 +337,7 @@ export function createGymn(opts){
       if (s){ tc.x = tc.on > 0.02 ? tc.x + (s.x - tc.x) * Math.min(1, dt / 90) : s.x; tc.y = tc.on > 0.02 ? tc.y + (s.y - tc.y) * Math.min(1, dt / 90) : s.y; }
       if (tc.want > 0.5 && tc.on < 0.05 && i < hands.length) sfx("torch", { x: toFrame(tc.x, tc.y).x });   // a hand's torch catches
       tc.on += (tc.want - tc.on) * Math.min(1, dt / 250);
-      tc.light.intensity = 7 * tc.on;
+      tc.light.intensity = 9 * tc.on;
       tc.light.position.set(wx(tc.x) + 30, 260, wz(tc.y) + 120);
       tc.light.target.position.set(wx(tc.x), 0, wz(tc.y));
       tc.light.target.updateMatrixWorld();
