@@ -336,7 +336,6 @@ export function createMind(opts){
     // js/sections.js goes back to the menu
     get playing(){ return running && !done; },
     get done(){ return done; },
-    get chapter(){ return shown; },   // the sentence showing (1..5), for the soundscape
     get running(){ return running; },
     timing: T
   };
